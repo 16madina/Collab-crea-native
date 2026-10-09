@@ -57,6 +57,12 @@ export const budgetLabel = (o: Pick<Offer, "budget_min" | "budget_max">) =>
       ? fcfa(o.budget_min)
       : `${fcfa(o.budget_min).replace(" FCFA", "")} – ${fcfa(o.budget_max)}`;
 
+// Aperçu web : ?demo=creator|brand|admin connecte directement le compte de démo.
+function demoFromUrl(): string | null {
+  const q = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search).get("demo") : null;
+  return q === "admin" ? seed.ADMIN_ID : q === "brand" ? seed.BRAND_ID : q === "creator" ? seed.CREATOR_ID : null;
+}
+
 const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => new Date().toISOString();
 const inDays = (d: number) => new Date(Date.now() + d * 864e5).toISOString();
@@ -186,7 +192,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
 
   return {
     ...seed.db,
-    userId: null,
+    userId: demoFromUrl(),
     inviteRequired: false,
     inviteUnlocked: false,
 

@@ -1,13 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeInRight, ZoomIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { landingFaces, landingHero } from "../src/data";
 import { colors, radius, shadow, type } from "../src/theme";
-import { Avatar, Button, Glass, IconButton, Logo } from "../src/ui";
+import { useDB } from "../src/store";
+import { Role } from "../src/types";
+import { Avatar, Button, Glass, Logo, Press } from "../src/ui";
 
 const perks = [
   { icon: "people-outline", label: "Opportunités\nréelles" },
@@ -23,7 +25,16 @@ const stats = [
 
 export default function Landing() {
   const insets = useSafeAreaInsets();
-  const enter = () => router.replace("/(tabs)/home");
+  const userId = useDB((s) => s.userId);
+  const role = useDB((s) => s.profiles.find((p) => p.user_id === s.userId)?.role);
+  const demoSignIn = useDB((s) => s.demoSignIn);
+
+  if (userId) return <Redirect href={role === "admin" ? "/admin" : "/(tabs)/home"} />;
+
+  const demo = (r: Role) => {
+    demoSignIn(r);
+    router.replace(r === "admin" ? "/admin" : "/(tabs)/home");
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -31,7 +42,10 @@ export default function Landing() {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 32 }} showsVerticalScrollIndicator={false}>
         <View style={styles.top}>
           <Logo size={40} />
-          <IconButton name="notifications-outline" badge />
+          <Press onPress={() => router.push("/auth/login")} style={[styles.loginPill, shadow.soft]}>
+            <Ionicons name="log-in-outline" size={18} color={colors.ink} />
+            <Text style={{ fontWeight: "700", color: colors.ink }}>Connexion</Text>
+          </Press>
         </View>
 
         {/* Héros */}
@@ -66,8 +80,8 @@ export default function Landing() {
           <Text style={[type.body, { maxWidth: 300 }]}>
             Collab Créa connecte les créateurs de contenu africains avec les marques qui croient en leur talent.
           </Text>
-          <Button label="Je suis créateur" onPress={enter} style={{ marginTop: 8 }} />
-          <Button label="Je suis une marque" variant="outline" onPress={enter} />
+          <Button label="Je suis créateur" onPress={() => router.push("/auth/signup?role=creator")} style={{ marginTop: 8 }} />
+          <Button label="Je suis une marque" variant="outline" onPress={() => router.push("/auth/signup?role=brand")} />
         </Animated.View>
 
         <View style={styles.perks}>
@@ -107,15 +121,53 @@ export default function Landing() {
           </View>
         </Animated.View>
 
-        <Text style={[type.small, { textAlign: "center", marginTop: 22 }]} onPress={enter}>
+        <Text style={[type.small, { textAlign: "center", marginTop: 22 }]} onPress={() => router.push("/auth/login")}>
           Déjà membre ? <Text style={{ color: colors.primary, fontWeight: "700" }}>Se connecter</Text>
         </Text>
+
+        <Animated.View entering={FadeInDown.delay(850).springify()} style={styles.demo}>
+          <Ionicons name="flask-outline" size={14} color={colors.muted} />
+          <Text style={type.tiny}>Mode démo</Text>
+          {(
+            [
+              ["creator", "Créateur"],
+              ["brand", "Marque"],
+              ["admin", "Admin"],
+            ] as const
+          ).map(([r, l]) => (
+            <Press key={r} onPress={() => demo(r)} style={styles.demoChip} scaleTo={0.92}>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: colors.inkSoft }}>{l}</Text>
+            </Press>
+          ))}
+        </Animated.View>
+
+        <View style={styles.footer}>
+          {(
+            [
+              ["CGU", "/legal/terms"],
+              ["Confidentialité", "/legal/privacy"],
+              ["Sécurité des enfants", "/legal/child-safety"],
+              ["Contact", "/contact"],
+            ] as const
+          ).map(([l, h], i) => (
+            <Text key={h} style={styles.footLink} onPress={() => router.push(h)}>
+              {i > 0 ? "·  " : ""}
+              {l}
+            </Text>
+          ))}
+        </View>
+        <Text style={[type.tiny, { textAlign: "center", marginTop: 8 }]}>© {new Date().getFullYear()} Collab Créa</Text>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  loginPill: { flexDirection: "row", alignItems: "center", gap: 6, height: 42, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface },
+  demo: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 26, flexWrap: "wrap", paddingHorizontal: 20 },
+  demoChip: { paddingHorizontal: 12, height: 30, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, justifyContent: "center", backgroundColor: "rgba(255,255,255,0.6)" },
+  footer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 22, paddingHorizontal: 20 },
+  footLink: { fontSize: 12, color: colors.inkSoft, fontWeight: "600" },
   top: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24 },
   hero: { height: 420, marginTop: 16 },
   title: { position: "absolute", left: 24, top: 18, width: 250, fontSize: 35, lineHeight: 39 },
