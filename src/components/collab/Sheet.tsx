@@ -31,7 +31,7 @@ export function Sheet({
         </Pressable>
         <View style={{ flex: 1 }} pointerEvents="box-none" />
         <View style={[styles.panel, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-          <BlurView intensity={60} tint="light" style={StyleSheet.absoluteFill} />
+          <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={styles.grabber} />
           {title ? (
             <View style={styles.head}>

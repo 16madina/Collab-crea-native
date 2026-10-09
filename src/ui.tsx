@@ -68,7 +68,7 @@ export function Logo({ size = 44, showText = true }: { size?: number; showText?:
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
       <Svg width={size * 1.3} height={size} viewBox="0 0 52 40">
         <Path d="M22 6a14 14 0 1 0 0 28" stroke={colors.primary} strokeWidth={8} strokeLinecap="round" fill="none" />
-        <Path d="M42 12a10 10 0 1 0 0 16" stroke={colors.ink} strokeWidth={8} strokeLinecap="round" fill="none" />
+        <Path d="M42 12a10 10 0 1 0 0 16" stroke={colors.primaryPale} strokeWidth={8} strokeLinecap="round" fill="none" />
       </Svg>
       {showText && (
         <View>
@@ -99,7 +99,7 @@ export function Button({
   style?: StyleProp<ViewStyle>;
   small?: boolean;
 }) {
-  const fg = variant === "primary" || variant === "dark" ? "#fff" : colors.ink;
+  const fg = variant === "primary" ? colors.onPrimary : variant === "ghost" || variant === "outline" ? colors.primary : colors.ink;
   return (
     <Press
       onPress={onPress}
@@ -108,7 +108,7 @@ export function Button({
         small && styles.btnSmall,
         variant === "primary" && [styles.btnPrimary, shadow.glow],
         variant === "outline" && styles.btnOutline,
-        variant === "dark" && { backgroundColor: colors.night },
+        variant === "dark" && { backgroundColor: colors.surfaceHi, borderWidth: 1, borderColor: colors.line },
         variant === "ghost" && { backgroundColor: colors.primarySoft },
         style,
       ]}
@@ -132,7 +132,7 @@ export function IconButton({
 }) {
   return (
     <Press onPress={onPress} style={[styles.iconBtn, shadow.soft, dark && { backgroundColor: "rgba(0,0,0,0.35)" }]}>
-      <Ionicons name={name} size={22} color={dark ? "#fff" : colors.ink} />
+      <Ionicons name={name} size={22} color={colors.ink} />
       {badge && <View style={styles.badge} />}
     </Press>
   );
@@ -174,7 +174,7 @@ export function BrandDot({ name, color, size = 18 }: { name: string; color: stri
 export function Tag({ label, dark }: { label: string; dark?: boolean }) {
   return (
     <View style={[styles.tag, dark && { backgroundColor: "rgba(20,20,20,0.75)" }]}>
-      <Text style={{ fontSize: 11, fontWeight: "700", color: dark ? "#fff" : colors.primary }}>{label}</Text>
+      <Text style={{ fontSize: 11, fontWeight: "700", color: dark ? colors.ink : colors.primaryLight }}>{label}</Text>
     </View>
   );
 }
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   btnSmall: { height: 40, paddingHorizontal: 16 },
   btnPrimary: { backgroundColor: colors.primary },
-  btnOutline: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: "rgba(255,255,255,0.6)" },
+  btnOutline: { borderWidth: 1.2, borderColor: colors.primary, backgroundColor: "transparent" },
   btnText: { fontSize: 16, fontWeight: "700" },
   iconBtn: {
     width: 48,
@@ -266,9 +266,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: colors.primary,
     borderWidth: 1.5,
-    borderColor: "#fff",
+    borderColor: colors.bg,
   },
   section: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, marginTop: 28, marginBottom: 14 },
-  tag: { backgroundColor: "#fff", borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
+  tag: { backgroundColor: "rgba(11,11,11,0.7)", borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, overflow: "hidden" },
 });

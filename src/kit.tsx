@@ -76,7 +76,7 @@ export function Field({ label, error, hint, style, ...p }: TextInputProps & { la
       <TextInput
         placeholderTextColor={colors.muted}
         {...p}
-        style={[styles.input, p.multiline && { height: 110, paddingTop: 14, textAlignVertical: "top" }, !!error && { borderColor: "#E5484D" }, style]}
+        style={[styles.input, p.multiline && { height: 110, paddingTop: 14, textAlignVertical: "top" }, !!error && { borderColor: colors.danger }, style]}
       />
       {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={type.tiny}>{hint}</Text> : null}
     </View>
@@ -90,8 +90,8 @@ export function Label({ children }: { children: ReactNode }) {
 export function Chip({ label, on, onPress, icon }: { label: string; on?: boolean; onPress?: () => void; icon?: keyof typeof Ionicons.glyphMap }) {
   return (
     <Press onPress={onPress} style={[styles.chip, on && styles.chipOn]} scaleTo={0.94}>
-      {icon ? <Ionicons name={icon} size={14} color={on ? "#fff" : colors.ink} /> : null}
-      <Text style={{ fontSize: 13, fontWeight: "600", color: on ? "#fff" : colors.ink }}>{label}</Text>
+      {icon ? <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.ink} /> : null}
+      <Text style={{ fontSize: 13, fontWeight: "600", color: on ? colors.onPrimary : colors.ink }}>{label}</Text>
     </Press>
   );
 }
@@ -148,7 +148,7 @@ export function Empty({ icon = "sparkles-outline", title, text, action }: { icon
 }
 
 export function Banner({ tone = "info", icon, children }: { tone?: "info" | "success" | "warning" | "danger"; icon?: keyof typeof Ionicons.glyphMap; children: ReactNode }) {
-  const c = { info: ["#FFE9E2", colors.primary], success: ["#E4F6EC", colors.success], warning: ["#FFF3D6", "#B7791F"], danger: ["#FDE7E7", "#C53030"] }[tone];
+  const c = { info: [colors.primarySoft, colors.primary], success: [colors.successSoft, colors.success], warning: [colors.warningSoft, colors.warning], danger: [colors.dangerSoft, colors.danger] }[tone];
   return (
     <View style={[styles.banner, { backgroundColor: c[0] }]}>
       <Ionicons name={icon ?? (tone === "success" ? "checkmark-circle" : tone === "danger" ? "alert-circle" : tone === "warning" ? "time" : "information-circle")} size={20} color={c[1]} />
@@ -169,11 +169,11 @@ export function Row({ label, value, bold }: { label: string; value: string; bold
 export function Badge({ label, tone = "primary" }: { label: string; tone?: "primary" | "success" | "warning" | "danger" | "muted" | "dark" }) {
   const c = {
     primary: [colors.primarySoft, colors.primary],
-    success: ["#DDF5E8", colors.success],
-    warning: ["#FFF3D6", "#B7791F"],
-    danger: ["#FDE7E7", "#C53030"],
-    muted: ["#EEE7E2", colors.inkSoft],
-    dark: [colors.night, "#fff"],
+    success: [colors.successSoft, colors.success],
+    warning: [colors.warningSoft, colors.warning],
+    danger: [colors.dangerSoft, colors.danger],
+    muted: ["rgba(255,255,255,0.06)", colors.muted],
+    dark: [colors.surfaceHi, colors.ink],
   }[tone];
   return (
     <View style={{ backgroundColor: c[0], borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" }}>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    backgroundColor: "rgba(251,244,239,0.82)",
+    backgroundColor: "rgba(11,11,11,0.82)",
   },
   footer: {
     position: "absolute",
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.82)",
+    backgroundColor: "rgba(18,18,18,0.86)",
   },
   label: { fontSize: 14, fontWeight: "700", color: colors.ink },
   input: {
@@ -271,10 +271,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.ink,
   },
-  error: { color: "#E5484D", fontSize: 12, fontWeight: "600" },
+  error: { color: colors.danger, fontSize: 12, fontWeight: "600" },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, height: 36, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  segment: { flexDirection: "row", backgroundColor: "#F1E8E2", borderRadius: radius.pill, padding: 4 },
+  segment: { flexDirection: "row", backgroundColor: "#141414", borderRadius: radius.pill, padding: 4 },
   segItem: { flex: 1, height: 40, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
   segOn: { backgroundColor: colors.surface },
   segText: { fontWeight: "700", color: colors.muted, fontSize: 13 },

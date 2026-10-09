@@ -10,7 +10,7 @@ import { Press, tap } from "../../src/ui";
 
 const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap, string]> = {
   home: ["home", "home-outline", "Accueil"],
-  offers: ["briefcase", "briefcase-outline", "Offres"],
+  offers: ["briefcase", "briefcase-outline", "Campagnes"],
   collabs: ["chatbubble-ellipses", "chatbubble-ellipses-outline", "Collabs"],
   profile: ["person", "person-outline", "Profil"],
 };
@@ -44,7 +44,7 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 12) }]} pointerEvents="box-none">
       <View style={[styles.bar, shadow.soft]}>
-        <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
         <TabItem focused={state.index === 0} name="home" onPress={() => go(0)} />
         <TabItem focused={state.index === 1} name="offers" onPress={() => go(1)} />
         <View style={{ width: 70 }} />
@@ -52,7 +52,7 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
         <TabItem focused={state.index === 3} name="profile" onPress={() => go(3)} />
       </View>
       <Press onPress={() => router.push("/create")} style={[styles.fab, shadow.glow]} scaleTo={0.88}>
-        <Ionicons name="add" size={32} color="#fff" />
+        <Ionicons name="add" size={32} color={colors.onPrimary} />
       </Press>
     </View>
   );
@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 35,
     overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.72)",
+    backgroundColor: "rgba(20,20,20,0.82)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.9)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 3, height: "100%" },
   label: { fontSize: 11, color: colors.inkSoft, fontWeight: "500" },
