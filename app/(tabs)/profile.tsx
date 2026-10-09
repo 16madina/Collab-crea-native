@@ -52,7 +52,7 @@ export default function ProfileTab() {
 }
 
 // ---------- en-tête commun ----------
-function Header({ me, unread, avatarUri, children }: { me: Profile; unread: boolean; avatarUri: string; children?: ReactNode }) {
+function Header({ me, unread, avatarUri, children }: { me: Profile; unread: boolean; avatarUri: string | number; children?: ReactNode }) {
   const insets = useSafeAreaInsets();
   const updateProfile = useDB((s) => s.updateProfile);
   const [sheet, setSheet] = useState<"avatar" | "banner" | null>(null);

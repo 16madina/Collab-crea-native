@@ -10,7 +10,7 @@ export type Profile = {
   user_id: string;
   role: Role;
   full_name: string;
-  avatar_url: string;
+  avatar_url: string | number; // URL ou image embarquée (require)
   banner_url?: string;
   logo_url?: string;
   bio?: string;

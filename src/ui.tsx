@@ -219,7 +219,7 @@ export function OfferCard({ offer, width = 230, badge }: { offer: Offer; width?:
   );
 }
 
-export function Avatar({ uri, size = 48, ring }: { uri: string; size?: number; ring?: boolean }) {
+export function Avatar({ uri, size = 48, ring }: { uri: string | number; size?: number; ring?: boolean }) {
   return (
     <View style={ring ? { padding: 2.5, borderRadius: size, borderWidth: 2, borderColor: colors.primary } : undefined}>
       <Image source={uri} style={{ width: size, height: size, borderRadius: size / 2 }} transition={200} />
