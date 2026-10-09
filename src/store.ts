@@ -74,6 +74,7 @@ type DB = {
   userId: string | null;
   guest: boolean; // visiteur sans compte (accès en lecture)
   archived: string[]; // conversations archivées par l'utilisateur courant
+  follows: string[]; // créateurs suivis par l'utilisateur courant
   inviteRequired: boolean;
   inviteUnlocked: boolean;
 
@@ -107,6 +108,8 @@ type Actions = {
   signOut: () => void;
   continueAsGuest: () => void;
   toggleArchive: (conversationId: string) => boolean;
+  toggleFollow: (userId: string) => boolean;
+  startConversation: (otherId: string) => Result;
   claimInvite: (code: string) => Result;
   // profil
   updateProfile: (patch: Partial<Profile>) => void;
@@ -199,6 +202,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
     userId: demoFromUrl(),
     guest: false,
     archived: [],
+    follows: [],
     inviteRequired: false,
     inviteUnlocked: false,
 
@@ -228,6 +232,19 @@ export const useDB = create<DB & Actions>()((set, get) => {
     },
     signOut: () => set({ userId: null, guest: false, inviteUnlocked: false }),
     continueAsGuest: () => set({ guest: true }),
+    toggleFollow: (id) => {
+      const on = !get().follows.includes(id);
+      set((s) => ({ follows: on ? [...s.follows, id] : s.follows.filter((x) => x !== id) }));
+      return on;
+    },
+    startConversation: (otherId) => {
+      const s = get();
+      if (!s.userId) return { ok: false, error: "Connecte-toi pour envoyer un message" };
+      const existing = s.conversations.find((c) => !c.offer_id && c.participants.includes(s.userId!) && c.participants.includes(otherId));
+      if (existing) return { ok: true, id: existing.id };
+      const me = s.profiles.find((p) => p.user_id === s.userId)!;
+      return { ok: true, id: newConversation(s.userId, otherId, `Conversation avec ${me.company_name ?? me.full_name}`) };
+    },
     toggleArchive: (id) => {
       const on = !get().archived.includes(id);
       set((s) => ({ archived: on ? [...s.archived, id] : s.archived.filter((x) => x !== id) }));

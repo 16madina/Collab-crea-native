@@ -1,3 +1,4 @@
+import { PublicCreatorLux } from "../../src/components/profile/PublicCreatorLux";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -109,185 +110,25 @@ function Hero({ uri, banner }: { uri: string | number; banner?: string | number 
 
 // ---------- créateur ----------
 function CreatorView({ p, viewer }: { p: Profile; viewer?: Profile }) {
-  const portfolio = useDB((s) => s.portfolio);
-  const reviews = useDB((s) => s.reviews);
   const favorites = useDB((s) => s.favorites);
-  const socialVerifications = useDB((s) => s.socialVerifications);
-  const collaborations = useDB((s) => s.collaborations);
-  const profiles = useDB((s) => s.profiles);
   const toggleFavorite = useDB((s) => s.toggleFavorite);
-  const [tab, setTab] = useState<Tab>("infos");
+  const follows = useDB((s) => s.follows);
+  const toggleFollow = useDB((s) => s.toggleFollow);
   const [propose, setPropose] = useState(false);
-
-  const items = useMemo(() => portfolio.filter((x) => x.user_id === p.user_id), [portfolio, p.user_id]);
-  const revs = useMemo(() => reviews.filter((r) => r.creator_id === p.user_id), [reviews, p.user_id]);
-  const isFav = favorites.some((f) => f.brand_id === viewer?.user_id && f.creator_id === p.user_id);
-  const total = useMemo(() => Object.values(p.followers).reduce((a, v) => a + parseFollowers(v), 0), [p.followers]);
-  const rating = revs.length ? revs.reduce((a, r) => a + r.rating, 0) / revs.length : p.rating;
-  const done = collaborations.filter((c) => c.creator_id === p.user_id && c.status === "completed").length;
-  const rates = p.pricing?.items.length ? p.pricing.items : DEFAULT_RATES;
-  const cur = p.pricing?.items.length ? p.pricing.currency : "XOF";
-  const verifiedNet = (pl: SocialPlatform) => socialVerifications.some((v) => v.user_id === p.user_id && v.platform === pl && v.status === "verified");
   const isBrand = viewer?.role === "brand";
-
+  const fav = isBrand ? favorites.some((f) => f.brand_id === viewer!.user_id && f.creator_id === p.user_id) : follows.includes(p.user_id);
+  const heart = () => {
+    if (!viewer) return router.push("/auth/signup");
+    if (isBrand) {
+      toggleFavorite(p.user_id);
+      toast(fav ? "Retiré des favoris" : "Ajouté aux favoris");
+    } else toast(toggleFollow(p.user_id) ? "Créateur suivi" : "Abonnement retiré", "info");
+  };
   return (
     <>
-      <ScrollView contentContainerStyle={{ paddingBottom: isBrand ? 140 : 60 }} showsVerticalScrollIndicator={false}>
-        <Hero uri={p.avatar_url} banner={p.banner_url} />
-        <View style={{ alignItems: "center", marginTop: -80, paddingHorizontal: 20 }}>
-          <Animated.View entering={ZoomIn.springify()} style={[styles.avatarWrap, shadow.soft]}>
-            <Avatar uri={p.avatar_url} size={112} />
-            {p.identity_verified ? (
-              <View style={styles.verified}>
-                <Ionicons name="checkmark" size={14} color="#fff" />
-              </View>
-            ) : null}
-          </Animated.View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12 }}>
-            <Text style={type.h1}>{p.full_name}</Text>
-            {p.identity_verified ? <Ionicons name="checkmark-circle" size={22} color={colors.primary} /> : null}
-          </View>
-          <Text style={type.small}>
-            {p.category ?? "Créateur"} · {flagOf(p.country)} {p.country}
-            {p.residence_country && p.residence_country !== p.country ? `  ·  vit en ${flagOf(p.residence_country)} ${p.residence_country}` : ""}
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 12 }}>
-            {(Object.keys(p.followers) as SocialPlatform[]).map((pl) => (
-              <View key={pl} style={styles.netPill}>
-                <Ionicons name={PLATFORM[pl].icon} size={14} color={PLATFORM[pl].color} />
-                <Text style={{ fontWeight: "700", color: colors.ink, fontSize: 11 }}>{p.followers[pl] || "—"}</Text>
-                {verifiedNet(pl) ? <Ionicons name="checkmark-circle" size={12} color={colors.success} /> : null}
-              </View>
-            ))}
-          </View>
-          <Glass style={styles.stats} intensity={50}>
-            {(
-              [
-                [formatFollowers(total), "Abonnés"],
-                [rating ? `${rating.toFixed(1)} ★` : "—", "Note"],
-                [String(done), "Collabs"],
-              ] as const
-            ).map(([n, l], i) => (
-              <View key={l} style={[styles.stat, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.line }]}>
-                <Text style={[type.h2, i === 1 && { color: colors.primary }]}>{n}</Text>
-                <Text style={type.tiny}>{l}</Text>
-              </View>
-            ))}
-          </Glass>
-        </View>
-
-        <PillTabs<Tab>
-          value={tab}
-          onChange={setTab}
-          tabs={[
-            { key: "infos", label: "Infos" },
-            { key: "portfolio", label: "Portfolio", count: items.length },
-            { key: "tarifs", label: "Tarifs" },
-            { key: "avis", label: "Avis", count: revs.length },
-          ]}
-        />
-
-        <Animated.View key={tab} entering={FadeInDown.springify().damping(18)} style={{ paddingHorizontal: 20, marginTop: 16, gap: 14 }}>
-          {tab === "infos" && (
-            <>
-              <Card>
-                <Text style={type.h3}>À propos</Text>
-                <Text style={type.body}>{p.bio || "Ce créateur n'a pas encore rédigé de bio."}</Text>
-              </Card>
-              <Card>
-                <Text style={type.h3}>Réseaux</Text>
-                {Object.keys(p.followers).length === 0 ? <Text style={type.small}>Aucun réseau renseigné.</Text> : null}
-                {(Object.keys(p.followers) as SocialPlatform[]).map((pl) => (
-                  <View key={pl} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                    <View style={[styles.netIcon, { backgroundColor: PLATFORM[pl].color }]}>
-                      <Ionicons name={PLATFORM[pl].icon} size={18} color="#fff" />
-                    </View>
-                    <Text style={{ flex: 1, fontWeight: "700", color: colors.ink }}>{PLATFORM[pl].label}</Text>
-                    <Text style={{ fontWeight: "800", color: colors.ink }}>{p.followers[pl] || "—"}</Text>
-                    {verifiedNet(pl) ? <Badge label="Vérifié" tone="success" /> : null}
-                  </View>
-                ))}
-              </Card>
-            </>
-          )}
-          {tab === "portfolio" &&
-            (items.length === 0 ? (
-              <Empty icon="images-outline" title="Portfolio vide" />
-            ) : (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {items.map((it, i) => (
-                  <Animated.View key={it.id} entering={FadeIn.delay(i * 40)} style={{ width: TILE, height: TILE * 1.3, borderRadius: radius.md, overflow: "hidden" }}>
-                    <Image source={it.media_url} style={{ flex: 1 }} contentFit="cover" transition={250} />
-                    {it.media_type === "video" ? (
-                      <View style={styles.play}>
-                        <Ionicons name="play" size={12} color="#fff" />
-                      </View>
-                    ) : null}
-                  </Animated.View>
-                ))}
-              </View>
-            ))}
-          {tab === "tarifs" && (
-            <Card>
-              {!p.pricing?.items.length ? <Text style={type.tiny}>TARIFS INDICATIFS</Text> : null}
-              {rates.map((r, i) => (
-                <View key={i} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 8, borderTopWidth: i ? 1 : 0, borderTopColor: colors.line }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontWeight: "600", color: colors.ink }}>{r.type}</Text>
-                    {r.description ? <Text style={type.tiny}>{r.description}</Text> : null}
-                  </View>
-                  <Text style={{ fontWeight: "800", color: colors.primary }}>{money(r.price, cur)}</Text>
-                </View>
-              ))}
-            </Card>
-          )}
-          {tab === "avis" &&
-            (revs.length === 0 ? (
-              <Empty icon="star-outline" title="Aucun avis pour l'instant" />
-            ) : (
-              revs.map((r) => {
-                const b = profiles.find((x) => x.user_id === r.brand_id);
-                return (
-                  <Card key={r.id}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                      {b ? <Avatar uri={b.logo_url ?? b.avatar_url} size={36} /> : null}
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontWeight: "700", color: colors.ink }}>{displayName(b)}</Text>
-                        <Text style={type.tiny}>{fmtDate(r.created_at, true)}</Text>
-                      </View>
-                      <Stars value={r.rating} />
-                    </View>
-                    <Text style={type.body}>{r.comment}</Text>
-                  </Card>
-                );
-              })
-            ))}
-        </Animated.View>
-      </ScrollView>
-
-      <TopBar
-        p={p}
-        viewer={viewer}
-        right={
-          isBrand ? (
-            <IconButton
-              name={isFav ? "heart" : "heart-outline"}
-              dark
-              onPress={() => {
-                toggleFavorite(p.user_id);
-                toast(isFav ? "Retiré des favoris" : "Ajouté aux favoris");
-              }}
-            />
-          ) : null
-        }
-      />
-
-      {isBrand && viewer ? (
-        <>
-          <ProposeBar onPress={() => setPropose(true)} />
-          <ProposeSheet visible={propose} onClose={() => setPropose(false)} creator={p} brand={viewer} />
-        </>
-      ) : null}
+      <PublicCreatorLux p={p} viewer={viewer} onPropose={() => setPropose(true)} />
+      <TopBar p={p} viewer={viewer} right={viewer?.user_id !== p.user_id ? <IconButton name={fav ? "heart" : "heart-outline"} dark onPress={heart} /> : null} />
+      {isBrand && viewer ? <ProposeSheet visible={propose} onClose={() => setPropose(false)} creator={p} brand={viewer} /> : null}
     </>
   );
 }
