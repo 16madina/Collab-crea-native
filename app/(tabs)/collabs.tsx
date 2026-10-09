@@ -2,15 +2,18 @@ import { GuestGate } from "../../src/components/GuestGate";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, LinearTransition } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { avatarOf, collabTone, nameOf, SearchBar } from "../../src/components/collab/common";
-import { Badge, Chip, Empty, fmtDate, Segmented, timeLeft } from "../../src/kit";
+import { Badge, Chip, Empty, fmtDate, Segmented, timeLeft, toast } from "../../src/kit";
+import { GlossFill, GoldFill, goldBorder, goldGlow } from "../../src/lux";
 import { fcfa, useDB, useMe } from "../../src/store";
-import { colors, radius, shadow, type } from "../../src/theme";
+import { colors, fonts, radius, shadow, type } from "../../src/theme";
 import { ACTIVE_COLLAB, COLLAB_LABEL } from "../../src/types";
-import { Avatar, Press } from "../../src/ui";
+import { Avatar, Logo, Press } from "../../src/ui";
 
 const ago = (iso: string) => {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 6e4);
@@ -20,57 +23,127 @@ const ago = (iso: string) => {
   return fmtDate(iso);
 };
 
+type Filter = "all" | "unread" | "brand" | "creator" | "archived";
+
 function Messages() {
   const userId = useDB((s) => s.userId);
   const conversations = useDB((s) => s.conversations);
   const messages = useDB((s) => s.messages);
   const profiles = useDB((s) => s.profiles);
+  const archived = useDB((s) => s.archived);
+  const toggleArchive = useDB((s) => s.toggleArchive);
   const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
 
+  const all = useMemo(
+    () =>
+      conversations
+        .filter((c) => userId && c.participants.includes(userId))
+        .map((c) => {
+          const other = profiles.find((p) => p.user_id === c.participants.find((x) => x !== userId));
+          const msgs = messages.filter((m) => m.conversation_id === c.id);
+          const last = msgs[msgs.length - 1];
+          const unread = msgs.filter((m) => m.sender_id !== userId && !m.read_at).length;
+          return { c, other, last, unread, isArchived: archived.includes(c.id) };
+        })
+        .sort((a, b) => (b.last?.created_at ?? b.c.updated_at).localeCompare(a.last?.created_at ?? a.c.updated_at)),
+    [conversations, messages, profiles, userId, archived],
+  );
+  const unreadCount = all.filter((r) => !r.isArchived && r.unread > 0).length;
   const rows = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return conversations
-      .filter((c) => userId && c.participants.includes(userId))
-      .map((c) => {
-        const other = profiles.find((p) => p.user_id === c.participants.find((x) => x !== userId));
-        const msgs = messages.filter((m) => m.conversation_id === c.id);
-        const last = msgs[msgs.length - 1];
-        const unread = msgs.filter((m) => m.sender_id !== userId && !m.read_at).length;
-        return { c, other, last, unread };
-      })
-      .filter((r) => !t || `${nameOf(r.other)} ${r.c.subject}`.toLowerCase().includes(t))
-      .sort((a, b) => (b.last?.created_at ?? b.c.updated_at).localeCompare(a.last?.created_at ?? a.c.updated_at));
-  }, [conversations, messages, profiles, userId, q]);
+    return all
+      .filter((r) => (filter === "archived" ? r.isArchived : !r.isArchived))
+      .filter((r) => filter !== "unread" || r.unread > 0)
+      .filter((r) => filter !== "brand" || r.other?.role === "brand")
+      .filter((r) => filter !== "creator" || r.other?.role === "creator")
+      .filter((r) => !t || `${nameOf(r.other)} ${r.c.subject} ${r.last?.content ?? ""}`.toLowerCase().includes(t));
+  }, [all, q, filter]);
+
+  const FILTERS: [Filter, string][] = [
+    ["all", "Tous"],
+    ["unread", "Non lus"],
+    ["brand", "Marques"],
+    ["creator", "Créateurs"],
+    ["archived", "Archives"],
+  ];
 
   return (
-    <View style={{ gap: 12 }}>
-      <SearchBar value={q} onChange={setQ} placeholder="Rechercher une conversation" />
+    <View>
+      <View style={styles.searchRow}>
+        <View style={styles.search}>
+          <GlossFill />
+          <Ionicons name="search-outline" size={21} color={colors.inkSoft} />
+          <TextInput value={q} onChangeText={setQ} placeholder="Rechercher une conversation…" placeholderTextColor={colors.muted} style={styles.input} />
+        </View>
+        <Press onPress={() => setFilter(filter === "all" ? "unread" : "all")} style={styles.roundBtn} scaleTo={0.9}>
+          <GlossFill style={{ borderRadius: 23 }} />
+          <Ionicons name="options-outline" size={22} color={colors.ink} />
+        </Press>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 14, paddingHorizontal: 16 }}>
+        {FILTERS.map(([k, l]) => {
+          const on = filter === k;
+          return (
+            <Press key={k} onPress={() => setFilter(k)} style={[styles.chip, on && [{ borderColor: "transparent" }, goldGlow]]} scaleTo={0.94}>
+              {on && <GoldFill style={{ borderRadius: radius.pill }} />}
+              <Text style={[styles.chipText, on && { color: colors.onPrimary, fontWeight: "800" }]}>{l}</Text>
+              {k === "unread" && unreadCount > 0 ? (
+                <View style={styles.chipBadge}>
+                  <GoldFill style={{ borderRadius: 11 }} />
+                  <Text style={styles.chipBadgeText}>{unreadCount}</Text>
+                </View>
+              ) : null}
+            </Press>
+          );
+        })}
+      </ScrollView>
+
       {rows.length === 0 ? (
-        <Empty icon="chatbubbles-outline" title="Aucune conversation" text="Vos échanges avec les marques et créateurs apparaîtront ici." />
+        <Empty
+          icon={filter === "archived" ? "archive-outline" : "chatbubbles-outline"}
+          title={filter === "archived" ? "Aucune conversation archivée" : "Aucune conversation"}
+          text={filter === "archived" ? "Appui long sur une conversation pour l'archiver." : "Tes échanges avec les marques et les créateurs apparaîtront ici."}
+        />
       ) : (
         rows.map(({ c, other, last, unread }, i) => (
           <Animated.View key={c.id} entering={FadeInDown.delay(Math.min(i, 8) * 50).springify()} layout={LinearTransition.springify()}>
-            <Press onPress={() => router.push(`/chat/${c.id}`)} style={[styles.conv, shadow.soft]} scaleTo={0.98}>
-              <Avatar uri={avatarOf(other)} size={52} ring={unread > 0} />
-              <View style={{ flex: 1, gap: 2 }}>
+            <Press
+              onPress={() => router.push(`/chat/${c.id}`)}
+              onLongPress={() => toast(toggleArchive(c.id) ? "Conversation archivée" : "Conversation désarchivée", "info")}
+              style={styles.row}
+              scaleTo={0.98}
+            >
+              <View style={styles.avatarRing}>
+                <GoldFill style={{ borderRadius: 37 }} />
+                <View style={styles.avatarInner}>
+                  <Text style={styles.avatarMono}>{nameOf(other).slice(0, 2).toUpperCase()}</Text>
+                  <Image source={avatarOf(other)} style={StyleSheet.absoluteFill} contentFit="cover" />
+                </View>
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Text style={[type.h3, { flex: 1 }]} numberOfLines={1}>
+                  <Text style={styles.name} numberOfLines={1}>
                     {nameOf(other)}
                   </Text>
-                  <Text style={type.tiny}>{ago(last?.created_at ?? c.updated_at)}</Text>
+                  {other?.identity_verified && <Ionicons name="checkmark-circle" size={17} color={colors.primary} />}
+                  <View style={styles.rolePill}>
+                    <Text style={styles.rolePillText}>{other?.role === "brand" ? "Marque" : "Créateur"}</Text>
+                  </View>
+                  <View style={{ flex: 1 }} />
+                  <Text style={styles.time}>{ago(last?.created_at ?? c.updated_at)}</Text>
                 </View>
-                <Text style={[type.tiny, { color: colors.primary }]} numberOfLines={1}>
-                  {c.subject}
-                </Text>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Text style={[type.small, { flex: 1 }, unread > 0 && { color: colors.ink, fontWeight: "700" }]} numberOfLines={1}>
-                    {last ? `${last.sender_id === userId ? "Vous : " : ""}${last.content.replace(/\n+/g, " ")}` : "Nouvelle conversation"}
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Text style={[styles.preview, unread > 0 && { color: colors.ink }]} numberOfLines={2}>
+                    {last ? `${last.sender_id === userId ? "Toi : " : ""}${last.content.replace(/\n+/g, " ")}` : c.subject}
                   </Text>
                   {unread > 0 ? (
                     <View style={styles.unread}>
-                      <Text style={{ color: "#fff", fontSize: 11, fontWeight: "800" }}>{unread}</Text>
+                      <GoldFill style={{ borderRadius: 14 }} />
+                      <Text style={styles.unreadText}>{unread}</Text>
                     </View>
                   ) : null}
+                  <Ionicons name="chevron-forward" size={20} color={colors.primary} />
                 </View>
               </View>
             </Press>
@@ -108,7 +181,7 @@ function Collaborations() {
           <Ionicons name="chevron-forward" size={20} color="#fff" />
         </Press>
       ) : null}
-      <View style={{ flexDirection: "row", gap: 8 }}>
+      <View style={{ flexDirection: "row", gap: 6 }}>
         <Chip label={`En cours (${active.length})`} on={sub === "active"} onPress={() => setSub("active")} />
         <Chip label={`Terminées (${done.length})`} on={sub === "done"} onPress={() => setSub("done")} />
       </View>
@@ -158,31 +231,71 @@ function CollabsInner() {
     if (params.tab === "collabs" || params.tab === "collaborations") setTab("collabs");
     else if (params.tab === "messages") setTab("messages");
   }, [params.tab]);
+  const isCollabs = tab === "collabs";
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 140, paddingHorizontal: 20, gap: 16 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-      <Animated.View entering={FadeInDown.springify()}>
-        <Text style={type.h1}>Collabs</Text>
-        <Text style={type.small}>Vos échanges et collaborations</Text>
-      </Animated.View>
-      <Segmented
-        value={tab}
-        onChange={setTab}
-        options={[
-          { value: "messages", label: "Messages" },
-          { value: "collabs", label: "Collaborations" },
-        ]}
-      />
-      <Animated.View key={tab} entering={FadeIn.duration(220)}>
-        {tab === "messages" ? <Messages /> : <Collaborations />}
-      </Animated.View>
-    </ScrollView>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <LinearGradient colors={["rgba(217,172,101,0.16)", "rgba(217,172,101,0.05)", "rgba(217,172,101,0)"]} locations={[0, 0.4, 1]} start={{ x: 0.85, y: 0 }} end={{ x: 0.2, y: 1 }} style={styles.ambient} pointerEvents="none" />
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 6, paddingBottom: 150 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.top}>
+          <Logo size={30} />
+          <View style={{ flexDirection: "row", gap: 6 }}>
+            <Press onPress={() => setTab(isCollabs ? "messages" : "collabs")} style={[styles.roundBtn, isCollabs && goldGlow]} scaleTo={0.9}>
+              {isCollabs ? <GoldFill style={{ borderRadius: 23 }} /> : <GlossFill style={{ borderRadius: 23 }} />}
+              <Ionicons name="briefcase-outline" size={21} color={isCollabs ? colors.onPrimary : colors.ink} />
+            </Press>
+            <Press onPress={() => router.push("/marketplace")} style={styles.roundBtn} scaleTo={0.9}>
+              <GlossFill style={{ borderRadius: 23 }} />
+              <Ionicons name="person-add-outline" size={21} color={colors.ink} />
+            </Press>
+            <Press onPress={() => router.push("/notifications")} style={styles.roundBtn} scaleTo={0.9}>
+              <GlossFill style={{ borderRadius: 23 }} />
+              <Ionicons name="ellipsis-horizontal" size={22} color={colors.ink} />
+            </Press>
+          </View>
+        </View>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{isCollabs ? "Collabs" : "Messages"}</Text>
+        </View>
+        <Animated.View key={tab} entering={FadeIn.duration(220)}>
+          {isCollabs ? (
+            <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+              <Collaborations />
+            </View>
+          ) : (
+            <Messages />
+          )}
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  ambient: { position: "absolute", top: 0, left: 0, right: 0, height: 620 },
+  top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
+  roundBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: goldBorder, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  titleRow: { paddingHorizontal: 20, marginTop: 10 },
+  title: { fontFamily: fonts.serif, color: colors.ink, fontSize: 40, lineHeight: 48 },
+  searchRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginTop: 14 },
+  search: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12, height: 54, borderRadius: radius.pill, paddingHorizontal: 18, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
+  input: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, zIndex: 1 },
+  chip: { flexDirection: "row", alignItems: "center", gap: 8, height: 40, paddingHorizontal: 18, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.02)" },
+  chipText: { color: colors.ink, fontSize: 14, fontWeight: "600" },
+  chipBadge: { minWidth: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 5, overflow: "hidden" },
+  chipBadgeText: { color: colors.onPrimary, fontSize: 12, fontWeight: "800" },
+  row: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(53,48,42,0.7)" },
+  avatarRing: { width: 74, height: 74, borderRadius: 37, padding: 2, overflow: "hidden" },
+  avatarInner: { flex: 1, borderRadius: 35, overflow: "hidden", backgroundColor: "#141210", alignItems: "center", justifyContent: "center" },
+  avatarMono: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 22 },
+  name: { fontFamily: fonts.serif, color: colors.ink, fontSize: 19, flexShrink: 1 },
+  rolePill: { backgroundColor: "rgba(255,255,255,0.08)", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 3 },
+  rolePillText: { color: colors.ink, fontSize: 11, fontWeight: "600" },
+  time: { color: colors.muted, fontSize: 12 },
+  preview: { flex: 1, color: colors.inkSoft, fontSize: 14, lineHeight: 19 },
+  unreadText: { color: colors.onPrimary, fontSize: 13, fontWeight: "800" },
   conv: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, padding: 12, borderRadius: radius.lg },
-  unread: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
+  unread: { minWidth: 28, height: 28, borderRadius: 14, paddingHorizontal: 6, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   wallet: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.night, borderRadius: radius.lg, padding: 16 },
   walletIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: "rgba(255,90,54,0.18)", alignItems: "center", justifyContent: "center" },
   collab: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: 14, gap: 12 },

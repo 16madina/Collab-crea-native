@@ -73,6 +73,7 @@ type DB = {
   // session
   userId: string | null;
   guest: boolean; // visiteur sans compte (accès en lecture)
+  archived: string[]; // conversations archivées par l'utilisateur courant
   inviteRequired: boolean;
   inviteUnlocked: boolean;
 
@@ -105,6 +106,7 @@ type Actions = {
   signUp: (p: Omit<Profile, "user_id" | "email_verified" | "identity_verified" | "followers"> & { email: string; inviteCode?: string }) => Result;
   signOut: () => void;
   continueAsGuest: () => void;
+  toggleArchive: (conversationId: string) => boolean;
   claimInvite: (code: string) => Result;
   // profil
   updateProfile: (patch: Partial<Profile>) => void;
@@ -196,6 +198,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
     ...seed.db,
     userId: demoFromUrl(),
     guest: false,
+    archived: [],
     inviteRequired: false,
     inviteUnlocked: false,
 
@@ -225,6 +228,11 @@ export const useDB = create<DB & Actions>()((set, get) => {
     },
     signOut: () => set({ userId: null, guest: false, inviteUnlocked: false }),
     continueAsGuest: () => set({ guest: true }),
+    toggleArchive: (id) => {
+      const on = !get().archived.includes(id);
+      set((s) => ({ archived: on ? [...s.archived, id] : s.archived.filter((x) => x !== id) }));
+      return on;
+    },
     claimInvite: (code) => {
       const c = code.trim().toUpperCase();
       if (!/^COLLAB-[A-Z0-9]{4}$/.test(c)) return { ok: false, error: "Format invalide (ex: COLLAB-X7K9)" };

@@ -18,6 +18,17 @@ const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionico
 
 function TabItem({ focused, name, onPress }: { focused: boolean; name: string; onPress: () => void }) {
   const [on, off, label] = ICONS[name];
+  const userId = useDB((s) => s.userId);
+  const messages = useDB((s) => s.messages);
+  const conversations = useDB((s) => s.conversations);
+  const badge =
+    name === "collabs" && userId
+      ? new Set(
+          messages
+            .filter((m) => m.sender_id !== userId && !m.read_at && conversations.some((c) => c.id === m.conversation_id && c.participants.includes(userId)))
+            .map((m) => m.conversation_id),
+        ).size
+      : 0;
   const dot = useAnimatedStyle(() => ({
     transform: [{ scale: withSpring(focused ? 1 : 0, { damping: 14 }) }],
   }));
@@ -28,6 +39,11 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
     <Pressable onPress={onPress} style={styles.item} hitSlop={6}>
       <Animated.View style={icon}>
         <Ionicons name={focused ? on : off} size={23} color={focused ? colors.primary : colors.inkSoft} />
+        {badge > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badge}</Text>
+          </View>
+        )}
       </Animated.View>
       <Text style={[styles.label, focused && { color: colors.primary, fontWeight: "700" }]}>{label}</Text>
       <Animated.View style={[styles.dot, dot]} />
@@ -74,6 +90,8 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+  badge: { position: "absolute", top: -6, right: -12, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: "#E2B873", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#111" },
+  badgeText: { color: "#0B0B0B", fontSize: 10, fontWeight: "800" },
   wrap: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 14, alignItems: "center" },
   bar: {
     flexDirection: "row",
