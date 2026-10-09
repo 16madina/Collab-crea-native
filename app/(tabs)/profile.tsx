@@ -330,7 +330,7 @@ function CreatorProfile({ me, unread, onLogout }: { me: Profile; unread: boolean
 
         {tab === "candidatures" &&
           (myApps.length === 0 ? (
-            <Empty icon="paper-plane-outline" title="Aucune candidature" text="Parcourez les offres et postulez à celles qui vous correspondent." action={<Button label="Voir les offres" small onPress={() => router.push("/(tabs)/offers")} />} />
+            <Empty icon="paper-plane-outline" title="Aucune candidature" text="Parcourez les offres et postulez à celles qui vous correspondent." action={<Button label="Voir les offres" small onPress={() => router.push("/(tabs)/offers?tab=offers")} />} />
           ) : (
             myApps.map((a, i) => {
               const o = offers.find((x) => x.id === a.offer_id);
@@ -546,7 +546,7 @@ function BrandProfile({ me, unread, onLogout }: { me: Profile; unread: boolean; 
                 </Animated.View>
               ))
             )}
-            <Button label="Gérer mes offres" variant="outline" small onPress={() => router.push("/(tabs)/offers")} />
+            <Button label="Gérer mes offres" variant="outline" small onPress={() => router.push("/(tabs)/offers?tab=offers")} />
           </>
         )}
 

@@ -11,7 +11,7 @@ import { Press, tap } from "../../src/ui";
 
 const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap, string]> = {
   home: ["home", "home-outline", "Accueil"],
-  offers: ["megaphone", "megaphone-outline", "Campagnes"],
+  offers: ["compass", "compass-outline", "Explorer"],
   collabs: ["chatbubble-ellipses", "chatbubble-ellipses-outline", "Messages"],
   profile: ["person", "person-outline", "Profil"],
 };

@@ -1,4 +1,6 @@
 import { GuestGate } from "../../src/components/GuestGate";
+import { CreatorsGrid } from "../../src/components/explore/CreatorsGrid";
+import { GoldFill, goldBorder, goldGlow } from "../../src/lux";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -84,7 +86,7 @@ function CreatorOffers() {
   const nFilters = [cat !== "Toutes", country !== "Tous", ctype !== "Tous"].filter(Boolean).length;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: 4, paddingBottom: 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <Animated.View entering={FadeInDown.springify()} style={{ paddingHorizontal: 20 }}>
         <Text style={type.h1}>Offres</Text>
         <Text style={type.small}>Trouvez la campagne parfaite pour votre audience</Text>
@@ -211,7 +213,7 @@ function BrandOffers() {
   const countFor = (id: string) => applications.filter((a) => a.offer_id === id).length;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: 4, paddingBottom: 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <Animated.View entering={FadeInDown.springify()} style={{ paddingHorizontal: 20, flexDirection: "row", alignItems: "center" }}>
         <View style={{ flex: 1 }}>
           <Text style={type.h1}>Mes offres</Text>
@@ -324,10 +326,56 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 10 },
   action: { flex: 1, flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center", height: 36, borderRadius: radius.pill, backgroundColor: "#F7F0EB" },
   actionText: { fontWeight: "700", fontSize: 13, color: colors.ink },
+  exHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12 },
+  exIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  exIconRing: { borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.03)" },
+  exTitle: { color: colors.ink, fontSize: 21, fontWeight: "700" },
+  exTabs: { flexDirection: "row", marginHorizontal: 16, marginTop: 10, padding: 4, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.03)" },
+  exTab: { flex: 1, height: 38, borderRadius: radius.pill, alignItems: "center", justifyContent: "center" },
+  exTabText: { color: colors.inkSoft, fontWeight: "700", fontSize: 14 },
 });
 
-export default function Offers() {
+// Explorer : onglets Créateurs (grille) et Offres (campagnes).
+export default function Explore() {
+  const insets = useSafeAreaInsets();
   const userId = useDB((s) => s.userId);
-  if (!userId) return <GuestGate icon="megaphone-outline" title="Les campagnes t'attendent" text="Crée ton compte gratuit pour découvrir les campagnes et postuler en un geste." />;
-  return <OffersInner />;
+  const params = useLocalSearchParams<{ tab?: string; q?: string; cat?: string }>();
+  const [tab, setTab] = useState<"creators" | "offers">(params.tab === "offers" || params.q || params.cat ? "offers" : "creators");
+  const [searchOpen, setSearchOpen] = useState(false);
+  useEffect(() => {
+    if (params.tab === "offers" || params.tab === "creators") setTab(params.tab);
+  }, [params.tab]);
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top + 4 }}>
+      <View style={styles.exHeader}>
+        <Press onPress={() => router.navigate("/(tabs)/home")} style={styles.exIcon} scaleTo={0.9}>
+          <Ionicons name="chevron-back" size={26} color={colors.ink} />
+        </Press>
+        <Text style={styles.exTitle}>{tab === "creators" ? "Créateurs" : "Offres"}</Text>
+        <Press onPress={() => (tab === "creators" ? setSearchOpen((v) => !v) : null)} style={[styles.exIcon, styles.exIconRing]} scaleTo={0.9}>
+          <Ionicons name={searchOpen && tab === "creators" ? "close" : "search-outline"} size={21} color={colors.ink} />
+        </Press>
+      </View>
+      <View style={styles.exTabs}>
+        {(
+          [
+            ["creators", "Créateurs"],
+            ["offers", "Offres"],
+          ] as const
+        ).map(([k, l]) => (
+          <Press key={k} onPress={() => setTab(k)} style={[styles.exTab, tab === k && goldGlow]} scaleTo={0.96}>
+            {tab === k && <GoldFill style={{ borderRadius: radius.pill }} />}
+            <Text style={[styles.exTabText, tab === k && { color: colors.onPrimary }]}>{l}</Text>
+          </Press>
+        ))}
+      </View>
+      {tab === "creators" ? (
+        <CreatorsGrid searchOpen={searchOpen} />
+      ) : userId ? (
+        <OffersInner />
+      ) : (
+        <GuestGate icon="megaphone-outline" title="Les offres t'attendent" text="Crée ton compte gratuit pour découvrir les campagnes et postuler en un geste." />
+      )}
+    </View>
+  );
 }

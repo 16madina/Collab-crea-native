@@ -268,7 +268,7 @@ export default function OfferDetail() {
       </Animated.ScrollView>
 
       <View style={[styles.top, { top: insets.top + 6 }]}>
-        <IconButton name="chevron-back" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/offers"))} dark />
+        <IconButton name="chevron-back" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/offers?tab=offers"))} dark />
         <IconButton name="share-outline" dark onPress={() => Share.share({ message: `${offer.title} — ${budgetLabel(offer)} sur Collab Créa` }).catch(() => {})} />
       </View>
 

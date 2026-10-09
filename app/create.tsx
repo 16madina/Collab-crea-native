@@ -14,7 +14,7 @@ const BRAND: Action[] = [
   { icon: "people-outline", title: "Trouver des créateurs", sub: "Parcourez la marketplace et proposez vos offres", color: "#141414", to: "/marketplace" },
 ];
 const CREATOR: Action[] = [
-  { icon: "compass-outline", title: "Explorer les offres", sub: "Trouvez des campagnes adaptées à votre audience", color: "#FF5A36", to: "/(tabs)/offers", tab: true },
+  { icon: "compass-outline", title: "Explorer les offres", sub: "Trouvez des campagnes adaptées à votre audience", color: "#FF5A36", to: "/(tabs)/offers?tab=offers", tab: true },
   { icon: "images-outline", title: "Ajouter au portfolio", sub: "Photos, vidéos, liens TikTok ou Instagram", color: "#2F6BFF", to: "/edit/portfolio" },
   { icon: "shield-checkmark-outline", title: "Vérifier un réseau", sub: "Certifiez vos abonnés pour rassurer les marques", color: "#1FA463", to: "/verification/social" },
   { icon: "wallet-outline", title: "Mon portefeuille", sub: "Solde, retraits et historique", color: "#141414", to: "/wallet" },
