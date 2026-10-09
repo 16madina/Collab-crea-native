@@ -72,6 +72,7 @@ type Result = { ok: true; id?: string } | { ok: false; error: string };
 type DB = {
   // session
   userId: string | null;
+  guest: boolean; // visiteur sans compte (accès en lecture)
   inviteRequired: boolean;
   inviteUnlocked: boolean;
 
@@ -103,6 +104,7 @@ type Actions = {
   demoSignIn: (role: Role) => void;
   signUp: (p: Omit<Profile, "user_id" | "email_verified" | "identity_verified" | "followers"> & { email: string; inviteCode?: string }) => Result;
   signOut: () => void;
+  continueAsGuest: () => void;
   claimInvite: (code: string) => Result;
   // profil
   updateProfile: (patch: Partial<Profile>) => void;
@@ -193,6 +195,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
   return {
     ...seed.db,
     userId: demoFromUrl(),
+    guest: false,
     inviteRequired: false,
     inviteUnlocked: false,
 
@@ -203,7 +206,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
       get().demoSignIn(role);
       return { ok: true };
     },
-    demoSignIn: (role) => set({ userId: role === "admin" ? seed.ADMIN_ID : role === "brand" ? seed.BRAND_ID : seed.CREATOR_ID }),
+    demoSignIn: (role) => set({ guest: false, userId: role === "admin" ? seed.ADMIN_ID : role === "brand" ? seed.BRAND_ID : seed.CREATOR_ID }),
     signUp: ({ email, inviteCode, ...p }) => {
       const s = get();
       if (s.inviteRequired) {
@@ -220,7 +223,8 @@ export const useDB = create<DB & Actions>()((set, get) => {
       }));
       return { ok: true, id: user_id };
     },
-    signOut: () => set({ userId: null, inviteUnlocked: false }),
+    signOut: () => set({ userId: null, guest: false, inviteUnlocked: false }),
+    continueAsGuest: () => set({ guest: true }),
     claimInvite: (code) => {
       const c = code.trim().toUpperCase();
       if (!/^COLLAB-[A-Z0-9]{4}$/.test(c)) return { ok: false, error: "Format invalide (ex: COLLAB-X7K9)" };

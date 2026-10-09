@@ -59,22 +59,32 @@ export default function Home() {
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
       {/* En-tête */}
       <Animated.View entering={FadeInDown.springify()} style={styles.header}>
-        <Press onPress={() => router.navigate("/(tabs)/profile")} scaleTo={0.92}>
+        <Press onPress={() => router.navigate(me ? "/(tabs)/profile" : "/auth/signup")} scaleTo={0.92}>
           <GoldRing size={56}>
-            <Image source={avatarOf(me)} style={{ flex: 1 }} contentFit="cover" />
+            {me ? (
+              <Image source={avatarOf(me)} style={{ flex: 1 }} contentFit="cover" />
+            ) : (
+              <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                <Ionicons name="person" size={26} color={colors.primary} />
+              </View>
+            )}
           </GoldRing>
         </Press>
         <View style={{ flex: 1 }}>
           <Text style={styles.hello}>Bonjour,</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <GoldText style={styles.name}>{isBrand ? nameOf(me) : me?.full_name.split(" ")[0]}</GoldText>
+            <GoldText style={styles.name}>{!me ? "Invité" : isBrand ? nameOf(me) : me.full_name.split(" ")[0]}</GoldText>
             <Text style={{ fontSize: 20 }}>👋</Text>
           </View>
           <Text style={styles.sub} numberOfLines={2}>
-            {isBrand ? "Découvre et collabore avec des créateurs de talent." : "Découvre la communauté et les marques qui recrutent."}
+            {!me
+              ? "Explore les créateurs. Crée ton compte pour collaborer."
+              : isBrand
+                ? "Découvre et collabore avec des créateurs de talent."
+                : "Découvre la communauté et les marques qui recrutent."}
           </Text>
         </View>
-        <Press onPress={() => router.push("/notifications")} style={styles.bell} scaleTo={0.9}>
+        <Press onPress={() => router.push(me ? "/notifications" : "/auth/signup")} style={styles.bell} scaleTo={0.9}>
           <Ionicons name="notifications-outline" size={24} color={colors.ink} />
           {unread && <View style={styles.bellDot} />}
         </Press>
@@ -113,7 +123,7 @@ export default function Home() {
 
       {/* Bannière */}
       <Animated.View entering={FadeInDown.delay(140).springify()} style={{ paddingHorizontal: 16, marginTop: 16 }}>
-        <Press onPress={() => router.push(isBrand ? "/offer/edit" : "/(tabs)/offers")} scaleTo={0.98}>
+        <Press onPress={() => router.push(!me ? "/auth/signup" : isBrand ? "/offer/edit" : "/(tabs)/offers")} scaleTo={0.98}>
           <GlossCard gold style={styles.banner}>
           <Image source={BANNER_IMG} style={styles.bannerImg} contentFit="cover" transition={300} />
           <LinearGradient
@@ -127,8 +137,8 @@ export default function Home() {
           <Text style={styles.bannerTitle}>{isBrand ? "LE CRÉATEUR IDÉAL" : "TA PROCHAINE COLLAB"}</Text>
           <Text style={styles.bannerSub}>{isBrand ? "pour ta prochaine campagne." : "parmi les campagnes ouvertes."}</Text>
           <GoldButton
-            label={isBrand ? "Publier une campagne" : "Voir les campagnes"}
-            onPress={() => router.push(isBrand ? "/offer/edit" : "/(tabs)/offers")}
+            label={!me ? "Créer mon compte" : isBrand ? "Publier une campagne" : "Voir les campagnes"}
+            onPress={() => router.push(!me ? "/auth/signup" : isBrand ? "/offer/edit" : "/(tabs)/offers")}
             style={{ marginTop: 12 }}
           />
           </GlossCard>

@@ -113,11 +113,18 @@ export default function Onboarding() {
   const userId = useDB((s) => s.userId);
   const role = useDB((s) => s.profiles.find((p) => p.user_id === s.userId)?.role);
   const demoSignIn = useDB((s) => s.demoSignIn);
+  const guest = useDB((s) => s.guest);
+  const continueAsGuest = useDB((s) => s.continueAsGuest);
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<Role>("creator");
   const list = useRef<FlatList>(null);
 
   if (userId) return <Redirect href={role === "admin" ? "/admin" : "/(tabs)/home"} />;
+  if (guest) return <Redirect href="/(tabs)/home" />;
+  const asGuest = () => {
+    continueAsGuest();
+    router.replace("/(tabs)/home");
+  };
 
   const go = (i: number) => list.current?.scrollToIndex({ index: i, animated: true });
   const finish = () => router.push(`/auth/signup?role=${chosen}`);
@@ -172,6 +179,10 @@ export default function Onboarding() {
                     <Text style={[styles.ctaText, { flex: 1, color: colors.ink }]}>Je suis une marque</Text>
                     <Ionicons name="arrow-forward" size={20} color={colors.primary} />
                   </Press>
+                  <Press onPress={asGuest} style={styles.guestBtn} scaleTo={0.97}>
+                    <Text style={styles.guestText}>Continuer comme invité</Text>
+                    <Ionicons name="chevron-forward" size={16} color={colors.inkSoft} />
+                  </Press>
                 </Animated.View>
                 <Dots i={0} />
                 <View style={styles.smallRow}>
@@ -195,9 +206,14 @@ export default function Onboarding() {
             </View>
           ) : (
             <View style={[styles.page, { width: W, height: H, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 18 }]}>
-              <Press onPress={finish} style={styles.skip}>
-                <Text style={styles.skipText}>Passer</Text>
-              </Press>
+              <View style={styles.topRow}>
+                <Press onPress={asGuest} style={styles.skip}>
+                  <Text style={[styles.skipText, { color: colors.inkSoft, fontSize: 14 }]}>Continuer comme invité</Text>
+                </Press>
+                <Press onPress={finish} style={styles.skip}>
+                  <Text style={styles.skipText}>Passer</Text>
+                </Press>
+              </View>
               <View style={{ paddingHorizontal: 26, gap: 14 }}>
                 <Title k={item.key} />
                 <Text style={styles.body}>{item.body}</Text>
@@ -239,7 +255,10 @@ const styles = StyleSheet.create({
   roleBtn: { flexDirection: "row", alignItems: "center", gap: 14, height: 60, borderRadius: radius.pill, paddingHorizontal: 24 },
   roleOutline: { borderWidth: 1.2, borderColor: colors.primary, backgroundColor: "rgba(11,11,11,0.6)" },
   page: { flex: 1, justifyContent: "space-between" },
-  skip: { alignSelf: "flex-end", paddingHorizontal: 24, paddingVertical: 10 },
+  topRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 8 },
+  skip: { paddingHorizontal: 16, paddingVertical: 10 },
+  guestBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 40 },
+  guestText: { color: colors.inkSoft, fontSize: 15, fontWeight: "600", textDecorationLine: "underline", textDecorationColor: "rgba(216,173,106,0.5)" },
   skipText: { color: colors.ink, fontSize: 16, fontWeight: "500" },
   title: { fontFamily: fonts.serif, color: colors.ink, fontSize: 32, lineHeight: 38 },
   body: { color: colors.inkSoft, fontSize: 16, lineHeight: 24 },

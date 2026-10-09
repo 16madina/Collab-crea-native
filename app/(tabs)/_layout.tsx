@@ -1,3 +1,4 @@
+import { useDB } from "../../src/store";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { router, Tabs } from "expo-router";
@@ -51,7 +52,7 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
         <TabItem focused={state.index === 2} name="collabs" onPress={() => go(2)} />
         <TabItem focused={state.index === 3} name="profile" onPress={() => go(3)} />
       </View>
-      <Press onPress={() => router.push("/create")} style={[styles.fab, shadow.glow]} scaleTo={0.88}>
+      <Press onPress={() => router.push(useDB.getState().userId ? "/create" : "/auth/signup")} style={[styles.fab, shadow.glow]} scaleTo={0.88}>
         <Ionicons name="add" size={32} color={colors.onPrimary} />
       </Press>
     </View>

@@ -1,3 +1,4 @@
+import { GuestGate } from "../../src/components/GuestGate";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -307,7 +308,7 @@ function BrandOffers() {
   );
 }
 
-export default function Offers() {
+function OffersInner() {
   const me = useMe();
   return me?.role === "brand" ? <BrandOffers /> : <CreatorOffers />;
 }
@@ -324,3 +325,9 @@ const styles = StyleSheet.create({
   action: { flex: 1, flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center", height: 36, borderRadius: radius.pill, backgroundColor: "#F7F0EB" },
   actionText: { fontWeight: "700", fontSize: 13, color: colors.ink },
 });
+
+export default function Offers() {
+  const userId = useDB((s) => s.userId);
+  if (!userId) return <GuestGate icon="megaphone-outline" title="Les campagnes t'attendent" text="Crée ton compte gratuit pour découvrir les campagnes et postuler en un geste." />;
+  return <OffersInner />;
+}

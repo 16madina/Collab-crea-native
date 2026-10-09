@@ -1,3 +1,4 @@
+import { GuestGate } from "../../src/components/GuestGate";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,7 +30,7 @@ const TILE = (Dimensions.get("window").width - 40 - 16) / 3;
 type CreatorTab = "infos" | "tarifs" | "candidatures" | "avis" | "securite";
 type BrandTab = "entreprise" | "offres" | "favoris" | "collabs" | "avis" | "verification";
 
-export default function ProfileTab() {
+function ProfileTabInner() {
   const userId = useDB((s) => s.userId);
   const profiles = useDB((s) => s.profiles);
   const notifications = useDB((s) => s.notifications);
@@ -662,3 +663,9 @@ const styles = StyleSheet.create({
   rowCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: colors.surface },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
 });
+
+export default function ProfileTab() {
+  const userId = useDB((s) => s.userId);
+  if (!userId) return <GuestGate icon="person-circle-outline" title="Ton espace Collab Créa" text="Crée ton profil pour présenter ton talent, tes réseaux et tes tarifs." />;
+  return <ProfileTabInner />;
+}

@@ -1,3 +1,4 @@
+import { GuestGate } from "../../src/components/GuestGate";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -149,7 +150,7 @@ function Collaborations() {
   );
 }
 
-export default function Collabs() {
+function CollabsInner() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<"messages" | "collabs">(params.tab === "collabs" || params.tab === "collaborations" ? "collabs" : "messages");
@@ -187,3 +188,9 @@ const styles = StyleSheet.create({
   collab: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: 14, gap: 12 },
   collabFoot: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
 });
+
+export default function Collabs() {
+  const userId = useDB((s) => s.userId);
+  if (!userId) return <GuestGate icon="chatbubble-ellipses-outline" title="Tes messages & collabs" text="Connecte-toi pour échanger avec les marques et suivre tes collaborations." />;
+  return <CollabsInner />;
+}
