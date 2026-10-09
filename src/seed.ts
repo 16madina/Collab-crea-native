@@ -8,6 +8,8 @@ export const CREATOR_ID = "u_aicha";
 export const BRAND_ID = "u_glow";
 export const ADMIN_ID = "u_admin";
 
+const TAGS: Record<string, string> = {"u_aicha": "Lifestyle", "u_moussa": "Gaming", "u_fatou": "Beauté", "u_kofi": "Lifestyle", "u_amina": "Lifestyle", "u_yao": "Lifestyle", "u_nadia": "Voyage", "u_ibrahim": "Lifestyle", "u_awa": "Mode", "u_chidi": "Business", "u_esther": "Lifestyle"};
+
 const creator = (user_id: string, full_name: string, avatar: string, category: string, country: string, followers: Profile["followers"], extra: Partial<Profile> = {}): Profile => ({
   user_id,
   role: "creator",
@@ -20,6 +22,7 @@ const creator = (user_id: string, full_name: string, avatar: string, category: s
   email_verified: true,
   identity_verified: true,
   rating: 4.6 + Math.round(Math.random() * 4) / 10,
+  tags: [TAGS[user_id] ?? "Lifestyle"],
   bio: `Créatrice de contenu ${category.toLowerCase()} basée en ${country}.`,
   pricing: {
     currency: "XOF",

@@ -15,6 +15,7 @@ export type Profile = {
   logo_url?: string;
   bio?: string;
   category?: string;
+  tags?: string[]; // spécialités secondaires
   country?: string;
   residence_country?: string;
   // marque

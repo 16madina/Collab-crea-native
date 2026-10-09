@@ -1,33 +1,41 @@
+// Page d'arrivée (visiteur non connecté) : créateurs en vedette au premier plan.
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, router } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, FadeInRight, ZoomIn } from "react-native-reanimated";
+import { useMemo } from "react";
+import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn, FadeInDown, FadeInRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { landingFaces, landingHero } from "../src/data";
-import { colors, radius, shadow, type } from "../src/theme";
+import { CreatorTile, totalFollowers } from "../src/components/home/CreatorTile";
 import { useDB } from "../src/store";
+import { colors, fonts, radius, type } from "../src/theme";
 import { Role } from "../src/types";
-import { Avatar, Button, Glass, Logo, Press } from "../src/ui";
+import { Logo, Press } from "../src/ui";
 
-const perks = [
-  { icon: "people-outline", label: "Opportunités\nréelles" },
-  { icon: "shield-checkmark-outline", label: "Paiements\nsécurisés" },
-  { icon: "trending-up-outline", label: "Communauté\nen croissance" },
-] as const;
+const W = Dimensions.get("window").width;
+const HERO_IMG = "https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=900&q=75";
+const PROMO_IMG = "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=600&q=75";
 
-const stats = [
-  { n: "10 000+", l: "Créateurs\ninscrits" },
-  { n: "500+", l: "Marques\nactives" },
-  { n: "3 000+", l: "Campagnes\nréalisées" },
+const CATS: { label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { label: "Toutes", icon: "grid-outline" },
+  { label: "Beauté", icon: "color-palette-outline" },
+  { label: "Mode", icon: "shirt-outline" },
+  { label: "Tech", icon: "desktop-outline" },
+  { label: "Alimentation", icon: "restaurant-outline" },
+  { label: "Voyage", icon: "airplane-outline" },
 ];
 
 export default function Landing() {
   const insets = useSafeAreaInsets();
   const userId = useDB((s) => s.userId);
+  const profiles = useDB((s) => s.profiles);
   const role = useDB((s) => s.profiles.find((p) => p.user_id === s.userId)?.role);
   const demoSignIn = useDB((s) => s.demoSignIn);
+  const featured = useMemo(
+    () => profiles.filter((p) => p.role === "creator" && !p.is_banned).sort((a, b) => totalFollowers(b) - totalFollowers(a)).slice(0, 8),
+    [profiles],
+  );
 
   if (userId) return <Redirect href={role === "admin" ? "/admin" : "/(tabs)/home"} />;
 
@@ -35,97 +43,114 @@ export default function Landing() {
     demoSignIn(r);
     router.replace(r === "admin" ? "/admin" : "/(tabs)/home");
   };
+  const seeCreators = () => router.push("/auth/signup?role=brand");
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <LinearGradient colors={[colors.bg, colors.bgDeep]} style={StyleSheet.absoluteFill} />
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 32 }} showsVerticalScrollIndicator={false}>
-        <View style={styles.top}>
-          <Logo size={40} />
-          <Press onPress={() => router.push("/auth/login")} style={[styles.loginPill, shadow.soft]}>
-            <Ionicons name="log-in-outline" size={18} color={colors.ink} />
-            <Text style={{ fontWeight: "700", color: colors.ink }}>Connexion</Text>
-          </Press>
-        </View>
-
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40 }} showsVerticalScrollIndicator={false}>
         {/* Héros */}
-        <View style={styles.hero}>
-          <Animated.View entering={FadeInRight.delay(150).springify()} style={styles.blob} />
-          <Animated.View entering={FadeInRight.delay(250).springify()} style={styles.mainPhoto}>
-            <Image source={landingHero.main} style={StyleSheet.absoluteFill} contentFit="cover" transition={400} />
+        <View style={[styles.hero, { paddingTop: insets.top + 10 }]}>
+          <Animated.View entering={FadeIn.duration(700)} style={styles.heroImgWrap}>
+            <Image source={HERO_IMG} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+            <LinearGradient colors={["#0B0B0B", "rgba(11,11,11,0.35)", "rgba(11,11,11,0)"]} locations={[0, 0.45, 0.8]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={["rgba(11,11,11,0)", "#0B0B0B"]} locations={[0.7, 1]} style={StyleSheet.absoluteFill} />
           </Animated.View>
-          <Animated.View entering={ZoomIn.delay(450).springify()} style={styles.secondPhoto}>
-            <Image source={landingHero.second} style={StyleSheet.absoluteFill} contentFit="cover" transition={400} />
-          </Animated.View>
-          <Animated.View entering={FadeInDown.delay(650).springify()} style={styles.floatBadge}>
-            <Glass style={styles.floatInner} intensity={60}>
-              <View style={styles.floatIcon}>
-                <Ionicons name="stats-chart" size={16} color="#fff" />
-              </View>
-              <View>
-                <Text style={{ fontWeight: "800", color: colors.ink }}>+ de 500</Text>
-                <Text style={type.tiny}>marques actives</Text>
-              </View>
-            </Glass>
-          </Animated.View>
+          <View style={styles.goldArc} />
 
-          <Animated.Text entering={FadeInDown.delay(100).springify()} style={[type.display, styles.title]}>
-            Les bonnes{"\n"}
-            <Text style={{ color: colors.primary }}>collaborations</Text>
-            {"\n"}font les grandes histoires.
+          <View style={styles.topBar}>
+            <Logo size={40} />
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Press onPress={() => router.push("/auth/login")} style={styles.roundBtn} scaleTo={0.9}>
+                <Ionicons name="notifications-outline" size={20} color={colors.ink} />
+                <View style={styles.dot} />
+              </Press>
+              <Press onPress={seeCreators} style={styles.roundBtn} scaleTo={0.9}>
+                <Ionicons name="search-outline" size={20} color={colors.ink} />
+              </Press>
+            </View>
+          </View>
+
+          <Animated.Text entering={FadeInDown.delay(150).springify()} style={styles.title}>
+            Des{"\n"}créateurs{"\n"}
+            <Text style={{ color: colors.primary }}>de talent</Text>
+            {"\n"}pour des{"\n"}marques{"\n"}
+            <Text style={{ color: colors.primary }}>ambitieuses.</Text>
           </Animated.Text>
+
+          <Animated.Text entering={FadeInRight.delay(500)} style={styles.script}>
+            Créativité{"\n"}Influence{"\n"}Résultats
+          </Animated.Text>
+
+          <Animated.View entering={FadeInDown.delay(300).springify()}>
+            <Press onPress={seeCreators} style={styles.heroCta} scaleTo={0.95}>
+              <Text style={styles.heroCtaText}>Voir les créateurs</Text>
+              <Ionicons name="arrow-forward" size={18} color={colors.onPrimary} />
+            </Press>
+          </Animated.View>
         </View>
 
-        <Animated.View entering={FadeInDown.delay(300).springify()} style={{ paddingHorizontal: 24, gap: 14 }}>
-          <Text style={[type.body, { maxWidth: 300 }]}>
-            Collab Créa connecte les créateurs de contenu africains avec les marques qui croient en leur talent.
-          </Text>
-          <Button label="Je suis créateur" onPress={() => router.push("/auth/signup?role=creator")} style={{ marginTop: 8 }} />
-          <Button label="Je suis une marque" variant="outline" onPress={() => router.push("/auth/signup?role=brand")} />
-        </Animated.View>
-
-        <View style={styles.perks}>
-          {perks.map((p, i) => (
-            <Animated.View key={p.label} entering={FadeInDown.delay(450 + i * 90).springify()} style={styles.perk}>
-              <View style={styles.perkIcon}>
-                <Ionicons name={p.icon} size={24} color={colors.ink} />
-              </View>
-              <Text style={styles.perkText}>{p.label}</Text>
+        {/* Catégories */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingVertical: 8 }}>
+          {CATS.map((c, i) => (
+            <Animated.View key={c.label} entering={FadeInDown.delay(350 + i * 50).springify()}>
+              <Press onPress={seeCreators} style={{ alignItems: "center", gap: 8 }} scaleTo={0.9}>
+                <View style={[styles.catIcon, i === 0 && styles.catOn]}>
+                  <Ionicons name={c.icon} size={24} color={i === 0 ? colors.onPrimary : colors.ink} />
+                </View>
+                <Text style={[styles.catLabel, i === 0 && { fontWeight: "700" }]}>{c.label}</Text>
+              </Press>
             </Animated.View>
           ))}
-        </View>
+        </ScrollView>
 
-        <Animated.View entering={FadeInDown.delay(700).springify()} style={[styles.statsCard, shadow.soft]}>
-          <LinearGradient colors={["#1B1B1B", "#0C0C0C"]} style={StyleSheet.absoluteFill} />
-          <View style={styles.glowOrb} />
-          <View style={{ flexDirection: "row" }}>
-            {stats.map((s, i) => (
-              <View key={s.n} style={[styles.stat, i > 0 && styles.statDivider]}>
-                <Text style={styles.statN}>{s.n}</Text>
-                <Text style={styles.statL}>{s.l}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.community}>
-            <View style={{ flexDirection: "row" }}>
-              {landingFaces.map((f, i) => (
-                <View key={f} style={{ marginLeft: i ? -12 : 0, borderRadius: 22, borderWidth: 2, borderColor: colors.night }}>
-                  <Avatar uri={f} size={38} />
-                </View>
-              ))}
-              <View style={styles.plus}>
-                <Ionicons name="add" size={22} color="#fff" />
+        {/* Créateurs en vedette */}
+        <View style={styles.sectionHead}>
+          <Text style={styles.sectionTitle}>Créateurs en vedette</Text>
+          <Press onPress={seeCreators} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Text style={styles.seeAll}>Voir tout</Text>
+            <Ionicons name="arrow-forward" size={15} color={colors.primary} />
+          </Press>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }} decelerationRate="fast" snapToInterval={152}>
+          {featured.map((p, i) => (
+            <Animated.View key={p.user_id} entering={FadeInRight.delay(450 + i * 70).springify()}>
+              <CreatorTile p={p} width={142} variant="featured" />
+            </Animated.View>
+          ))}
+        </ScrollView>
+
+        {/* Promo créateurs */}
+        <Animated.View entering={FadeInDown.delay(500).springify()} style={{ paddingHorizontal: 20, marginTop: 22 }}>
+          <Press onPress={() => router.push("/auth/signup?role=creator")} style={styles.promo} scaleTo={0.98}>
+            <Image source={PROMO_IMG} style={styles.promoImg} contentFit="cover" transition={300} />
+            <LinearGradient colors={["rgba(11,11,11,0)", "rgba(11,11,11,0.9)", "#0B0B0B"]} locations={[0, 0.42, 0.6]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+            <View style={styles.promoText}>
+              <Text style={styles.promoTitle}>Les marques{"\n"}te recherchent !</Text>
+              <Text style={styles.promoSub}>Reçois des opportunités adaptées à ton profil.</Text>
+              <View style={styles.promoCta}>
+                <Text style={styles.heroCtaText}>Créer mon profil</Text>
+                <Ionicons name="arrow-forward" size={16} color={colors.onPrimary} />
               </View>
             </View>
-            <Text style={{ color: "#fff", flex: 1, fontSize: 13, lineHeight: 18 }}>Rejoignez une communauté de créateurs talentueux</Text>
-          </View>
+          </Press>
         </Animated.View>
 
-        <Text style={[type.small, { textAlign: "center", marginTop: 22 }]} onPress={() => router.push("/auth/login")}>
-          Déjà membre ? <Text style={{ color: colors.primary, fontWeight: "700" }}>Se connecter</Text>
-        </Text>
+        {/* Entrées */}
+        <View style={{ paddingHorizontal: 20, gap: 12, marginTop: 26 }}>
+          <Press onPress={() => router.push("/auth/signup?role=creator")} style={styles.mainBtn} scaleTo={0.97}>
+            <Text style={styles.heroCtaText}>Je suis créateur</Text>
+            <Ionicons name="arrow-forward" size={18} color={colors.onPrimary} />
+          </Press>
+          <Press onPress={() => router.push("/auth/signup?role=brand")} style={styles.outlineBtn} scaleTo={0.97}>
+            <Text style={{ color: colors.ink, fontWeight: "700", fontSize: 16 }}>Je suis une marque</Text>
+            <Ionicons name="arrow-forward" size={18} color={colors.ink} />
+          </Press>
+          <Text style={[type.small, { textAlign: "center", marginTop: 6 }]} onPress={() => router.push("/auth/login")}>
+            Déjà membre ? <Text style={{ color: colors.primary, fontWeight: "700" }}>Se connecter</Text>
+          </Text>
+        </View>
 
-        <Animated.View entering={FadeInDown.delay(850).springify()} style={styles.demo}>
+        <View style={styles.demo}>
           <Ionicons name="flask-outline" size={14} color={colors.muted} />
           <Text style={type.tiny}>Mode démo</Text>
           {(
@@ -139,7 +164,7 @@ export default function Landing() {
               <Text style={{ fontSize: 12, fontWeight: "700", color: colors.inkSoft }}>{l}</Text>
             </Press>
           ))}
-        </Animated.View>
+        </View>
 
         <View style={styles.footer}>
           {(
@@ -163,50 +188,32 @@ export default function Landing() {
 }
 
 const styles = StyleSheet.create({
-  loginPill: { flexDirection: "row", alignItems: "center", gap: 6, height: 42, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface },
+  hero: { minHeight: 540, paddingHorizontal: 20, paddingBottom: 24, justifyContent: "space-between" },
+  heroImgWrap: { position: "absolute", top: 0, right: 0, bottom: 0, width: W * 0.78 },
+  goldArc: { position: "absolute", right: -W * 0.35, top: 120, width: W * 0.9, height: W * 0.9, borderRadius: W, borderWidth: 1, borderColor: "rgba(216,173,106,0.35)" },
+  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  roundBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: "rgba(248,246,242,0.25)", backgroundColor: "rgba(11,11,11,0.45)", alignItems: "center", justifyContent: "center" },
+  dot: { position: "absolute", top: 9, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary },
+  title: { fontFamily: fonts.serif, color: colors.ink, fontSize: 40, lineHeight: 44, marginTop: 30, maxWidth: W * 0.62 },
+  script: { position: "absolute", right: 22, bottom: 96, fontFamily: fonts.serifItalic, color: colors.primaryLight, fontSize: 16, lineHeight: 22, textAlign: "right", transform: [{ rotate: "-8deg" }] },
+  heroCta: { flexDirection: "row", alignItems: "center", gap: 10, alignSelf: "flex-start", backgroundColor: colors.primary, height: 52, paddingHorizontal: 26, borderRadius: radius.pill, marginTop: 24 },
+  heroCtaText: { color: colors.onPrimary, fontWeight: "700", fontSize: 16 },
+  catIcon: { width: 62, height: 62, borderRadius: 31, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
+  catOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  catLabel: { color: colors.ink, fontSize: 12, fontWeight: "500" },
+  sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginTop: 24, marginBottom: 12 },
+  sectionTitle: { color: colors.ink, fontSize: 19, fontWeight: "700" },
+  seeAll: { color: colors.primary, fontWeight: "600", fontSize: 14 },
+  promo: { height: 170, borderRadius: radius.lg, overflow: "hidden", borderWidth: 1, borderColor: "rgba(216,173,106,0.45)", backgroundColor: colors.surface, flexDirection: "row", justifyContent: "flex-end" },
+  promoImg: { position: "absolute", left: 0, top: 0, bottom: 0, width: "55%" },
+  promoText: { width: "56%", padding: 16, justifyContent: "center", gap: 6 },
+  promoTitle: { fontFamily: fonts.serif, color: colors.ink, fontSize: 21, lineHeight: 25 },
+  promoSub: { color: colors.inkSoft, fontSize: 12, lineHeight: 16 },
+  promoCta: { flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", backgroundColor: colors.primary, height: 38, paddingHorizontal: 14, borderRadius: radius.pill, marginTop: 4 },
+  mainBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, height: 54, borderRadius: radius.pill, backgroundColor: colors.primary },
+  outlineBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, height: 54, borderRadius: radius.pill, borderWidth: 1.2, borderColor: colors.primary },
   demo: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 26, flexWrap: "wrap", paddingHorizontal: 20 },
-  demoChip: { paddingHorizontal: 12, height: 30, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, justifyContent: "center", backgroundColor: "rgba(255,255,255,0.6)" },
+  demoChip: { paddingHorizontal: 12, height: 30, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, justifyContent: "center", backgroundColor: colors.surface },
   footer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 22, paddingHorizontal: 20 },
   footLink: { fontSize: 12, color: colors.inkSoft, fontWeight: "600" },
-  top: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24 },
-  hero: { height: 420, marginTop: 16 },
-  title: { position: "absolute", left: 24, top: 18, width: 250, fontSize: 35, lineHeight: 39 },
-  blob: {
-    position: "absolute",
-    right: -40,
-    top: 10,
-    width: 240,
-    height: 300,
-    borderRadius: 120,
-    backgroundColor: colors.primary,
-    opacity: 0.9,
-    transform: [{ rotate: "18deg" }],
-  },
-  mainPhoto: { position: "absolute", right: -10, top: 0, width: 190, height: 270, borderRadius: 100, overflow: "hidden" },
-  secondPhoto: {
-    position: "absolute",
-    right: 60,
-    top: 250,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    overflow: "hidden",
-    borderWidth: 5,
-    borderColor: colors.night,
-  },
-  floatBadge: { position: "absolute", right: 16, top: 360 },
-  floatInner: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderRadius: radius.md },
-  floatIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
-  perks: { flexDirection: "row", justifyContent: "space-around", marginTop: 32, paddingHorizontal: 12 },
-  perk: { alignItems: "center", gap: 10, flex: 1 },
-  perkIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center" },
-  perkText: { textAlign: "center", fontSize: 13, color: colors.ink, fontWeight: "500" },
-  statsCard: { marginHorizontal: 16, marginTop: 30, borderRadius: radius.xl, overflow: "hidden", padding: 20, gap: 20 },
-  glowOrb: { position: "absolute", width: 200, height: 200, borderRadius: 100, backgroundColor: colors.primary, opacity: 0.18, right: -60, bottom: -90 },
-  stat: { flex: 1, alignItems: "center", gap: 4 },
-  statDivider: { borderLeftWidth: 1, borderLeftColor: "rgba(255,255,255,0.12)" },
-  statN: { color: colors.primary, fontSize: 22, fontWeight: "800" },
-  statL: { color: "rgba(255,255,255,0.85)", textAlign: "center", fontSize: 12 },
-  community: { flexDirection: "row", alignItems: "center", gap: 14 },
-  plus: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, marginLeft: -12, alignItems: "center", justifyContent: "center" },
 });
