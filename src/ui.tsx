@@ -7,7 +7,8 @@ import { ReactNode } from "react";
 import { Platform, Pressable, PressableProps, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
-import { Offer, fcfa } from "./data";
+import { budgetLabel, useDB } from "./store";
+import type { Offer } from "./types";
 import { colors, radius, shadow, type } from "./theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -178,31 +179,41 @@ export function Tag({ label, dark }: { label: string; dark?: boolean }) {
   );
 }
 
-export function OfferCard({ offer, width = 230 }: { offer: Offer; width?: number }) {
+export const OFFER_FALLBACK = "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=600&q=70";
+
+/** Carte d'offre (format carrousel) basée sur le type Offer du store. */
+export function OfferCard({ offer, width = 230, badge }: { offer: Offer; width?: number; badge?: ReactNode }) {
+  const brand = useDB((s) => s.profiles.find((p) => p.user_id === offer.brand_id));
+  const name = brand?.company_name || brand?.full_name || "Marque";
   return (
     <Press onPress={() => router.push(`/offer/${offer.id}`)} style={[styles.card, shadow.soft, { width }]} scaleTo={0.97}>
       <View>
-        <Image source={offer.image} style={{ height: 140, width: "100%" }} contentFit="cover" transition={300} />
-        {offer.tag && (
-          <View style={{ position: "absolute", top: 10, left: 10 }}>
-            <Tag label={offer.tag} dark={offer.tag === "Sponsorisé"} />
-          </View>
-        )}
+        <Image source={offer.images[0] ?? OFFER_FALLBACK} style={{ height: 140, width: "100%" }} contentFit="cover" transition={300} />
+        <View style={{ position: "absolute", top: 10, left: 10, flexDirection: "row", gap: 6 }}>
+          <Tag label={offer.category} />
+          {offer.delivery_mode === "network" ? <Tag label="📱 Réseau" dark /> : null}
+        </View>
+        {badge ? <View style={{ position: "absolute", top: 10, right: 10 }}>{badge}</View> : null}
       </View>
       <View style={{ padding: 12, gap: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <BrandDot name={offer.brand} color={offer.brandColor} />
-          <Text style={{ fontWeight: "600", color: colors.ink, flex: 1 }}>{offer.brand}</Text>
-          <Ionicons name="bookmark-outline" size={18} color={colors.ink} />
+          {brand?.logo_url || brand?.avatar_url ? (
+            <Image source={brand.logo_url || brand.avatar_url} style={{ width: 20, height: 20, borderRadius: 10 }} />
+          ) : (
+            <BrandDot name={name} color={colors.primary} />
+          )}
+          <Text style={{ fontWeight: "600", color: colors.ink, flex: 1 }} numberOfLines={1}>
+            {name}
+          </Text>
         </View>
         <Text style={[type.h3, { minHeight: 42 }]} numberOfLines={2}>
           {offer.title}
         </Text>
-        <Meta icon="camera-outline" text={offer.format} />
-        <Meta icon="location-outline" text={offer.location} />
-        <Meta icon="calendar-outline" text={offer.deadline} />
-        <Text style={{ fontSize: 17, fontWeight: "800", color: colors.ink, marginTop: 4 }}>{fcfa(offer.budget)}</Text>
-        <Button label="Postuler" small onPress={() => router.push(`/offer/${offer.id}`)} style={{ marginTop: 4 }} />
+        <Meta icon="camera-outline" text={offer.content_types.join(" · ")} />
+        <Meta icon={offer.presence_mode === "on_site" ? "storefront-outline" : "location-outline"} text={offer.presence_mode === "on_site" ? `Sur place · ${offer.on_site_city ?? ""}` : offer.location || "Tous les pays africains"} />
+        <Text style={{ fontSize: 16, fontWeight: "800", color: colors.ink, marginTop: 4 }} numberOfLines={1}>
+          {budgetLabel(offer)}
+        </Text>
       </View>
     </Press>
   );

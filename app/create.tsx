@@ -3,18 +3,31 @@ import { router } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMe } from "../src/store";
 import { colors, radius, shadow, type } from "../src/theme";
 import { IconButton, Press } from "../src/ui";
 
-const actions = [
-  { icon: "images-outline", title: "Ajouter au portfolio", sub: "Photos, vidéos, liens TikTok ou Instagram", color: "#FF5A36" },
-  { icon: "paper-plane-outline", title: "Proposer une collab", sub: "Envoyez une idée directement à une marque", color: "#2F6BFF" },
-  { icon: "document-text-outline", title: "Générer mon kit média", sub: "Vos statistiques en une page partageable", color: "#1FA463" },
-  { icon: "megaphone-outline", title: "Publier une campagne", sub: "Espace marque — trouvez vos créateurs", color: "#141414" },
-] as const;
+type Action = { icon: keyof typeof Ionicons.glyphMap; title: string; sub: string; color: string; to: string; tab?: boolean };
+
+const BRAND: Action[] = [
+  { icon: "megaphone-outline", title: "Publier une offre", sub: "Décrivez votre campagne et recevez des candidatures", color: "#FF5A36", to: "/offer/edit" },
+  { icon: "people-outline", title: "Trouver des créateurs", sub: "Parcourez la marketplace et proposez vos offres", color: "#141414", to: "/marketplace" },
+];
+const CREATOR: Action[] = [
+  { icon: "compass-outline", title: "Explorer les offres", sub: "Trouvez des campagnes adaptées à votre audience", color: "#FF5A36", to: "/(tabs)/offers", tab: true },
+  { icon: "images-outline", title: "Ajouter au portfolio", sub: "Photos, vidéos, liens TikTok ou Instagram", color: "#2F6BFF", to: "/edit/portfolio" },
+  { icon: "shield-checkmark-outline", title: "Vérifier un réseau", sub: "Certifiez vos abonnés pour rassurer les marques", color: "#1FA463", to: "/verification/social" },
+  { icon: "wallet-outline", title: "Mon portefeuille", sub: "Solde, retraits et historique", color: "#141414", to: "/wallet" },
+];
 
 export default function Create() {
   const insets = useSafeAreaInsets();
+  const me = useMe();
+  const actions = me?.role === "brand" ? BRAND : CREATOR;
+  const go = (a: Action) => {
+    router.back();
+    setTimeout(() => (a.tab ? router.navigate(a.to as never) : router.push(a.to as never)), 60);
+  };
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
       <View style={styles.grabber} />
@@ -26,7 +39,7 @@ export default function Create() {
       <View style={{ gap: 12 }}>
         {actions.map((a, i) => (
           <Animated.View key={a.title} entering={FadeInDown.delay(60 + i * 70).springify()}>
-            <Press style={[styles.row, shadow.soft]} scaleTo={0.97} onPress={() => router.back()}>
+            <Press style={[styles.row, shadow.soft]} scaleTo={0.97} onPress={() => go(a)}>
               <View style={[styles.icon, { backgroundColor: a.color }]}>
                 <Ionicons name={a.icon} size={22} color="#fff" />
               </View>

@@ -272,7 +272,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
       return { ok: true, id: nid };
     },
     deleteOffer: (id) => set((s) => ({ offers: s.offers.filter((o) => !(o.id === id && o.brand_id === s.userId)) })),
-    renewOffer: (id) => set((s) => ({ offers: s.offers.map((o) => (o.id === id ? { ...o, status: "active", deadline: inDays(30) } : o)) })),
+    renewOffer: (id) => set((s) => ({ offers: s.offers.map((o) => (o.id === id && o.brand_id === s.userId ? { ...o, status: "active", deadline: inDays(30) } : o)) })),
 
     applyToOffer: (offerId, message, slot) => {
       const s = get();
@@ -360,12 +360,12 @@ export const useDB = create<DB & Actions>()((set, get) => {
       systemMsg(conversationId, s.userId!, "❌ Je décline cette proposition. Merci pour votre intérêt.");
       return { ok: true };
     },
-    pay: (collabId) => {
+    pay: (collabId, method) => {
       const c = collab(collabId)!;
       if (!["pending_payment", "content_submitted"].includes(c.status)) return { ok: false, error: "Paiement impossible à cette étape" };
       const next: CollabStatus = c.status === "pending_payment" ? "in_progress" : "in_review";
       set((s) => ({
-        transactions: [{ id: uid(), user_id: c.brand_id, type: "escrow", amount: computeCommission(c.agreed_amount).brand_total, status: "pending", label: `Séquestre — ${offerOf(c)?.title}`, collaboration_id: c.id, created_at: now() }, ...s.transactions],
+        transactions: [{ id: uid(), user_id: c.brand_id, type: "escrow", amount: computeCommission(c.agreed_amount)[method === "card" ? "brand_total_card" : "brand_total"], status: "pending", label: `Séquestre — ${offerOf(c)?.title}`, collaboration_id: c.id, created_at: now() }, ...s.transactions],
       }));
       patchCollab(collabId, { status: next, paid: true });
       get().notify(c.creator_id, "Paiement sécurisé", "La marque a versé le montant en séquestre. Vous pouvez commencer !", "payment");
@@ -417,7 +417,12 @@ export const useDB = create<DB & Actions>()((set, get) => {
     },
     rateCreator: (collabId, rating, comment) => {
       const c = collab(collabId)!;
-      set((s) => ({ reviews: [{ id: uid(), brand_id: c.brand_id, creator_id: c.creator_id, collaboration_id: c.id, rating, comment, created_at: now() }, ...s.reviews] }));
+      set((s) => {
+        const reviews = [{ id: uid(), brand_id: c.brand_id, creator_id: c.creator_id, collaboration_id: c.id, rating, comment, created_at: now() }, ...s.reviews];
+        const mine = reviews.filter((r) => r.creator_id === c.creator_id);
+        const avg = Math.round((mine.reduce((a, r) => a + r.rating, 0) / mine.length) * 10) / 10;
+        return { reviews, profiles: s.profiles.map((p) => (p.user_id === c.creator_id ? { ...p, rating: avg } : p)) };
+      });
     },
     toggleFavorite: (creatorId) =>
       set((s) => {
