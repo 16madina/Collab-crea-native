@@ -1,3 +1,4 @@
+import { CreatorProfileLux } from "../../src/components/profile/CreatorProfileLux";
 import { GuestGate } from "../../src/components/GuestGate";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -44,7 +45,7 @@ function ProfileTabInner() {
     router.replace("/");
   };
   return me.role === "creator" ? (
-    <CreatorProfile me={me} unread={unread} onLogout={logout} />
+    <CreatorProfileLux me={me} onLogout={logout} />
   ) : me.role === "brand" ? (
     <BrandProfile me={me} unread={unread} onLogout={logout} />
   ) : (

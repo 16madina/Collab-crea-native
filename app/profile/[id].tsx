@@ -98,7 +98,7 @@ function TopBar({ p, viewer, right }: { p: Profile; viewer?: Profile; right?: Re
   );
 }
 
-function Hero({ uri, banner }: { uri: string | number; banner?: string }) {
+function Hero({ uri, banner }: { uri: string | number; banner?: string | number }) {
   return (
     <View style={{ height: 300 }}>
       <Image source={banner ?? uri} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} />

@@ -73,7 +73,7 @@ const brand = (user_id: string, company_name: string, logo: string, sector: stri
 const profiles: Profile[] = [
   creator(CREATOR_ID, "Aïcha Koné", "photo-1531123897727-8f129e1688ce", "Beauté", "Côte d'Ivoire", { instagram: "48.2K", tiktok: "112K", youtube: "8.4K" }, {
     bio: "Beauté, lifestyle & bonnes adresses d'Abidjan. J'aime raconter les marques avec authenticité.",
-    banner_url: u("photo-1515886657613-9f3515b0c78f", 900),
+    banner_url: require("../assets/profile/cover.jpg"),
     rating: 4.9,
   }),
   creator("u_moussa", "Moussa Diop", "photo-1506794778202-cad84cf45f1d", "Tech", "Sénégal", { youtube: "210K", tiktok: "54K" }),
@@ -294,7 +294,7 @@ export const db = {
     user_id: CREATOR_ID,
     title: ["Routine karité", "Look wax", "Shooting plage", "Haul mode", "Unboxing", "Soirée Abidjan"][i],
     media_type: (i % 3 === 1 ? "video" : "image") as "video" | "image",
-    media_url: u(p, 500),
+    media_url: [require("../assets/profile/p0.jpg"), require("../assets/profile/p1.jpg"), require("../assets/profile/p2.jpg"), require("../assets/profile/p3.jpg"), require("../assets/profile/p4.jpg"), require("../assets/profile/p5.jpg")][i],
     platform: ["Instagram", "TikTok", "Instagram", "YouTube", "TikTok", "Instagram"][i],
     views_count: [12000, 89000, 4300, 21000, 56000, 9800][i],
   })),

@@ -11,7 +11,7 @@ export type Profile = {
   role: Role;
   full_name: string;
   avatar_url: string | number; // URL ou image embarquée (require)
-  banner_url?: string;
+  banner_url?: string | number;
   logo_url?: string;
   bio?: string;
   category?: string;
@@ -213,7 +213,7 @@ export type PortfolioItem = {
   title: string;
   description?: string;
   media_type: "image" | "video";
-  media_url: string;
+  media_url: string | number;
   platform?: string;
   views_count?: number;
 };
