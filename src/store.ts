@@ -509,6 +509,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
         transactions: s.transactions.map((t) => (t.collaboration_id === id && t.type === "withdrawal" ? { ...t, status: "completed", label: "Retrait effectué" } : t)),
       }));
       get().notify(w.user_id, "✅ Retrait effectué !", fcfa(w.amount), "success");
+      log("withdrawal_completed", w.user_id, { withdrawal_id: id, amount: w.amount });
     },
     adminRejectWithdrawal: (id, reason) => {
       const w = get().withdrawals.find((x) => x.id === id)!;
@@ -518,6 +519,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
         transactions: s.transactions.map((t) => (t.collaboration_id === id && t.type === "withdrawal" ? { ...t, status: "cancelled", label: "Retrait annulé" } : t)),
       }));
       get().notify(w.user_id, "❌ Retrait refusé", reason, "error");
+      log("withdrawal_rejected", w.user_id, { withdrawal_id: id, reason });
     },
     adminBroadcast: (target, title, message, type) => {
       const ids = get().profiles.filter((p) => p.role !== "admin" && (target === "all" || p.role === target)).map((p) => p.user_id);
@@ -525,16 +527,23 @@ export const useDB = create<DB & Actions>()((set, get) => {
       log("broadcast_notification", undefined, { target, count: ids.length });
       return ids.length;
     },
-    adminSetInviteRequired: (v) => set({ inviteRequired: v }),
+    adminSetInviteRequired: (v) => {
+      set({ inviteRequired: v });
+      log("invite_codes_required", undefined, { value: v });
+    },
     adminGenerateCodes: (n, note) => {
       const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
       const codes = Array.from({ length: n }, () => `COLLAB-${Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join("")}`);
       set((s) => ({ inviteCodes: [...codes.map((code) => ({ code, is_active: true, note })), ...s.inviteCodes] }));
+      log("invite_codes_generated", undefined, { count: n, note });
       return codes;
     },
     adminToggleCode: (code) => set((s) => ({ inviteCodes: s.inviteCodes.map((c) => (c.code === code ? { ...c, is_active: !c.is_active } : c)) })),
     adminDeleteCode: (code) => set((s) => ({ inviteCodes: s.inviteCodes.filter((c) => c.code !== code) })),
-    adminUpdateLegal: (slug, title, content) => set((s) => ({ legalPages: s.legalPages.map((p) => (p.slug === slug ? { ...p, title, content } : p)) })),
+    adminUpdateLegal: (slug, title, content) => {
+      set((s) => ({ legalPages: s.legalPages.map((p) => (p.slug === slug ? { ...p, title, content } : p)) }));
+      log("legal_page_updated", undefined, { slug });
+    },
     adminSaveTemplate: ({ id, ...t }) =>
       set((s) => ({ templates: id ? s.templates.map((x) => (x.id === id ? { ...x, ...t } : x)) : [{ ...t, id: uid() }, ...s.templates] })),
     adminDeleteTemplate: (id) => set((s) => ({ templates: s.templates.filter((t) => t.id !== id) })),
