@@ -14,7 +14,7 @@ js = open(glob.glob(os.path.join(src, "_expo/static/js/web/*.js"))[0]).read()
 MIME = {"ttf": "font/ttf", "jpg": "image/jpeg", "png": "image/png"}
 for p in set(re.findall(r'"(/assets/[^"]+\.(?:ttf|jpg|png))"', js)):
     ext = p.rsplit(".", 1)[1]
-    if ext == "ttf" and not ("Ionicons" in p or "PlayfairDisplay_700Bold" in p):
+    if ext == "ttf" and not ("Ionicons" in p or "MaterialCommunityIcons" in p or "PlayfairDisplay_700Bold" in p):
         continue
     if "node_modules/expo-router" in p or "react-navigation" in p:
         continue
@@ -40,9 +40,9 @@ html.framed .fx{display:flex}
 .homebar{position:fixed;bottom:6px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#F8F6F2;z-index:100000;pointer-events:none;opacity:.85}
 """
 HEAD = """try{history.replaceState(null,"","/")}catch(e){}
-if(Math.min(innerWidth,innerHeight)>=500&&innerHeight>=640){
+if(innerWidth>=480){
   document.documentElement.className="framed";
-  document.documentElement.style.setProperty("--s",Math.min(1,(innerHeight-40)/844));
+  document.documentElement.style.setProperty("--s",Math.min(1,(innerHeight-24)/844,(innerWidth-24)/390));
   var vv={width:366,height:770,scale:1,addEventListener:function(){},removeEventListener:function(){}};
   try{Object.defineProperty(window,"visualViewport",{get:function(){return vv}})}catch(e){}
 }"""
