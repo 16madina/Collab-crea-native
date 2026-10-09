@@ -1,0 +1,61 @@
+project_id = "qsbkwdtchhzclpxjrhnt"
+
+[functions.send-auth-email]
+verify_jwt = false
+
+[functions.send-welcome-email]
+verify_jwt = false
+
+[functions.youtube-oauth]
+verify_jwt = false
+
+[functions.tiktok-oauth]
+verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.verify-social-screenshot]
+verify_jwt = false
+
+[functions.verify-publication-link]
+verify_jwt = false
+
+[functions.request-withdrawal]
+verify_jwt = false
+
+[functions.stripe-publishable-key]
+verify_jwt = false
+
+[functions.send-identity-rejection-email]
+verify_jwt = false
+
+[functions.send-app-download-reminder]
+verify_jwt = false
+
+[functions.fedapay-collab-payment]
+verify_jwt = false
+
+[functions.fedapay-create-payment]
+verify_jwt = false
+
+[functions.fedapay-collab-verify]
+verify_jwt = false
+
+[functions.fedapay-payout]
+verify_jwt = false
+
+[functions.fedapay-webhook]
+verify_jwt = false
+
+[functions.feexpay-collab-verify]
+verify_jwt = false
+
+[functions.check-ip]
+verify_jwt = false
+
+[functions.feexpay-payout]
+verify_jwt = false

@@ -1,0 +1,1 @@
+ALTER TABLE public.applications ADD COLUMN selected_slot jsonb DEFAULT NULL;
