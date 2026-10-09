@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import { ReactNode } from "react";
 import { Platform, Pressable, PressableProps, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Defs, LinearGradient as SvgGradient, Path, Stop } from "react-native-svg";
 import { budgetLabel, useDB } from "./store";
 import type { Offer } from "./types";
 import { colors, radius, shadow, type } from "./theme";
@@ -67,13 +67,21 @@ export function Logo({ size = 44, showText = true }: { size?: number; showText?:
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
       <Svg width={size * 1.3} height={size} viewBox="0 0 52 40">
-        <Path d="M22 6a14 14 0 1 0 0 28" stroke={colors.primary} strokeWidth={8} strokeLinecap="round" fill="none" />
+        <Defs>
+          <SvgGradient id="ccGold" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#FFE4AC" />
+            <Stop offset="0.45" stopColor="#D9AC65" />
+            <Stop offset="0.75" stopColor="#B98236" />
+            <Stop offset="1" stopColor="#F5D394" />
+          </SvgGradient>
+        </Defs>
+        <Path d="M22 6a14 14 0 1 0 0 28" stroke="url(#ccGold)" strokeWidth={8} strokeLinecap="round" fill="none" />
         <Path d="M42 12a10 10 0 1 0 0 16" stroke={colors.primaryPale} strokeWidth={8} strokeLinecap="round" fill="none" />
       </Svg>
       {showText && (
         <View>
           <Text style={{ fontSize: size * 0.62, fontWeight: "800", letterSpacing: -0.8, color: colors.ink }}>
-            Collab <Text style={{ color: colors.primary }}>Créa</Text>
+            Collab <Text style={{ color: "#E2B873" }}>Créa</Text>
           </Text>
           <Text style={{ fontSize: 8.5, letterSpacing: 1.6, fontWeight: "600", color: colors.inkSoft }}>
             CRÉER · COLLABORER · GRANDIR

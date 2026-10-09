@@ -1,28 +1,158 @@
-// Accueil : découverte des créateurs au premier plan (les campagnes vivent dans l'onglet Campagnes).
-import { Ionicons } from "@expo/vector-icons";
+// Accueil : créateurs à la une + nouveaux créateurs (les campagnes vivent dans l'onglet Campagnes).
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, LinearTransition } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, FadeInRight, useAnimatedStyle, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ALL_PLATFORMS, parseFollowers, PLATFORM } from "../../src/components/account/constants";
+import { ALL_PLATFORMS, formatFollowers, parseFollowers, PLATFORM } from "../../src/components/account/constants";
 import { avatarOf, flagOf, nameOf } from "../../src/components/collab/common";
-import { CreatorTile, totalFollowers } from "../../src/components/home/CreatorTile";
+import { initials, shortName, totalFollowers } from "../../src/components/home/CreatorTile";
 import { Empty } from "../../src/kit";
+import { GlossFill, GoldButton, GoldFill, GoldPill, GoldRing, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../../src/lux";
 import { useDB, useMe } from "../../src/store";
-import { colors, fonts, radius, type } from "../../src/theme";
-import type { SocialPlatform } from "../../src/types";
-import { GlossCard, GlossFill, GoldButton, GoldFill, GoldPill, GoldRing, GoldText, goldBorder, goldGlow } from "../../src/lux";
-import { Press } from "../../src/ui";
+import { colors, fonts, radius } from "../../src/theme";
+import type { Profile, SocialPlatform } from "../../src/types";
+import { Logo, Press } from "../../src/ui";
 
 const W = Dimensions.get("window").width;
-const GAP = 8;
-const COL_W = Math.floor((W - 32 - GAP * 2) / 3);
+const FEAT_W = Math.round(W * 0.8);
+const FEAT_GAP = 12;
+const NEW_W = Math.round((W - 32 - 3 * 8) / 3.6);
 
-const CATS = ["Tous", "Beauté", "Mode", "Tech", "Cuisine", "Lifestyle", "Voyage", "Fitness", "Humour"];
-const BANNER_IMG = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=700&q=75";
+const CATS: { key: string; label: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }[] = [
+  { key: "Tous", label: "Toutes", icon: "dots-grid" },
+  { key: "Beauté", label: "Beauté", icon: "lipstick" },
+  { key: "Mode", label: "Mode", icon: "tshirt-crew-outline" },
+  { key: "Tech", label: "Tech", icon: "cellphone" },
+  { key: "Cuisine", label: "Cuisine", icon: "silverware-fork-knife" },
+  { key: "Fitness", label: "Fitness", icon: "dumbbell" },
+  { key: "Lifestyle", label: "Lifestyle", icon: "coffee-outline" },
+  { key: "Humour", label: "Humour", icon: "emoticon-happy-outline" },
+];
+
+const tagsOf = (p: Profile) => [p.category, ...(p.tags ?? [])].filter(Boolean) as string[];
+
+function Heart({ p }: { p: Profile }) {
+  const favorites = useDB((s) => s.favorites);
+  const userId = useDB((s) => s.userId);
+  const isBrand = useDB((s) => s.profiles.find((x) => x.user_id === s.userId)?.role === "brand");
+  const toggleFavorite = useDB((s) => s.toggleFavorite);
+  const fav = favorites.some((f) => f.brand_id === userId && f.creator_id === p.user_id);
+  return (
+    <Press
+      onPress={() => (!userId ? router.push("/auth/signup") : isBrand ? toggleFavorite(p.user_id) : router.push(`/profile/${p.user_id}`))}
+      style={styles.heart}
+      scaleTo={0.8}
+      hitSlop={8}
+    >
+      <Ionicons name={fav ? "heart" : "heart-outline"} size={18} color={fav ? colors.primary : colors.ink} />
+    </Press>
+  );
+}
+
+function Photo({ p, mono, side }: { p: Profile; mono: number; side?: boolean }) {
+  return (
+    <>
+      <View style={[styles.mono, side && styles.side]}>
+        <Text style={[styles.monoText, { fontSize: mono }]}>{initials(p.full_name)}</Text>
+      </View>
+      <Image source={p.avatar_url} style={side ? styles.side : StyleSheet.absoluteFill} contentFit="cover" contentPosition="top" transition={300} />
+    </>
+  );
+}
+
+function Tag({ label }: { label: string }) {
+  return (
+    <View style={styles.tag}>
+      <Text style={styles.tagText} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function FeaturedCard({ p }: { p: Profile }) {
+  return (
+    <Press onPress={() => router.push(`/profile/${p.user_id}`)} style={[styles.feat, luxShadow]} scaleTo={0.98}>
+      <Photo p={p} mono={90} side />
+      <LinearGradient colors={["#0E0E0E", "rgba(14,14,14,0.6)", "rgba(14,14,14,0)"]} locations={[0.3, 0.5, 0.7]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={["rgba(11,11,11,0)", "rgba(11,11,11,0.75)"]} locations={[0.55, 1]} style={StyleSheet.absoluteFill} />
+      <Heart p={p} />
+      <View style={styles.featBody}>
+        <View style={styles.nameRow}>
+          <Text style={styles.featName} numberOfLines={1}>
+            {shortName(p.full_name)}
+          </Text>
+          {p.identity_verified && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
+        </View>
+        <Text style={styles.featFollowers}>{formatFollowers(totalFollowers(p))} abonnés</Text>
+        <View style={{ flexDirection: "row", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+          {tagsOf(p)
+            .slice(0, 3)
+            .map((t) => (
+              <Tag key={t} label={t} />
+            ))}
+        </View>
+        <GoldButton label="Voir le profil" onPress={() => router.push(`/profile/${p.user_id}`)} style={{ marginTop: 12, minWidth: 170 }} />
+      </View>
+    </Press>
+  );
+}
+
+function NewCard({ p }: { p: Profile }) {
+  return (
+    <Press onPress={() => router.push(`/profile/${p.user_id}`)} style={[styles.newCard, luxShadow]} scaleTo={0.96}>
+      <GlossFill />
+      <View style={{ height: NEW_W * 1.05 }}>
+        <Photo p={p} mono={34} />
+        <Heart p={p} />
+      </View>
+      <View style={{ padding: 8, gap: 2 }}>
+        <View style={styles.nameRow}>
+          <Text style={styles.newName} numberOfLines={1}>
+            {shortName(p.full_name)}
+          </Text>
+          {p.identity_verified && <Ionicons name="checkmark-circle" size={14} color={colors.primary} />}
+        </View>
+        <Text style={styles.newFollowers}>{formatFollowers(totalFollowers(p))}</Text>
+        {p.category ? (
+          <View style={{ marginTop: 4, alignSelf: "flex-start" }}>
+            <Tag label={p.category} />
+          </View>
+        ) : null}
+      </View>
+    </Press>
+  );
+}
+
+function PagerDots({ count, index }: { count: number; index: number }) {
+  return (
+    <View style={styles.dots}>
+      {Array.from({ length: count }).map((_, i) => (
+        <PagerDot key={i} on={i === index} />
+      ))}
+    </View>
+  );
+}
+function PagerDot({ on }: { on: boolean }) {
+  const st = useAnimatedStyle(() => ({ width: withSpring(on ? 18 : 7), opacity: withSpring(on ? 1 : 0.35) }));
+  return <Animated.View style={[styles.dot, on && { backgroundColor: colors.primary }, st]} />;
+}
+
+function SectionHead({ title, onAll }: { title: string; onAll: () => void }) {
+  return (
+    <View style={styles.sectionHead}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <Press onPress={onAll} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <Text style={styles.seeAll}>Voir tout</Text>
+        <Ionicons name="arrow-forward" size={15} color={colors.primary} />
+      </Press>
+    </View>
+  );
+}
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -35,14 +165,13 @@ export default function Home() {
   const [country, setCountry] = useState("all");
   const [platform, setPlatform] = useState<SocialPlatform | "all">("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(0);
+  const searchRef = useRef<TextInput>(null);
 
   const unread = useMemo(() => notifications.some((n) => n.user_id === userId && !n.is_read), [notifications, userId]);
-  const creators = useMemo(
-    () => profiles.filter((p) => p.role === "creator" && !p.is_banned && p.user_id !== userId).sort((a, b) => totalFollowers(b) - totalFollowers(a)),
-    [profiles, userId],
-  );
+  const creators = useMemo(() => profiles.filter((p) => p.role === "creator" && !p.is_banned && p.user_id !== userId), [profiles, userId]);
   const countries = useMemo(() => Array.from(new Set(creators.map((c) => c.country).filter(Boolean))) as string[], [creators]);
-  const list = useMemo(() => {
+  const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     return creators.filter(
       (p) =>
@@ -52,50 +181,61 @@ export default function Home() {
         (!s || `${p.full_name} ${p.category} ${p.tags?.join(" ")} ${p.country}`.toLowerCase().includes(s)),
     );
   }, [creators, q, cat, country, platform]);
+  const featured = useMemo(() => [...filtered].sort((a, b) => totalFollowers(b) - totalFollowers(a)).slice(0, 5), [filtered]);
+  const fresh = useMemo(() => [...filtered].reverse(), [filtered]);
   const activeFilters = (country !== "all" ? 1 : 0) + (platform !== "all" ? 1 : 0);
   const isBrand = me?.role === "brand";
+  const firstName = !me ? "Invité" : isBrand ? nameOf(me) : me.full_name.split(" ")[0];
+  const seeAll = () => router.push("/marketplace");
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
-      {/* En-tête */}
-      <Animated.View entering={FadeInDown.springify()} style={styles.header}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 6, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+      {/* Reflet doré d'ambiance en haut à droite */}
+      <LinearGradient colors={["rgba(217,172,101,0.16)", "rgba(217,172,101,0)"]} start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 0.6 }} style={styles.ambient} pointerEvents="none" />
+
+      {/* Barre du haut */}
+      <Animated.View entering={FadeIn.duration(500)} style={styles.topBar}>
+        <Logo size={40} />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Press onPress={() => router.push(me ? "/notifications" : "/auth/signup")} style={styles.iconBtn} scaleTo={0.9}>
+            <Ionicons name="notifications-outline" size={23} color={colors.ink} />
+            {unread && <View style={styles.bellDot} />}
+          </Press>
+          <Press onPress={() => searchRef.current?.focus()} style={[styles.iconBtn, styles.iconBtnRing]} scaleTo={0.9}>
+            <Ionicons name="search-outline" size={21} color={colors.ink} />
+          </Press>
+        </View>
+      </Animated.View>
+
+      {/* Salutation */}
+      <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.greet}>
         <Press onPress={() => router.navigate(me ? "/(tabs)/profile" : "/auth/signup")} scaleTo={0.92}>
-          <GoldRing size={56}>
+          <GoldRing size={60}>
             {me ? (
               <Image source={avatarOf(me)} style={{ flex: 1 }} contentFit="cover" />
             ) : (
               <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-                <Ionicons name="person" size={26} color={colors.primary} />
+                <Ionicons name="person" size={28} color={colors.primary} />
               </View>
             )}
           </GoldRing>
         </Press>
         <View style={{ flex: 1 }}>
-          <Text style={styles.hello}>Bonjour,</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <GoldText style={styles.name}>{!me ? "Invité" : isBrand ? nameOf(me) : me.full_name.split(" ")[0]}</GoldText>
-            <Text style={{ fontSize: 20 }}>👋</Text>
-          </View>
+          <Text style={styles.hello} numberOfLines={1}>
+            Bonjour {firstName} 👋
+          </Text>
           <Text style={styles.sub} numberOfLines={2}>
-            {!me
-              ? "Explore les créateurs. Crée ton compte pour collaborer."
-              : isBrand
-                ? "Découvre et collabore avec des créateurs de talent."
-                : "Découvre la communauté et les marques qui recrutent."}
+            {!me ? "Découvre des créateurs incroyables. Crée ton compte pour collaborer." : "Découvre des créateurs incroyables et collabore avec des marques."}
           </Text>
         </View>
-        <Press onPress={() => router.push(me ? "/notifications" : "/auth/signup")} style={styles.bell} scaleTo={0.9}>
-          <Ionicons name="notifications-outline" size={24} color={colors.ink} />
-          {unread && <View style={styles.bellDot} />}
-        </Press>
       </Animated.View>
 
       {/* Recherche */}
-      <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.searchRow}>
+      <Animated.View entering={FadeInDown.delay(140).springify()} style={styles.searchRow}>
         <View style={styles.search}>
           <GlossFill />
           <Ionicons name="search-outline" size={20} color={colors.inkSoft} />
-          <TextInput value={q} onChangeText={setQ} placeholder="Rechercher un créateur, une marque…" placeholderTextColor={colors.muted} style={styles.input} />
+          <TextInput ref={searchRef} value={q} onChangeText={setQ} placeholder="Rechercher un créateur, une marque…" placeholderTextColor={colors.muted} style={styles.input} />
         </View>
         <Press onPress={() => setShowFilters((v) => !v)} style={[styles.filterBtn, (showFilters || activeFilters > 0) && [styles.filterOn, goldGlow]]} scaleTo={0.9}>
           {showFilters || activeFilters > 0 ? <GoldFill style={{ borderRadius: 26 }} /> : <GlossFill style={{ borderRadius: 26 }} />}
@@ -121,67 +261,71 @@ export default function Home() {
         </Animated.View>
       )}
 
-      {/* Bannière */}
-      <Animated.View entering={FadeInDown.delay(140).springify()} style={{ paddingHorizontal: 16, marginTop: 16 }}>
-        <Press onPress={() => router.push(!me ? "/auth/signup" : isBrand ? "/offer/edit" : "/(tabs)/offers")} scaleTo={0.98}>
-          <GlossCard gold style={styles.banner}>
-          <Image source={BANNER_IMG} style={styles.bannerImg} contentFit="cover" transition={300} />
-          <LinearGradient
-            colors={["#0B0B0B", "rgba(11,11,11,0.92)", "rgba(11,11,11,0)"]}
-            locations={[0, 0.5, 0.85]}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <GoldText style={styles.bannerEyebrow}>{isBrand ? "TROUVE" : "DÉCOUVRE"}</GoldText>
-          <Text style={styles.bannerTitle}>{isBrand ? "LE CRÉATEUR IDÉAL" : "TA PROCHAINE COLLAB"}</Text>
-          <Text style={styles.bannerSub}>{isBrand ? "pour ta prochaine campagne." : "parmi les campagnes ouvertes."}</Text>
-          <GoldButton
-            label={!me ? "Créer mon compte" : isBrand ? "Publier une campagne" : "Voir les campagnes"}
-            onPress={() => router.push(!me ? "/auth/signup" : isBrand ? "/offer/edit" : "/(tabs)/offers")}
-            style={{ marginTop: 12 }}
-          />
-          </GlossCard>
-        </Press>
-      </Animated.View>
-
-      {/* Créateurs recommandés */}
-      <View style={styles.sectionHead}>
-        <Text style={styles.sectionTitle} numberOfLines={1} adjustsFontSizeToFit>Créateurs recommandés pour toi</Text>
-        <Press onPress={() => router.push("/marketplace")} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <Text style={styles.seeAll}>Voir tout</Text>
-          <Ionicons name="arrow-forward" size={15} color={colors.primary} />
-        </Press>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillRow, { paddingBottom: 14 }]}>
-        {CATS.map((c) => (
-          <GoldPill key={c} label={c} on={cat === c} onPress={() => setCat(c)} />
-        ))}
+      {/* Catégories */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingTop: 18, paddingBottom: 4 }}>
+        {CATS.map((c, i) => {
+          const on = c.key === cat;
+          return (
+            <Animated.View key={c.key} entering={FadeInDown.delay(180 + i * 40).springify()}>
+              <Press onPress={() => setCat(c.key)} style={{ alignItems: "center", gap: 7 }} scaleTo={0.9}>
+                <View style={[styles.catBox, on ? goldGlow : null]}>
+                  {on ? <GoldFill style={{ borderRadius: 18 }} /> : <GlossFill style={{ borderRadius: 18 }} />}
+                  <MaterialCommunityIcons name={c.icon} size={26} color={on ? colors.onPrimary : colors.ink} />
+                </View>
+                <Text style={[styles.catLabel, on && { color: colors.ink, fontWeight: "700" }]}>{c.label}</Text>
+              </Press>
+            </Animated.View>
+          );
+        })}
       </ScrollView>
 
-      {list.length === 0 ? (
+      {filtered.length === 0 ? (
         <Empty icon="people-outline" title="Aucun créateur trouvé" text="Essaie une autre catégorie, un autre pays ou une autre plateforme." />
       ) : (
-        <View style={styles.grid}>
-          {list.map((p, i) => (
-            <Animated.View key={p.user_id} entering={FadeInDown.delay(60 + (i % 9) * 45).springify()} layout={LinearTransition.springify()}>
-              <CreatorTile p={p} width={COL_W} />
-            </Animated.View>
-          ))}
-        </View>
+        <>
+          {/* Créateurs à la une */}
+          <SectionHead title="Créateurs à la une" onAll={seeAll} />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={FEAT_W + FEAT_GAP}
+            decelerationRate="fast"
+            contentContainerStyle={{ paddingHorizontal: 16, gap: FEAT_GAP }}
+            onScroll={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / (FEAT_W + FEAT_GAP)))}
+            scrollEventThrottle={32}
+          >
+            {featured.map((p, i) => (
+              <Animated.View key={p.user_id} entering={FadeInRight.delay(220 + i * 80).springify()}>
+                <FeaturedCard p={p} />
+              </Animated.View>
+            ))}
+          </ScrollView>
+          <PagerDots count={featured.length} index={Math.min(page, featured.length - 1)} />
+
+          {/* Nouveaux créateurs */}
+          <SectionHead title="Nouveaux créateurs" onAll={seeAll} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 6 }}>
+            {fresh.map((p, i) => (
+              <Animated.View key={p.user_id} entering={FadeInRight.delay(300 + i * 60).springify()}>
+                <NewCard p={p} />
+              </Animated.View>
+            ))}
+          </ScrollView>
+        </>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16 },
-  hello: { color: colors.ink, fontSize: 15, fontWeight: "600" },
-  name: { fontSize: 22, fontWeight: "800", letterSpacing: -0.3 },
-  sub: { color: colors.inkSoft, fontSize: 12, lineHeight: 16 },
-  bell: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", alignSelf: "flex-start" },
-  bellDot: { position: "absolute", top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.primary, borderWidth: 1.5, borderColor: colors.bg },
+  ambient: { position: "absolute", top: 0, right: 0, width: W, height: 360 },
+  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
+  iconBtn: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
+  iconBtnRing: { borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.03)" },
+  bellDot: { position: "absolute", top: 9, right: 11, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.primary, borderWidth: 1.5, borderColor: colors.bg },
+  greet: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, marginTop: 16 },
+  hello: { color: colors.ink, fontSize: 21, fontWeight: "700" },
+  sub: { color: colors.inkSoft, fontSize: 13, lineHeight: 18, marginTop: 2 },
   searchRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginTop: 18 },
   search: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, height: 52, borderRadius: radius.pill, paddingHorizontal: 18, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
   input: { flex: 1, minWidth: 0, fontSize: 14, color: colors.ink, zIndex: 1 },
@@ -189,17 +333,25 @@ const styles = StyleSheet.create({
   filterOn: { borderColor: "transparent" },
   filterLabel: { color: colors.muted, fontSize: 11, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase", paddingHorizontal: 16 },
   pillRow: { paddingHorizontal: 16, gap: 8 },
-  pill: { flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingHorizontal: 15, borderRadius: radius.pill, backgroundColor: "transparent", borderWidth: 1, borderColor: colors.line },
-  pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  banner: { height: 168, padding: 18, justifyContent: "center" },
-  bannerImg: { position: "absolute", right: 0, top: 0, bottom: 0, width: "62%" },
-  bannerEyebrow: { fontFamily: fonts.serif, color: colors.primary, fontSize: 15, letterSpacing: 1.5 },
-  bannerTitle: { fontFamily: fonts.serif, color: colors.ink, fontSize: 22, lineHeight: 26, letterSpacing: 0.3 },
-  bannerSub: { color: colors.inkSoft, fontSize: 13, marginTop: 2 },
-  bannerCta: { flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", backgroundColor: colors.primary, paddingHorizontal: 16, height: 38, borderRadius: radius.pill, marginTop: 12 },
-  bannerCtaText: { color: colors.onPrimary, fontWeight: "700", fontSize: 13 },
+  catBox: { width: 62, height: 62, borderRadius: 18, borderWidth: 1, borderColor: goldBorder, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  catLabel: { color: colors.inkSoft, fontSize: 12, fontWeight: "500" },
   sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, marginTop: 24, marginBottom: 12 },
-  sectionTitle: { color: colors.ink, fontSize: 17, fontWeight: "700", flex: 1, marginRight: 8 },
+  sectionTitle: { color: colors.ink, fontSize: 19, fontWeight: "700" },
   seeAll: { color: colors.primary, fontWeight: "600", fontSize: 14 },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: GAP, paddingHorizontal: 16 },
+  mono: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", backgroundColor: "#141210" },
+  side: { position: "absolute", top: 0, bottom: 0, right: 0, width: "62%" },
+  monoText: { fontFamily: fonts.serif, color: "#D9AC65", opacity: 0.85 },
+  heart: { position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(11,11,11,0.45)", borderWidth: 1, borderColor: "rgba(248,246,242,0.25)", alignItems: "center", justifyContent: "center" },
+  feat: { width: FEAT_W, height: 240, borderRadius: radius.lg, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
+  featBody: { position: "absolute", left: 16, bottom: 16, right: 16 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  featName: { color: colors.ink, fontSize: 24, fontWeight: "800", flexShrink: 1 },
+  featFollowers: { color: colors.inkSoft, fontSize: 14, marginTop: 2 },
+  tag: { backgroundColor: "rgba(40,40,40,0.85)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
+  tagText: { color: colors.ink, fontSize: 11, fontWeight: "600" },
+  dots: { flexDirection: "row", gap: 6, justifyContent: "center", marginTop: 14 },
+  dot: { height: 7, borderRadius: 4, backgroundColor: colors.inkSoft },
+  newCard: { width: NEW_W, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0E0E0E" },
+  newName: { color: colors.ink, fontSize: 13, fontWeight: "700", flexShrink: 1 },
+  newFollowers: { color: colors.inkSoft, fontSize: 12 },
 });
