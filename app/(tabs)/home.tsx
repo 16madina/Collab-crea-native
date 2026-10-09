@@ -14,7 +14,8 @@ import { Empty } from "../../src/kit";
 import { useDB, useMe } from "../../src/store";
 import { colors, fonts, radius, type } from "../../src/theme";
 import type { SocialPlatform } from "../../src/types";
-import { Avatar, IconButton, Press } from "../../src/ui";
+import { GlossCard, GlossFill, GoldButton, GoldFill, GoldPill, GoldRing, GoldText, goldBorder, goldGlow } from "../../src/lux";
+import { Press } from "../../src/ui";
 
 const W = Dimensions.get("window").width;
 const GAP = 8;
@@ -59,13 +60,16 @@ export default function Home() {
       {/* En-tête */}
       <Animated.View entering={FadeInDown.springify()} style={styles.header}>
         <Press onPress={() => router.navigate("/(tabs)/profile")} scaleTo={0.92}>
-          <Avatar uri={avatarOf(me)} size={58} ring />
+          <GoldRing size={56}>
+            <Image source={avatarOf(me)} style={{ flex: 1 }} contentFit="cover" />
+          </GoldRing>
         </Press>
         <View style={{ flex: 1 }}>
           <Text style={styles.hello}>Bonjour,</Text>
-          <Text style={styles.name} numberOfLines={1}>
-            {isBrand ? nameOf(me) : me?.full_name.split(" ")[0]} 👋
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <GoldText style={styles.name}>{isBrand ? nameOf(me) : me?.full_name.split(" ")[0]}</GoldText>
+            <Text style={{ fontSize: 20 }}>👋</Text>
+          </View>
           <Text style={styles.sub} numberOfLines={2}>
             {isBrand ? "Découvre et collabore avec des créateurs de talent." : "Découvre la communauté et les marques qui recrutent."}
           </Text>
@@ -79,10 +83,12 @@ export default function Home() {
       {/* Recherche */}
       <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.searchRow}>
         <View style={styles.search}>
+          <GlossFill />
           <Ionicons name="search-outline" size={20} color={colors.inkSoft} />
           <TextInput value={q} onChangeText={setQ} placeholder="Rechercher un créateur, une marque…" placeholderTextColor={colors.muted} style={styles.input} />
         </View>
-        <Press onPress={() => setShowFilters((v) => !v)} style={[styles.filterBtn, (showFilters || activeFilters > 0) && styles.filterOn]} scaleTo={0.9}>
+        <Press onPress={() => setShowFilters((v) => !v)} style={[styles.filterBtn, (showFilters || activeFilters > 0) && [styles.filterOn, goldGlow]]} scaleTo={0.9}>
+          {showFilters || activeFilters > 0 ? <GoldFill style={{ borderRadius: 26 }} /> : <GlossFill style={{ borderRadius: 26 }} />}
           <Ionicons name="options-outline" size={22} color={showFilters || activeFilters > 0 ? colors.onPrimary : colors.ink} />
         </Press>
       </Animated.View>
@@ -92,14 +98,14 @@ export default function Home() {
           <Text style={styles.filterLabel}>Pays</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
             {["all", ...countries].map((c) => (
-              <Pill key={c} label={c === "all" ? "Tous les pays" : `${flagOf(c)} ${c}`} on={country === c} onPress={() => setCountry(c)} />
+              <GoldPill key={c} label={c === "all" ? "Tous les pays" : `${flagOf(c)} ${c}`} on={country === c} onPress={() => setCountry(c)} />
             ))}
           </ScrollView>
           <Text style={styles.filterLabel}>Plateforme</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
-            <Pill label="Toutes" on={platform === "all"} onPress={() => setPlatform("all")} />
+            <GoldPill label="Toutes" on={platform === "all"} onPress={() => setPlatform("all")} />
             {ALL_PLATFORMS.map((p) => (
-              <Pill key={p} label={PLATFORM[p].label} icon={PLATFORM[p].icon} on={platform === p} onPress={() => setPlatform(p)} />
+              <GoldPill key={p} label={PLATFORM[p].label} icon={PLATFORM[p].icon} on={platform === p} onPress={() => setPlatform(p)} />
             ))}
           </ScrollView>
         </Animated.View>
@@ -107,7 +113,8 @@ export default function Home() {
 
       {/* Bannière */}
       <Animated.View entering={FadeInDown.delay(140).springify()} style={{ paddingHorizontal: 16, marginTop: 16 }}>
-        <Press onPress={() => router.push(isBrand ? "/offer/edit" : "/(tabs)/offers")} style={styles.banner} scaleTo={0.98}>
+        <Press onPress={() => router.push(isBrand ? "/offer/edit" : "/(tabs)/offers")} scaleTo={0.98}>
+          <GlossCard gold style={styles.banner}>
           <Image source={BANNER_IMG} style={styles.bannerImg} contentFit="cover" transition={300} />
           <LinearGradient
             colors={["#0B0B0B", "rgba(11,11,11,0.92)", "rgba(11,11,11,0)"]}
@@ -116,13 +123,15 @@ export default function Home() {
             end={{ x: 1, y: 0.5 }}
             style={StyleSheet.absoluteFill}
           />
-          <Text style={styles.bannerEyebrow}>{isBrand ? "TROUVE" : "DÉCOUVRE"}</Text>
+          <GoldText style={styles.bannerEyebrow}>{isBrand ? "TROUVE" : "DÉCOUVRE"}</GoldText>
           <Text style={styles.bannerTitle}>{isBrand ? "LE CRÉATEUR IDÉAL" : "TA PROCHAINE COLLAB"}</Text>
           <Text style={styles.bannerSub}>{isBrand ? "pour ta prochaine campagne." : "parmi les campagnes ouvertes."}</Text>
-          <View style={styles.bannerCta}>
-            <Text style={styles.bannerCtaText}>{isBrand ? "Publier une campagne" : "Voir les campagnes"}</Text>
-            <Ionicons name="arrow-forward" size={15} color={colors.onPrimary} />
-          </View>
+          <GoldButton
+            label={isBrand ? "Publier une campagne" : "Voir les campagnes"}
+            onPress={() => router.push(isBrand ? "/offer/edit" : "/(tabs)/offers")}
+            style={{ marginTop: 12 }}
+          />
+          </GlossCard>
         </Press>
       </Animated.View>
 
@@ -137,7 +146,7 @@ export default function Home() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillRow, { paddingBottom: 14 }]}>
         {CATS.map((c) => (
-          <Pill key={c} label={c} on={cat === c} onPress={() => setCat(c)} />
+          <GoldPill key={c} label={c} on={cat === c} onPress={() => setCat(c)} />
         ))}
       </ScrollView>
 
@@ -156,32 +165,23 @@ export default function Home() {
   );
 }
 
-function Pill({ label, on, onPress, icon }: { label: string; on: boolean; onPress: () => void; icon?: keyof typeof Ionicons.glyphMap }) {
-  return (
-    <Press onPress={onPress} style={[styles.pill, on && styles.pillOn]} scaleTo={0.94}>
-      {icon && <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.inkSoft} />}
-      <Text style={{ fontSize: 13, fontWeight: "600", color: on ? colors.onPrimary : colors.ink }}>{label}</Text>
-    </Press>
-  );
-}
-
 const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16 },
   hello: { color: colors.ink, fontSize: 15, fontWeight: "600" },
-  name: { color: colors.primaryLight, fontSize: 22, fontWeight: "800", letterSpacing: -0.3 },
+  name: { fontSize: 22, fontWeight: "800", letterSpacing: -0.3 },
   sub: { color: colors.inkSoft, fontSize: 12, lineHeight: 16 },
   bell: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", alignSelf: "flex-start" },
   bellDot: { position: "absolute", top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.primary, borderWidth: 1.5, borderColor: colors.bg },
   searchRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginTop: 18 },
-  search: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, height: 52, borderRadius: radius.pill, paddingHorizontal: 18, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
-  input: { flex: 1, minWidth: 0, fontSize: 14, color: colors.ink },
-  filterBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
-  filterOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  search: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, height: 52, borderRadius: radius.pill, paddingHorizontal: 18, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
+  input: { flex: 1, minWidth: 0, fontSize: 14, color: colors.ink, zIndex: 1 },
+  filterBtn: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, borderColor: goldBorder, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  filterOn: { borderColor: "transparent" },
   filterLabel: { color: colors.muted, fontSize: 11, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase", paddingHorizontal: 16 },
   pillRow: { paddingHorizontal: 16, gap: 8 },
   pill: { flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingHorizontal: 15, borderRadius: radius.pill, backgroundColor: "transparent", borderWidth: 1, borderColor: colors.line },
   pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  banner: { height: 160, borderRadius: radius.lg, overflow: "hidden", borderWidth: 1, borderColor: "rgba(216,173,106,0.45)", backgroundColor: colors.surface, padding: 18, justifyContent: "center" },
+  banner: { height: 168, padding: 18, justifyContent: "center" },
   bannerImg: { position: "absolute", right: 0, top: 0, bottom: 0, width: "62%" },
   bannerEyebrow: { fontFamily: fonts.serif, color: colors.primary, fontSize: 15, letterSpacing: 1.5 },
   bannerTitle: { fontFamily: fonts.serif, color: colors.ink, fontSize: 22, lineHeight: 26, letterSpacing: 0.3 },
