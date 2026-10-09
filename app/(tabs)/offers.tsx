@@ -97,7 +97,7 @@ function CreatorOffers() {
           <Ionicons name="options-outline" size={22} color={showFilters ? "#fff" : colors.ink} />
           {nFilters ? (
             <View style={styles.count}>
-              <Text style={{ color: "#fff", fontSize: 10, fontWeight: "800" }}>{nFilters}</Text>
+              <Text style={{ color: "#fff", fontSize: 9, fontWeight: "800" }}>{nFilters}</Text>
             </View>
           ) : null}
         </Press>
@@ -172,7 +172,7 @@ function CreatorOffers() {
                   <Meta icon="camera-outline" text={o.content_types.join(" · ")} />
                   <Meta icon="location-outline" text={o.presence_mode === "on_site" ? `📍 Sur place · ${o.on_site_city ?? ""}` : o.location || "Tous les pays africains"} />
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                    <Text style={{ fontSize: 17, fontWeight: "800", color: colors.ink }}>{budgetLabel(o)}</Text>
+                    <Text style={{ fontSize: 15, fontWeight: "800", color: colors.ink }}>{budgetLabel(o)}</Text>
                     {o.deadline ? <Text style={type.tiny}>Jusqu'au {fmtDate(o.deadline)}</Text> : null}
                   </View>
                 </View>
@@ -227,7 +227,7 @@ function BrandOffers() {
         <SearchBar value={q} onChange={setQ} placeholder="Rechercher une offre…" />
         <Press onPress={() => router.push("/marketplace")} style={[styles.findRow, shadow.soft]} scaleTo={0.98}>
           <Ionicons name="people" size={20} color={colors.primary} />
-          <Text style={[type.h3, { flex: 1, fontSize: 15 }]}>Trouver des créateurs</Text>
+          <Text style={[type.h3, { flex: 1, fontSize: 13 }]}>Trouver des créateurs</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.muted} />
         </Press>
       </Animated.View>
@@ -325,14 +325,14 @@ const styles = StyleSheet.create({
   mineCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: 12, gap: 12 },
   actions: { flexDirection: "row", gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 10 },
   action: { flex: 1, flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center", height: 36, borderRadius: radius.pill, backgroundColor: "#F7F0EB" },
-  actionText: { fontWeight: "700", fontSize: 13, color: colors.ink },
+  actionText: { fontWeight: "700", fontSize: 11, color: colors.ink },
   exHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12 },
   exIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   exIconRing: { borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.03)" },
-  exTitle: { color: colors.ink, fontSize: 21, fontWeight: "700" },
+  exTitle: { color: colors.ink, fontSize: 18, fontWeight: "700" },
   exTabs: { flexDirection: "row", marginHorizontal: 16, marginTop: 10, padding: 4, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.03)" },
   exTab: { flex: 1, height: 38, borderRadius: radius.pill, alignItems: "center", justifyContent: "center" },
-  exTabText: { color: colors.inkSoft, fontWeight: "700", fontSize: 14 },
+  exTabText: { color: colors.inkSoft, fontWeight: "700", fontSize: 12 },
 });
 
 // Explorer : onglets Créateurs (grille) et Offres (campagnes).

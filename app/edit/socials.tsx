@@ -127,7 +127,7 @@ function Editor({ me }: { me: Profile }) {
 
 const styles = StyleSheet.create({
   icon: { width: 40, height: 40, borderRadius: 13, alignItems: "center", justifyContent: "center" },
-  input: { flex: 1, height: 48, borderRadius: radius.md, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 14, fontSize: 15, color: colors.ink },
+  input: { flex: 1, height: 48, borderRadius: radius.md, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 14, fontSize: 13, color: colors.ink },
   remove: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" },
   add: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 42, borderRadius: radius.pill, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.primary },
   oauth: { height: 40, borderRadius: radius.pill, backgroundColor: colors.night, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },

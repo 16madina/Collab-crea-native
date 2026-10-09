@@ -59,7 +59,7 @@ export function CreatorTile({ p, width, variant = "grid" }: { p: Profile; width:
       </View>
       <View style={[styles.body, small && { paddingHorizontal: 8 }]}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <Text style={[styles.name, small && { fontSize: 13 }]} numberOfLines={1}>
+          <Text style={[styles.name, small && { fontSize: 11 }]} numberOfLines={1}>
             {shortName(p.full_name)}
           </Text>
           {p.identity_verified && <Ionicons name="checkmark-circle" size={13} color={colors.primary} />}
@@ -98,14 +98,14 @@ const styles = StyleSheet.create({
   monoText: { fontFamily: fonts.serif, color: "#D9AC65", opacity: 0.85 },
   heart: { position: "absolute", top: 8, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(11,11,11,0.45)", borderWidth: 1, borderColor: "rgba(248,246,242,0.25)", alignItems: "center", justifyContent: "center" },
   catBadge: { position: "absolute", left: 8, bottom: 8, backgroundColor: "#F5D394", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 3 },
-  catBadgeText: { color: colors.onPrimary, fontSize: 10, fontWeight: "700" },
+  catBadgeText: { color: colors.onPrimary, fontSize: 9, fontWeight: "700" },
   body: { padding: 10, gap: 4 },
-  name: { color: colors.ink, fontWeight: "700", fontSize: 14, flexShrink: 1 },
-  followers: { color: colors.inkSoft, fontSize: 12 },
+  name: { color: colors.ink, fontWeight: "700", fontSize: 12, flexShrink: 1 },
+  followers: { color: colors.inkSoft, fontSize: 11 },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 2 },
   tag: { borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.04)", borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 2, maxWidth: "100%" },
-  tagText: { color: colors.inkSoft, fontSize: 10, fontWeight: "600" },
+  tagText: { color: colors.inkSoft, fontSize: 9, fontWeight: "600" },
   platforms: { flexDirection: "row", gap: 10, marginTop: 4 },
   cta: { marginTop: 6, height: 32, borderRadius: radius.pill, alignItems: "center", justifyContent: "center" },
-  ctaText: { color: colors.onPrimary, fontWeight: "800", fontSize: 12 },
+  ctaText: { color: colors.onPrimary, fontWeight: "800", fontSize: 11 },
 });

@@ -102,7 +102,7 @@ function Identity({ me }: { me: Profile }) {
       <EmailCard me={me} />
       <Animated.View entering={FadeInDown.springify()}>
         <Card style={{ backgroundColor: colors.night }}>
-          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Pourquoi vérifier ?</Text>
+          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>Pourquoi vérifier ?</Text>
           {[
             ["checkmark-circle", "Postuler aux offres et échanger avec les marques"],
             ["shield-checkmark", "Obtenir le badge « Vérifié » sur votre profil"],
@@ -226,7 +226,7 @@ function FaceScan({ state, onStart, onDone, onRestart }: { state: "idle" | "runn
           ) : state === "running" ? (
             <Animated.View key={step} entering={ZoomIn.springify()} style={{ alignItems: "center" }}>
               <Ionicons name={cur.icon} size={54} color={colors.primary} />
-              <Text style={{ fontSize: 34, fontWeight: "800", color: colors.ink }}>{count}</Text>
+              <Text style={{ fontSize: 30, fontWeight: "800", color: colors.ink }}>{count}</Text>
             </Animated.View>
           ) : (
             <Ionicons name="person-outline" size={80} color={colors.muted} />

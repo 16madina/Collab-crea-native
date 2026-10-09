@@ -90,7 +90,7 @@ export default function EditPortfolio() {
                   <Text style={{ color: "#fff", fontWeight: "700" }} numberOfLines={1}>
                     {p.title}
                   </Text>
-                  <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
+                  <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>
                     {p.platform ?? ""}
                     {p.views_count ? ` · ${p.views_count.toLocaleString("fr-FR")} vues` : ""}
                   </Text>
@@ -155,9 +155,9 @@ export default function EditPortfolio() {
           </View>
           {current ? (
             <View style={[styles.viewerFoot, { paddingBottom: insets.bottom + 20 }]}>
-              <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800" }}>{current.title}</Text>
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{current.title}</Text>
               {current.description ? <Text style={{ color: "rgba(255,255,255,0.8)" }}>{current.description}</Text> : null}
-              <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>
+              <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>
                 {current.platform} · {current.media_type === "video" ? "Vidéo" : "Image"}
               </Text>
             </View>

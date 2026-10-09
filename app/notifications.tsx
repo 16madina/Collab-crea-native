@@ -38,7 +38,7 @@ export default function Notifications() {
         unread ? (
           <Press onPress={markAllRead} style={styles.allBtn}>
             <Ionicons name="checkmark-done" size={16} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 12 }}>Tout marquer comme lu</Text>
+            <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 11 }}>Tout marquer comme lu</Text>
           </Press>
         ) : undefined
       }
@@ -55,7 +55,7 @@ export default function Notifications() {
                   <Ionicons name={icon} size={20} color={fg} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[type.h3, { fontSize: 15 }, n.is_read && { fontWeight: "600" }]}>{n.title}</Text>
+                  <Text style={[type.h3, { fontSize: 13 }, n.is_read && { fontWeight: "600" }]}>{n.title}</Text>
                   <Text style={type.small} numberOfLines={3}>
                     {n.message}
                   </Text>

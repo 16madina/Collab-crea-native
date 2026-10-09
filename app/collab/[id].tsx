@@ -47,7 +47,7 @@ function Timeline({ status, network }: { status: CollabStatus; network: boolean 
             <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
               <View style={[styles.tlLine, { opacity: i === 0 ? 0 : 1 }, (done || on) && { backgroundColor: colors.primary }]} />
               <Animated.View entering={ZoomIn.delay(i * 80).springify()} style={[styles.tlDot, done && { backgroundColor: colors.primary, borderColor: colors.primary }, on && { borderColor: colors.primary }]}>
-                {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : <Text style={{ fontSize: 11, fontWeight: "800", color: on ? colors.primary : colors.muted }}>{i + 1}</Text>}
+                {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : <Text style={{ fontSize: 10, fontWeight: "800", color: on ? colors.primary : colors.muted }}>{i + 1}</Text>}
               </Animated.View>
               <View style={[styles.tlLine, { opacity: i === steps.length - 1 ? 0 : 1 }, done && { backgroundColor: colors.primary }]} />
             </View>
@@ -330,16 +330,16 @@ export default function CollabDetail() {
           <Press onPress={() => other && router.push(`/profile/${other.user_id}`)} style={{ flexDirection: "row", alignItems: "center", gap: 10 }} scaleTo={0.98}>
             <Avatar uri={avatarOf(other)} size={44} />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 12 }}>{isBrand ? "Créateur" : "Marque"}</Text>
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>{nameOf(other)}</Text>
+              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11 }}>{isBrand ? "Créateur" : "Marque"}</Text>
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>{nameOf(other)}</Text>
             </View>
             <Press onPress={() => router.push(`/chat/${collab.conversation_id}`)} style={styles.chatBtn}>
               <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
             </Press>
           </Press>
           <View>
-            <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 12 }}>{isBrand ? "Montant convenu" : "Vous recevrez"}</Text>
-            <Text style={{ color: "#fff", fontSize: 30, fontWeight: "800", letterSpacing: -0.6 }}>{fcfa(isBrand ? collab.agreed_amount : collab.creator_amount)}</Text>
+            <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11 }}>{isBrand ? "Montant convenu" : "Vous recevrez"}</Text>
+            <Text style={{ color: "#fff", fontSize: 26, fontWeight: "800", letterSpacing: -0.6 }}>{fcfa(isBrand ? collab.agreed_amount : collab.creator_amount)}</Text>
           </View>
           <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
             {s === "in_progress" || s === "revision_requested" ? <Badge label={`⏱ ${tl.label}`} tone={tl.tone} /> : null}
@@ -448,7 +448,7 @@ export default function CollabDetail() {
 
       <Modal visible={previewOpen} animationType="fade" onRequestClose={() => setPreviewOpen(false)}>
         <View style={[styles.preview, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
-          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}>Aperçu protégé</Text>
+          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Aperçu protégé</Text>
           <Text style={{ color: "rgba(255,255,255,0.7)", textAlign: "center" }}>Cet aperçu filigrané ne peut être visionné qu'une seule fois.</Text>
           <View style={styles.previewFrame}>
             <View style={{ gap: 10, padding: 18 }}>
@@ -498,6 +498,6 @@ const styles = StyleSheet.create({
   recap: { backgroundColor: "#FAF5F1", borderRadius: radius.md, padding: 14 },
   preview: { flex: 1, backgroundColor: "#000", alignItems: "center", paddingHorizontal: 20, gap: 14 },
   previewFrame: { flex: 1, width: "100%", borderRadius: radius.lg, backgroundColor: "#1A1A1A", overflow: "hidden", justifyContent: "center" },
-  watermark: { position: "absolute", left: -40, right: -40, textAlign: "center", color: "rgba(255,255,255,0.18)", fontWeight: "900", fontSize: 18, transform: [{ rotate: "-20deg" }] },
+  watermark: { position: "absolute", left: -40, right: -40, textAlign: "center", color: "rgba(255,255,255,0.18)", fontWeight: "900", fontSize: 16, transform: [{ rotate: "-20deg" }] },
   previewClose: { backgroundColor: "#fff", borderRadius: radius.pill, paddingHorizontal: 22, height: 52, alignItems: "center", justifyContent: "center" },
 });

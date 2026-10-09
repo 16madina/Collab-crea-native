@@ -59,7 +59,7 @@ export function Act({ label, icon, onPress, tone = "light" }: { label: string; i
   return (
     <Press onPress={onPress} style={[st.act, { backgroundColor: bg }]} scaleTo={0.94}>
       <Ionicons name={icon} size={15} color={fg} />
-      <Text style={{ color: fg, fontWeight: "700", fontSize: 13 }}>{label}</Text>
+      <Text style={{ color: fg, fontWeight: "700", fontSize: 11 }}>{label}</Text>
     </Press>
   );
 }
@@ -95,11 +95,11 @@ export const st = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   tile: { flexBasis: "47%", flexGrow: 1, backgroundColor: colors.surface, borderRadius: radius.lg, padding: 14, gap: 4 },
   tileIcon: { width: 34, height: 34, borderRadius: 12, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 4 },
-  tileVal: { fontSize: 26, fontWeight: "800", color: colors.ink, letterSpacing: -0.6 },
+  tileVal: { fontSize: 23, fontWeight: "800", color: colors.ink, letterSpacing: -0.6 },
   act: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 36, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line },
   item: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: 14, gap: 10 },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   ph: { borderRadius: radius.md, backgroundColor: colors.bgDeep, alignItems: "center", justifyContent: "center", gap: 6, flex: 1 },
-  name: { fontSize: 15, fontWeight: "700", color: colors.ink },
+  name: { fontSize: 13, fontWeight: "700", color: colors.ink },
 });

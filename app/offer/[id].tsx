@@ -134,7 +134,7 @@ export default function OfferDetail() {
               <Avatar uri={avatarOf(brand)} size={34} />
               <Text style={[type.h3, { flex: 1 }]}>{nameOf(brand)}</Text>
               <View style={styles.pill}>
-                <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 12 }}>{offer.category}</Text>
+                <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 11 }}>{offer.category}</Text>
               </View>
             </Press>
             <Text style={type.h1}>{offer.title}</Text>
@@ -163,7 +163,7 @@ export default function OfferDetail() {
                   <Ionicons name={icon} size={18} color={colors.primary} />
                 </View>
                 <Text style={type.tiny}>{label}</Text>
-                <Text style={[type.h3, { fontSize: 14 }]} numberOfLines={2}>
+                <Text style={[type.h3, { fontSize: 12 }]} numberOfLines={2}>
                   {value}
                 </Text>
               </View>
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   secure: { flexDirection: "row", gap: 10, alignItems: "center", backgroundColor: "#E4F6EC", borderRadius: radius.md, padding: 14 },
   cand: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, padding: 12, borderRadius: radius.lg },
   slot: { flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.surface },
-  area: { minHeight: 100, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, padding: 14, fontSize: 15, color: colors.ink, textAlignVertical: "top" },
+  area: { minHeight: 100, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, padding: 14, fontSize: 13, color: colors.ink, textAlignVertical: "top" },
   footer: {
     position: "absolute",
     left: 0,

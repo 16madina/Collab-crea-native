@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, justifyContent: "center", paddingBottom: 140 },
   card: { padding: 26, alignItems: "center", gap: 12 },
   icon: { width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: goldBorder, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(216,173,106,0.06)" },
-  title: { fontFamily: fonts.serif, fontSize: 26, textAlign: "center" },
-  text: { color: colors.inkSoft, fontSize: 15, lineHeight: 22, textAlign: "center" },
-  login: { color: colors.muted, fontSize: 13, marginTop: 4 },
+  title: { fontFamily: fonts.serif, fontSize: 23, textAlign: "center" },
+  text: { color: colors.inkSoft, fontSize: 13, lineHeight: 19, textAlign: "center" },
+  login: { color: colors.muted, fontSize: 11, marginTop: 4 },
 });

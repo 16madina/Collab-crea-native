@@ -89,7 +89,7 @@ export function GoldButton({
   style?: StyleProp<ViewStyle>;
 }) {
   const h = size === "sm" ? 32 : size === "lg" ? 54 : 42;
-  const fs = size === "sm" ? 12 : size === "lg" ? 16 : 14;
+  const fs = size === "sm" ? 11 : size === "lg" ? 15 : 13;
   return (
     <Press onPress={onPress} style={[styles.btn, { height: h, paddingHorizontal: size === "sm" ? 12 : 20 }, goldGlow, style]} scaleTo={0.95}>
       <GoldFill style={{ borderRadius: radius.pill }} />
@@ -105,7 +105,7 @@ export function GoldPill({ label, on, onPress, icon }: { label: string; on: bool
     <Press onPress={onPress} style={[styles.pill, on ? [{ borderColor: "transparent" }, goldGlow] : null]} scaleTo={0.94}>
       {on && <GoldFill style={{ borderRadius: radius.pill }} />}
       {icon && <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.inkSoft} />}
-      <Text style={{ fontSize: 13, fontWeight: on ? "700" : "600", color: on ? colors.onPrimary : colors.ink }}>{label}</Text>
+      <Text style={{ fontSize: 11, fontWeight: on ? "700" : "600", color: on ? colors.onPrimary : colors.ink }}>{label}</Text>
     </Press>
   );
 }

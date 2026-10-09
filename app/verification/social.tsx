@@ -155,7 +155,7 @@ export default function SocialVerificationScreen() {
             <Image source={shot} style={{ flex: 1 }} contentFit="cover" />
             <View style={styles.replace}>
               <Ionicons name="refresh" size={14} color="#fff" />
-              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Remplacer</Text>
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 11 }}>Remplacer</Text>
             </View>
           </Animated.View>
         ) : (

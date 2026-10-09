@@ -221,8 +221,8 @@ function CreatorProfile({ me, unread, onLogout }: { me: Profile; unread: boolean
             <Text style={{ color: "rgba(255,255,255,0.85)", fontWeight: "600", flex: 1 }}>Solde disponible</Text>
             <Ionicons name="arrow-forward-circle" size={24} color="#fff" />
           </View>
-          <Text style={{ color: "#fff", fontSize: 30, fontWeight: "800", letterSpacing: -0.8 }}>{fcfa(wallet?.balance ?? 0)}</Text>
-          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 12 }}>
+          <Text style={{ color: "#fff", fontSize: 26, fontWeight: "800", letterSpacing: -0.8 }}>{fcfa(wallet?.balance ?? 0)}</Text>
+          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
             {wallet?.pending_balance ? `${fcfa(wallet.pending_balance)} en cours de retrait · ` : ""}Orange · Wave · MTN · PayPal
           </Text>
         </Press>
@@ -396,7 +396,7 @@ function ReviewsList({ reviews, who }: { reviews: { id: string; brand_id: string
   return (
     <>
       <Card style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-        <Text style={{ fontSize: 36, fontWeight: "800", color: colors.ink }}>{avg.toFixed(1)}</Text>
+        <Text style={{ fontSize: 32, fontWeight: "800", color: colors.ink }}>{avg.toFixed(1)}</Text>
         <View style={{ gap: 4 }}>
           <Stars value={avg} size={18} />
           <Text style={type.small}>{reviews.length} avis</Text>
@@ -584,7 +584,7 @@ function BrandProfile({ me, unread, onLogout }: { me: Profile; unread: boolean; 
             </View>
             <Card style={{ backgroundColor: colors.night }}>
               <Text style={{ color: "rgba(255,255,255,0.7)", fontWeight: "600" }}>Investi en collaborations</Text>
-              <Text style={{ color: "#fff", fontSize: 26, fontWeight: "800" }}>{fcfa(spent)}</Text>
+              <Text style={{ color: "#fff", fontSize: 23, fontWeight: "800" }}>{fcfa(spent)}</Text>
             </Card>
             <Button label="Voir mes collaborations" small onPress={() => router.push("/(tabs)/collabs")} />
           </>

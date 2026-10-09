@@ -36,7 +36,7 @@ export default function AdminSection() {
             return (
               <Press key={x.value} onPress={() => router.setParams({ section: x.value })} scaleTo={0.92}>
                 <Glass style={[s.chip, on && s.chipOn]} intensity={on ? 0 : 30}>
-                  <Text style={{ fontWeight: "700", fontSize: 13, color: on ? "#fff" : colors.ink }}>{x.label}</Text>
+                  <Text style={{ fontWeight: "700", fontSize: 11, color: on ? "#fff" : colors.ink }}>{x.label}</Text>
                 </Glass>
               </Press>
             );

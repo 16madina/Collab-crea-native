@@ -63,7 +63,7 @@ export default function Invite() {
             borderWidth: 2,
             borderColor: err ? "#E5484D" : code.length === 11 ? colors.primary : colors.line,
             textAlign: "center",
-            fontSize: 24,
+            fontSize: 21,
             fontWeight: "800",
             letterSpacing: 3,
             color: colors.ink,

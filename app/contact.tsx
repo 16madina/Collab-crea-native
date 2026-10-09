@@ -21,7 +21,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
   return (
     <Animated.View layout={LinearTransition.springify()} style={{ borderBottomWidth: 1, borderBottomColor: colors.line }}>
       <Press onPress={onToggle} scaleTo={0.99} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 14 }}>
-        <Text style={[type.h3, { flex: 1, fontSize: 15 }]}>{q}</Text>
+        <Text style={[type.h3, { flex: 1, fontSize: 13 }]}>{q}</Text>
         <Animated.View style={chevron}>
           <Ionicons name="chevron-down" size={18} color={colors.muted} />
         </Animated.View>
@@ -68,7 +68,7 @@ export default function Contact() {
     <Screen title="Contact" subtitle="Nous sommes là pour vous aider">
       <Animated.View entering={FadeInDown.springify()}>
         <Card style={{ backgroundColor: colors.night, gap: 14 }}>
-          <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800" }}>Nos coordonnées</Text>
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Nos coordonnées</Text>
           {(
             [
               ["mail-outline", "contact@collabcrea.com", () => Linking.openURL("mailto:contact@collabcrea.com")],

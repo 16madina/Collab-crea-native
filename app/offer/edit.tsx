@@ -28,7 +28,7 @@ const validDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Dat
 function Option({ on, title, sub, onPress }: { on: boolean; title: string; sub?: string; onPress: () => void }) {
   return (
     <Press onPress={onPress} style={[styles.opt, on && styles.optOn]} scaleTo={0.97}>
-      <Text style={[type.h3, { fontSize: 14 }]}>{title}</Text>
+      <Text style={[type.h3, { fontSize: 12 }]}>{title}</Text>
       {sub ? <Text style={type.tiny}>{sub}</Text> : null}
     </Press>
   );

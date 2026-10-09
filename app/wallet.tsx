@@ -160,7 +160,7 @@ export default function WalletScreen() {
         {w.status === "rejected" && w.rejection_reason ? <Text style={[type.tiny, { color: "#C53030" }]}>Motif : {w.rejection_reason}</Text> : null}
         {w.proof_url ? (
           <Press onPress={() => setProof(w.id)}>
-            <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 12, marginTop: 2 }}>📎 Preuve du virement</Text>
+            <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 11, marginTop: 2 }}>📎 Preuve du virement</Text>
           </Press>
         ) : null}
       </View>
@@ -182,7 +182,7 @@ export default function WalletScreen() {
         <LinearGradient colors={["#1E1E1E", "#121212"]} style={StyleSheet.absoluteFill} />
         <View style={styles.glow} />
         <Text style={{ color: "rgba(255,255,255,0.7)", fontWeight: "600" }}>Solde disponible</Text>
-        <Text style={{ color: "#fff", fontSize: 36, fontWeight: "800", letterSpacing: -1 }}>{fcfa(wallet.balance)}</Text>
+        <Text style={{ color: "#fff", fontSize: 32, fontWeight: "800", letterSpacing: -1 }}>{fcfa(wallet.balance)}</Text>
         <View style={{ flexDirection: "row", gap: 18 }}>
           <View>
             <Text style={styles.subLabel}>En attente</Text>
@@ -283,8 +283,8 @@ export default function WalletScreen() {
 const styles = StyleSheet.create({
   balance: { borderRadius: radius.xl, padding: 20, gap: 12, overflow: "hidden" },
   glow: { position: "absolute", right: -60, top: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: "rgba(255,90,54,0.25)" },
-  subLabel: { color: "rgba(255,255,255,0.6)", fontSize: 12 },
-  subValue: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  subLabel: { color: "rgba(255,255,255,0.6)", fontSize: 11 },
+  subValue: { color: "#fff", fontWeight: "700", fontSize: 13 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, paddingHorizontal: 14, paddingVertical: 4 },
   wRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line },
   txIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center" },

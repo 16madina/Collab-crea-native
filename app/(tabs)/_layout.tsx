@@ -91,7 +91,7 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   badge: { position: "absolute", top: -6, right: -12, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: "#E2B873", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#111" },
-  badgeText: { color: "#0B0B0B", fontSize: 10, fontWeight: "800" },
+  badgeText: { color: "#0B0B0B", fontSize: 9, fontWeight: "800" },
   wrap: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 14, alignItems: "center" },
   bar: {
     flexDirection: "row",
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.08)",
   },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 3, height: "100%" },
-  label: { fontSize: 11, color: colors.inkSoft, fontWeight: "500" },
+  label: { fontSize: 10, color: colors.inkSoft, fontWeight: "500" },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, position: "absolute", bottom: 6 },
   fab: {
     position: "absolute",

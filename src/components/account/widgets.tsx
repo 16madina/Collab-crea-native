@@ -41,15 +41,15 @@ export function CountrySelect({
     <View style={{ gap: 6 }}>
       <Label>{label}</Label>
       <Press onPress={() => setOpen(true)} scaleTo={0.98} style={[styles.select, !!error && { borderColor: "#E5484D" }]}>
-        <Text style={{ fontSize: 20 }}>{sel?.flag ?? "🌍"}</Text>
-        <Text style={{ flex: 1, fontSize: 15, color: sel ? colors.ink : colors.muted }}>{sel?.name ?? value ?? placeholder}</Text>
+        <Text style={{ fontSize: 18 }}>{sel?.flag ?? "🌍"}</Text>
+        <Text style={{ flex: 1, fontSize: 13, color: sel ? colors.ink : colors.muted }}>{sel?.name ?? value ?? placeholder}</Text>
         <Ionicons name="chevron-down" size={18} color={colors.muted} />
       </Press>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Sheet visible={open} onClose={() => setOpen(false)} title={label} scroll={false}>
         <View style={styles.search}>
           <Ionicons name="search" size={18} color={colors.muted} />
-          <TextInput value={q} onChangeText={setQ} placeholder="Rechercher un pays…" placeholderTextColor={colors.muted} style={{ flex: 1, fontSize: 15, color: colors.ink }} autoCorrect={false} />
+          <TextInput value={q} onChangeText={setQ} placeholder="Rechercher un pays…" placeholderTextColor={colors.muted} style={{ flex: 1, fontSize: 13, color: colors.ink }} autoCorrect={false} />
         </View>
         <FlatList
           data={list}
@@ -67,8 +67,8 @@ export function CountrySelect({
                 }}
                 style={({ pressed }) => [styles.countryRow, (pressed || on) && { backgroundColor: colors.primarySoft }]}
               >
-                <Text style={{ fontSize: 22 }}>{item.flag}</Text>
-                <Text style={{ flex: 1, fontSize: 15, color: colors.ink, fontWeight: on ? "700" : "500" }}>{item.name}</Text>
+                <Text style={{ fontSize: 19 }}>{item.flag}</Text>
+                <Text style={{ flex: 1, fontSize: 13, color: colors.ink, fontWeight: on ? "700" : "500" }}>{item.name}</Text>
                 <Text style={type.small}>{item.phoneCode}</Text>
                 {on ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
               </Pressable>
@@ -88,7 +88,7 @@ export function SelectField({ label, value, options, onChange, placeholder = "Ch
     <View style={{ gap: 6 }}>
       <Label>{label}</Label>
       <Press onPress={() => setOpen(true)} scaleTo={0.98} style={styles.select}>
-        <Text style={{ flex: 1, fontSize: 15, color: value ? colors.ink : colors.muted }}>{value || placeholder}</Text>
+        <Text style={{ flex: 1, fontSize: 13, color: value ? colors.ink : colors.muted }}>{value || placeholder}</Text>
         <Ionicons name="chevron-down" size={18} color={colors.muted} />
       </Press>
       <Sheet visible={open} onClose={() => setOpen(false)} title={label}>
@@ -101,7 +101,7 @@ export function SelectField({ label, value, options, onChange, placeholder = "Ch
             }}
             style={({ pressed }) => [styles.countryRow, (pressed || o === value) && { backgroundColor: colors.primarySoft }]}
           >
-            <Text style={{ flex: 1, fontSize: 15, color: colors.ink, fontWeight: o === value ? "700" : "500" }}>{o}</Text>
+            <Text style={{ flex: 1, fontSize: 13, color: colors.ink, fontWeight: o === value ? "700" : "500" }}>{o}</Text>
             {o === value ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
           </Pressable>
         ))}
@@ -137,7 +137,7 @@ export function SettingRow({
         <Ionicons name={icon} size={18} color={danger ? "#C53030" : colors.primary} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 15, fontWeight: "600", color: danger ? "#C53030" : colors.ink }}>{label}</Text>
+        <Text style={{ fontSize: 13, fontWeight: "600", color: danger ? "#C53030" : colors.ink }}>{label}</Text>
         {sub ? <Text style={type.tiny}>{sub}</Text> : null}
       </View>
       {right ?? (onPress ? <Ionicons name="chevron-forward" size={18} color={colors.muted} /> : null)}
@@ -169,10 +169,10 @@ export function PillTabs<T extends string>({ tabs, value, onChange }: { tabs: re
         const on = t.key === value;
         return (
           <Press key={t.key} onPress={() => onChange(t.key)} scaleTo={0.94} style={[styles.pill, on && styles.pillOn]}>
-            <Text style={{ fontWeight: "700", fontSize: 13, color: on ? "#fff" : colors.ink }}>{t.label}</Text>
+            <Text style={{ fontWeight: "700", fontSize: 11, color: on ? "#fff" : colors.ink }}>{t.label}</Text>
             {t.count != null ? (
               <View style={[styles.pillCount, on && { backgroundColor: "rgba(255,255,255,0.25)" }]}>
-                <Text style={{ fontSize: 11, fontWeight: "800", color: on ? "#fff" : colors.primary }}>{t.count}</Text>
+                <Text style={{ fontSize: 10, fontWeight: "800", color: on ? "#fff" : colors.primary }}>{t.count}</Text>
               </View>
             ) : null}
           </Press>
@@ -211,7 +211,7 @@ export function VerifBadge({ p }: { p: Profile }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: m[3], paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill }}>
       <Ionicons name={m[1]} size={14} color={m[2]} />
-      <Text style={{ color: m[2], fontWeight: "700", fontSize: 12 }}>{m[0]}</Text>
+      <Text style={{ color: m[2], fontWeight: "700", fontSize: 11 }}>{m[0]}</Text>
     </View>
   );
 }
@@ -233,10 +233,10 @@ export function VerificationBanner({ p }: { p: Profile }) {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: "#fff", fontWeight: "800" }}>{cfg.title}</Text>
-          <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 2 }}>{cfg.text}</Text>
+          <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, marginTop: 2 }}>{cfg.text}</Text>
         </View>
         <View style={styles.vbCta}>
-          <Text style={{ color: colors.ink, fontWeight: "800", fontSize: 12 }}>{cfg.cta}</Text>
+          <Text style={{ color: colors.ink, fontWeight: "800", fontSize: 11 }}>{cfg.cta}</Text>
         </View>
       </Press>
     </Animated.View>
@@ -255,7 +255,7 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
 
 const styles = StyleSheet.create({
   select: { height: 52, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
-  error: { color: "#E5484D", fontSize: 12, fontWeight: "600" },
+  error: { color: "#E5484D", fontSize: 11, fontWeight: "600" },
   search: { flexDirection: "row", alignItems: "center", gap: 10, height: 48, borderRadius: radius.pill, backgroundColor: colors.surface, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.line },
   countryRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, paddingHorizontal: 12, borderRadius: radius.md },
   setRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, paddingHorizontal: 14 },

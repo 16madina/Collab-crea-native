@@ -53,11 +53,11 @@ export const shadow = {
 };
 
 export const type = {
-  display: { fontSize: 40, lineHeight: 46, fontFamily: fonts.serif, letterSpacing: -0.5, color: colors.ink },
-  h1: { fontSize: 26, lineHeight: 32, fontFamily: fonts.serif, letterSpacing: -0.2, color: colors.ink },
-  h2: { fontSize: 20, lineHeight: 25, fontWeight: "700" as const, letterSpacing: -0.3, color: colors.ink },
-  h3: { fontSize: 16, lineHeight: 21, fontWeight: "700" as const, color: colors.ink },
-  body: { fontSize: 15, lineHeight: 22, fontWeight: "400" as const, color: colors.inkSoft },
-  small: { fontSize: 13, lineHeight: 18, fontWeight: "500" as const, color: colors.muted },
-  tiny: { fontSize: 11, lineHeight: 14, fontWeight: "600" as const, color: colors.muted },
+  display: { fontSize: 35, lineHeight: 40, fontFamily: fonts.serif, letterSpacing: -0.5, color: colors.ink },
+  h1: { fontSize: 23, lineHeight: 28, fontFamily: fonts.serif, letterSpacing: -0.2, color: colors.ink },
+  h2: { fontSize: 18, lineHeight: 22, fontWeight: "700" as const, letterSpacing: -0.3, color: colors.ink },
+  h3: { fontSize: 14, lineHeight: 18, fontWeight: "700" as const, color: colors.ink },
+  body: { fontSize: 13, lineHeight: 19, fontWeight: "400" as const, color: colors.inkSoft },
+  small: { fontSize: 11, lineHeight: 16, fontWeight: "500" as const, color: colors.muted },
+  tiny: { fontSize: 10, lineHeight: 12, fontWeight: "600" as const, color: colors.muted },
 };

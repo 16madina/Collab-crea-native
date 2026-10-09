@@ -155,7 +155,7 @@ function CreatorView({ p, viewer }: { p: Profile; viewer?: Profile }) {
             {(Object.keys(p.followers) as SocialPlatform[]).map((pl) => (
               <View key={pl} style={styles.netPill}>
                 <Ionicons name={PLATFORM[pl].icon} size={14} color={PLATFORM[pl].color} />
-                <Text style={{ fontWeight: "700", color: colors.ink, fontSize: 12 }}>{p.followers[pl] || "—"}</Text>
+                <Text style={{ fontWeight: "700", color: colors.ink, fontSize: 11 }}>{p.followers[pl] || "—"}</Text>
                 {verifiedNet(pl) ? <Ionicons name="checkmark-circle" size={12} color={colors.success} /> : null}
               </View>
             ))}
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   play: { position: "absolute", top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" },
   footer: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", paddingHorizontal: 20, paddingTop: 14, borderRadius: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: "rgba(255,255,255,0.82)" },
   menuRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: radius.md, backgroundColor: colors.surface },
-  menuText: { fontSize: 16, fontWeight: "600", color: colors.ink },
+  menuText: { fontSize: 14, fontWeight: "600", color: colors.ink },
   offerRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.line },
   offerCard: { borderRadius: radius.lg, backgroundColor: colors.surface, overflow: "hidden" },
 });

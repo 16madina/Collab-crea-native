@@ -48,7 +48,7 @@ export function Screen({
         {back ? <IconButton name="chevron-back" onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} /> : <View style={{ width: 4 }} />}
         <View style={{ flex: 1 }}>
           {title ? (
-            <Text style={[type.h2, { fontSize: 18 }]} numberOfLines={1}>
+            <Text style={[type.h2, { fontSize: 16 }]} numberOfLines={1}>
               {title}
             </Text>
           ) : null}
@@ -91,7 +91,7 @@ export function Chip({ label, on, onPress, icon }: { label: string; on?: boolean
   return (
     <Press onPress={onPress} style={[styles.chip, on && styles.chipOn]} scaleTo={0.94}>
       {icon ? <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.ink} /> : null}
-      <Text style={{ fontSize: 13, fontWeight: "600", color: on ? colors.onPrimary : colors.ink }}>{label}</Text>
+      <Text style={{ fontSize: 11, fontWeight: "600", color: on ? colors.onPrimary : colors.ink }}>{label}</Text>
     </Press>
   );
 }
@@ -177,7 +177,7 @@ export function Badge({ label, tone = "primary" }: { label: string; tone?: "prim
   }[tone];
   return (
     <View style={{ backgroundColor: c[0], borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" }}>
-      <Text style={{ color: c[1], fontSize: 11, fontWeight: "700" }}>{label}</Text>
+      <Text style={{ color: c[1], fontSize: 10, fontWeight: "700" }}>{label}</Text>
     </View>
   );
 }
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     backgroundColor: "rgba(18,18,18,0.86)",
   },
-  label: { fontSize: 14, fontWeight: "700", color: colors.ink },
+  label: { fontSize: 12, fontWeight: "700", color: colors.ink },
   input: {
     height: 52,
     borderRadius: radius.md,
@@ -268,16 +268,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
     paddingHorizontal: 16,
-    fontSize: 15,
+    fontSize: 13,
     color: colors.ink,
   },
-  error: { color: colors.danger, fontSize: 12, fontWeight: "600" },
+  error: { color: colors.danger, fontSize: 11, fontWeight: "600" },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, height: 36, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   segment: { flexDirection: "row", backgroundColor: "#141414", borderRadius: radius.pill, padding: 4 },
   segItem: { flex: 1, height: 40, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
   segOn: { backgroundColor: colors.surface },
-  segText: { fontWeight: "700", color: colors.muted, fontSize: 13 },
+  segText: { fontWeight: "700", color: colors.muted, fontSize: 11 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: 16, gap: 10 },
   emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center" },
   banner: { flexDirection: "row", gap: 10, alignItems: "center", padding: 14, borderRadius: radius.md },

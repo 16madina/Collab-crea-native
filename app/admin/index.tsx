@@ -39,7 +39,7 @@ export default function AdminHome() {
       <Animated.View entering={FadeInDown.delay(60).springify()}>
         <LinearGradient colors={[colors.night, "#3A1A10"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.hero, shadow.soft]}>
           <Text style={{ color: "rgba(255,255,255,0.7)", fontWeight: "600" }}>Commissions perçues</Text>
-          <Text style={{ color: "#fff", fontSize: 32, fontWeight: "800", letterSpacing: -1 }}>{fcfa(revenue)}</Text>
+          <Text style={{ color: "#fff", fontSize: 28, fontWeight: "800", letterSpacing: -1 }}>{fcfa(revenue)}</Text>
           <View style={s.pill}>
             <Ionicons name={todo ? "alert-circle" : "checkmark-circle"} size={16} color="#fff" />
             <Text style={{ color: "#fff", fontWeight: "700" }}>{todo ? `${todo} élément(s) à traiter` : "Tout est à jour"}</Text>
@@ -54,7 +54,7 @@ export default function AdminHome() {
               <Press onPress={() => router.push(`/admin/${sec.value}`)} style={[s.tile, shadow.soft]} scaleTo={0.93}>
                 <View style={s.icon}><Ionicons name={sec.icon} size={22} color={colors.primary} /></View>
                 <Text style={s.label} numberOfLines={1}>{sec.label}</Text>
-                {n > 0 ? <View style={s.badge}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "800" }}>{n}</Text></View> : null}
+                {n > 0 ? <View style={s.badge}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "800" }}>{n}</Text></View> : null}
               </Press>
             </Animated.View>
           );
@@ -70,6 +70,6 @@ const s = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   tile: { backgroundColor: colors.surface, borderRadius: radius.lg, paddingVertical: 18, alignItems: "center", gap: 8 },
   icon: { width: 46, height: 46, borderRadius: 16, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center" },
-  label: { fontSize: 13, fontWeight: "700", color: colors.ink },
+  label: { fontSize: 11, fontWeight: "700", color: colors.ink },
   badge: { position: "absolute", top: 8, right: 8, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", paddingHorizontal: 5 },
 });

@@ -80,10 +80,10 @@ export function Logo({ size = 44, showText = true }: { size?: number; showText?:
       </Svg>
       {showText && (
         <View>
-          <Text style={{ fontSize: size * 0.62, fontWeight: "800", letterSpacing: -0.8, color: colors.ink }}>
+          <Text style={{ fontSize: size * 0.55, fontWeight: "800", letterSpacing: -0.8, color: colors.ink }}>
             Collab <Text style={{ color: "#E2B873" }}>Créa</Text>
           </Text>
-          <Text style={{ fontSize: 8.5, letterSpacing: 1.6, fontWeight: "600", color: colors.inkSoft }}>
+          <Text style={{ fontSize: 9, letterSpacing: 1.6, fontWeight: "600", color: colors.inkSoft }}>
             CRÉER · COLLABORER · GRANDIR
           </Text>
         </View>
@@ -121,7 +121,7 @@ export function Button({
         style,
       ]}
     >
-      <Text style={[styles.btnText, small && { fontSize: 14 }, { color: fg }]}>{label}</Text>
+      <Text style={[styles.btnText, small && { fontSize: 12 }, { color: fg }]}>{label}</Text>
       {icon && <Ionicons name={icon} size={small ? 16 : 18} color={fg} />}
     </Press>
   );
@@ -152,7 +152,7 @@ export function SectionHeader({ title, action = "Voir tout", onAction }: { title
       <Text style={type.h2}>{title}</Text>
       {action ? (
         <Pressable onPress={onAction} hitSlop={10} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 14 }}>{action}</Text>
+          <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 12 }}>{action}</Text>
           <Ionicons name="arrow-forward" size={15} color={colors.primary} />
         </Pressable>
       ) : null}
@@ -182,7 +182,7 @@ export function BrandDot({ name, color, size = 18 }: { name: string; color: stri
 export function Tag({ label, dark }: { label: string; dark?: boolean }) {
   return (
     <View style={[styles.tag, dark && { backgroundColor: "rgba(20,20,20,0.75)" }]}>
-      <Text style={{ fontSize: 11, fontWeight: "700", color: dark ? colors.ink : colors.primaryLight }}>{label}</Text>
+      <Text style={{ fontSize: 10, fontWeight: "700", color: dark ? colors.ink : colors.primaryLight }}>{label}</Text>
     </View>
   );
 }
@@ -219,7 +219,7 @@ export function OfferCard({ offer, width = 230, badge }: { offer: Offer; width?:
         </Text>
         <Meta icon="camera-outline" text={offer.content_types.join(" · ")} />
         <Meta icon={offer.presence_mode === "on_site" ? "storefront-outline" : "location-outline"} text={offer.presence_mode === "on_site" ? `Sur place · ${offer.on_site_city ?? ""}` : offer.location || "Tous les pays africains"} />
-        <Text style={{ fontSize: 16, fontWeight: "800", color: colors.ink, marginTop: 4 }} numberOfLines={1}>
+        <Text style={{ fontSize: 14, fontWeight: "800", color: colors.ink, marginTop: 4 }} numberOfLines={1}>
           {budgetLabel(offer)}
         </Text>
       </View>
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   btnSmall: { height: 40, paddingHorizontal: 16 },
   btnPrimary: { backgroundColor: colors.primary },
   btnOutline: { borderWidth: 1.2, borderColor: colors.primary, backgroundColor: "transparent" },
-  btnText: { fontSize: 16, fontWeight: "700" },
+  btnText: { fontSize: 14, fontWeight: "700" },
   iconBtn: {
     width: 48,
     height: 48,

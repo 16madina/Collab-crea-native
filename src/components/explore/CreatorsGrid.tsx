@@ -112,17 +112,17 @@ export function CreatorsGrid({ searchOpen }: { searchOpen: boolean }) {
 
 const styles = StyleSheet.create({
   search: { flexDirection: "row", alignItems: "center", gap: 10, height: 48, marginHorizontal: 16, marginTop: 4, borderRadius: radius.pill, paddingHorizontal: 16, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
-  input: { flex: 1, minWidth: 0, fontSize: 14, color: colors.ink, zIndex: 1 },
+  input: { flex: 1, minWidth: 0, fontSize: 12, color: colors.ink, zIndex: 1 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: GAP, paddingHorizontal: 16 },
   card: { width: CARD_W, height: CARD_W * 1.27, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: "rgba(217,172,101,0.45)", backgroundColor: "#0E0E0E" },
   mono: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", backgroundColor: "#141210" },
-  monoText: { fontFamily: fonts.serif, color: "#D9AC65", opacity: 0.85, fontSize: 56 },
+  monoText: { fontFamily: fonts.serif, color: "#D9AC65", opacity: 0.85, fontSize: 49 },
   heart: { position: "absolute", top: 10, right: 10, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   body: { position: "absolute", left: 10, right: 10, bottom: 10, gap: 2 },
-  name: { color: colors.ink, fontSize: 18, fontWeight: "800", flexShrink: 1 },
-  followers: { color: colors.inkSoft, fontSize: 13 },
+  name: { color: colors.ink, fontSize: 16, fontWeight: "800", flexShrink: 1 },
+  followers: { color: colors.inkSoft, fontSize: 11 },
   tags: { flexDirection: "row", gap: 6, marginTop: 6, flexWrap: "wrap" },
   tag: { backgroundColor: "rgba(40,40,40,0.85)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
-  tagText: { color: colors.ink, fontSize: 11, fontWeight: "600" },
+  tagText: { color: colors.ink, fontSize: 10, fontWeight: "600" },
   btn: { alignSelf: "stretch", marginTop: 8, height: 34 },
 });

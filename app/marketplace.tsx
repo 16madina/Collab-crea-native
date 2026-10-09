@@ -74,7 +74,7 @@ export default function Marketplace() {
                   </Press>
                   <View style={{ padding: 12, gap: 4 }}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                      <Text style={[type.h3, { fontSize: 15, flexShrink: 1 }]} numberOfLines={1}>
+                      <Text style={[type.h3, { fontSize: 13, flexShrink: 1 }]} numberOfLines={1}>
                         {c.full_name}
                       </Text>
                       {c.identity_verified ? <Ionicons name="checkmark-circle" size={15} color="#2F80ED" /> : null}
@@ -89,7 +89,7 @@ export default function Marketplace() {
                         nets.map(([k, v]) => (
                           <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
                             <Ionicons name={NET_ICON[k]} size={13} color={colors.inkSoft} />
-                            <Text style={{ fontSize: 12, fontWeight: "700", color: colors.ink }}>{v}</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.ink }}>{v}</Text>
                           </View>
                         ))
                       )}

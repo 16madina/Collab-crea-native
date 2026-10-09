@@ -21,7 +21,7 @@ export function AuthShell({ title, subtitle, children, onBack, top, eyebrow }: {
         </View>
         {top}
         <Animated.View entering={FadeInDown.springify()} style={{ gap: 6, marginTop: 6 }}>
-          {eyebrow ? <Text style={{ color: colors.primary, fontWeight: "800", letterSpacing: 2, fontSize: 12 }}>{eyebrow}</Text> : null}
+          {eyebrow ? <Text style={{ color: colors.primary, fontWeight: "800", letterSpacing: 2, fontSize: 11 }}>{eyebrow}</Text> : null}
           <Text style={type.h1}>{title}</Text>
           {subtitle ? <Text style={type.body}>{subtitle}</Text> : null}
         </Animated.View>

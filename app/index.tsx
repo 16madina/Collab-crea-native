@@ -208,7 +208,7 @@ export default function Onboarding() {
             <View style={[styles.page, { width: W, height: H, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 18 }]}>
               <View style={styles.topRow}>
                 <Press onPress={asGuest} style={styles.skip}>
-                  <Text style={[styles.skipText, { color: colors.inkSoft, fontSize: 14 }]}>Continuer comme invité</Text>
+                  <Text style={[styles.skipText, { color: colors.inkSoft, fontSize: 12 }]}>Continuer comme invité</Text>
                 </Press>
                 <Press onPress={finish} style={styles.skip}>
                   <Text style={styles.skipText}>Passer</Text>
@@ -250,26 +250,26 @@ const styles = StyleSheet.create({
   heroImg: { position: "absolute", top: "20%", left: 0, right: 0, height: "60%" },
   welcome: { flex: 1, paddingHorizontal: 22 },
   logo: { width: 250, height: 166 },
-  script: { fontFamily: fonts.serifItalic, color: colors.primaryLight, fontSize: 28, lineHeight: 34, transform: [{ rotate: "-6deg" }], marginBottom: 18, marginLeft: 6 },
-  welcomeBody: { color: colors.inkSoft, fontSize: 17, lineHeight: 25 },
+  script: { fontFamily: fonts.serifItalic, color: colors.primaryLight, fontSize: 25, lineHeight: 30, transform: [{ rotate: "-6deg" }], marginBottom: 18, marginLeft: 6 },
+  welcomeBody: { color: colors.inkSoft, fontSize: 15, lineHeight: 22 },
   roleBtn: { flexDirection: "row", alignItems: "center", gap: 14, height: 60, borderRadius: radius.pill, paddingHorizontal: 24 },
   roleOutline: { borderWidth: 1.2, borderColor: colors.primary, backgroundColor: "rgba(11,11,11,0.6)" },
   page: { flex: 1, justifyContent: "space-between" },
   topRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 8 },
   skip: { paddingHorizontal: 16, paddingVertical: 10 },
   guestBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 40 },
-  guestText: { color: colors.inkSoft, fontSize: 15, fontWeight: "600", textDecorationLine: "underline", textDecorationColor: "rgba(216,173,106,0.5)" },
-  skipText: { color: colors.ink, fontSize: 16, fontWeight: "500" },
-  title: { fontFamily: fonts.serif, color: colors.ink, fontSize: 32, lineHeight: 38 },
-  body: { color: colors.inkSoft, fontSize: 16, lineHeight: 24 },
+  guestText: { color: colors.inkSoft, fontSize: 13, fontWeight: "600", textDecorationLine: "underline", textDecorationColor: "rgba(216,173,106,0.5)" },
+  skipText: { color: colors.ink, fontSize: 14, fontWeight: "500" },
+  title: { fontFamily: fonts.serif, color: colors.ink, fontSize: 28, lineHeight: 33 },
+  body: { color: colors.inkSoft, fontSize: 14, lineHeight: 21 },
   imageWrap: { flex: 1, minHeight: 220, marginTop: 16, marginHorizontal: 6 },
   image: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   features: { flexDirection: "row", justifyContent: "space-around", paddingHorizontal: 12, marginTop: 6 },
   feature: { alignItems: "center", gap: 10, flex: 1 },
   featureIcon: { width: 58, height: 58, borderRadius: 29, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(216,173,106,0.06)", alignItems: "center", justifyContent: "center" },
-  featureText: { color: colors.ink, fontSize: 13, textAlign: "center", lineHeight: 18 },
+  featureText: { color: colors.ink, fontSize: 11, textAlign: "center", lineHeight: 16 },
   cta: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, height: 58, minWidth: 250, paddingHorizontal: 34, borderRadius: radius.pill },
-  ctaText: { color: colors.onPrimary, fontSize: 18, fontWeight: "700" },
+  ctaText: { color: colors.onPrimary, fontSize: 16, fontWeight: "700" },
   dots: { flexDirection: "row", gap: 10, justifyContent: "center", marginTop: 20 },
   dot: { height: 8, borderRadius: 4, backgroundColor: colors.inkSoft },
   smallRow: { flexDirection: "row", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 14 },

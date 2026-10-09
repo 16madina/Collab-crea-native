@@ -78,7 +78,7 @@ export function InfoBox({ icon = "information-circle", children }: { icon?: keyo
 
 const styles = StyleSheet.create({
   search: { flexDirection: "row", alignItems: "center", gap: 10, height: 52, borderRadius: radius.pill, paddingHorizontal: 18, backgroundColor: "#F1E8E2" },
-  input: { flex: 1, fontSize: 15, color: colors.ink },
+  input: { flex: 1, fontSize: 13, color: colors.ink },
   stat: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, padding: 14, gap: 4 },
   statIcon: { width: 34, height: 34, borderRadius: 12, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   info: { flexDirection: "row", gap: 10, padding: 12, borderRadius: radius.md, backgroundColor: "#FFF1EB", alignItems: "flex-start" },

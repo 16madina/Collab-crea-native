@@ -121,7 +121,7 @@ export default function Chat() {
           <Text style={[type.tiny, { color: "rgba(255,255,255,0.7)", letterSpacing: 1, flex: 1 }]}>{conv.created_by === offer.brand_id ? "PROPOSITION DE COLLABORATION" : "CANDIDATURE"}</Text>
         </View>
         <Press onPress={() => router.push(`/offer/${offer.id}`)}>
-          <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800" }}>{offer.title}</Text>
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{offer.title}</Text>
         </Press>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           <View style={styles.dPill}>
@@ -193,7 +193,7 @@ export default function Chat() {
         </Animated.View>
         <View style={styles.subject}>
           <Ionicons name="briefcase-outline" size={14} color={colors.primary} />
-          <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 12 }} numberOfLines={1}>
+          <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 11 }} numberOfLines={1}>
             {conv.subject}
           </Text>
         </View>
@@ -201,8 +201,8 @@ export default function Chat() {
           const mine = m.sender_id === me.user_id;
           return (
             <Animated.View key={m.id} entering={FadeInUp.springify()} style={[styles.bubble, mine ? styles.mine : styles.theirs]}>
-              <Text style={{ color: mine ? "#fff" : colors.ink, fontSize: 15, lineHeight: 21 }}>{m.content}</Text>
-              <Text style={{ fontSize: 10, marginTop: 4, alignSelf: "flex-end", color: mine ? "rgba(255,255,255,0.75)" : colors.muted }}>
+              <Text style={{ color: mine ? "#fff" : colors.ink, fontSize: 13, lineHeight: 18 }}>{m.content}</Text>
+              <Text style={{ fontSize: 9, marginTop: 4, alignSelf: "flex-end", color: mine ? "rgba(255,255,255,0.75)" : colors.muted }}>
                 {time(m.created_at)}
                 {mine && m.read_at ? " · Lu" : ""}
               </Text>
@@ -343,13 +343,13 @@ const styles = StyleSheet.create({
   proposal: { backgroundColor: colors.night, borderRadius: radius.lg, padding: 16, gap: 12 },
   pIcon: { width: 28, height: 28, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
   dPill: { backgroundColor: "rgba(255,255,255,0.12)", borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
-  dPillText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  dPillText: { color: "#fff", fontSize: 11, fontWeight: "600" },
   compact: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.surface, borderRadius: radius.lg, padding: 12 },
   bubble: { maxWidth: "80%", paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20 },
   mine: { alignSelf: "flex-end", backgroundColor: colors.primary, borderBottomRightRadius: 6 },
   theirs: { alignSelf: "flex-start", backgroundColor: colors.surface, borderBottomLeftRadius: 6 },
   composer: { flexDirection: "row", alignItems: "flex-end", gap: 10, paddingHorizontal: 14, paddingTop: 10, backgroundColor: colors.bg },
-  input: { flex: 1, minWidth: 0, minHeight: 46, maxHeight: 120, borderRadius: 23, backgroundColor: colors.surface, paddingHorizontal: 18, paddingTop: 13, paddingBottom: 12, fontSize: 15, color: colors.ink },
+  input: { flex: 1, minWidth: 0, minHeight: 46, maxHeight: 120, borderRadius: 23, backgroundColor: colors.surface, paddingHorizontal: 18, paddingTop: 13, paddingBottom: 12, fontSize: 13, color: colors.ink },
   send: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
   blocked: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, paddingTop: 12, backgroundColor: "#FDE7E7" },
   menuRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: radius.md, backgroundColor: "#FAF5F1" },

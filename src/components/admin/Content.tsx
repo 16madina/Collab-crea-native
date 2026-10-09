@@ -160,7 +160,7 @@ export function Invites() {
         return (
           <Item key={c.code} i={i}>
             <View style={st.row}>
-              <Text selectable style={{ flex: 1, fontFamily: "Courier", fontWeight: "800", fontSize: 16, color: colors.ink, letterSpacing: 1 }}>{c.code}</Text>
+              <Text selectable style={{ flex: 1, fontFamily: "Courier", fontWeight: "800", fontSize: 14, color: colors.ink, letterSpacing: 1 }}>{c.code}</Text>
               <Badge label={c.used_by ? "Utilisé" : c.is_active ? "Actif" : "Inactif"} tone={c.used_by ? "muted" : c.is_active ? "success" : "warning"} />
             </View>
             {c.note ? <Text style={type.small}>{c.note}</Text> : null}

@@ -175,8 +175,8 @@ function Collaborations() {
             <Ionicons name="wallet" size={22} color={colors.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Mon portefeuille</Text>
-            <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>Solde, retraits et historique</Text>
+            <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>Mon portefeuille</Text>
+            <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11 }}>Solde, retraits et historique</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#fff" />
         </Press>
@@ -276,24 +276,24 @@ const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
   roundBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: goldBorder, overflow: "hidden", alignItems: "center", justifyContent: "center" },
   titleRow: { paddingHorizontal: 20, marginTop: 10 },
-  title: { fontFamily: fonts.serif, color: colors.ink, fontSize: 40, lineHeight: 48 },
+  title: { fontFamily: fonts.serif, color: colors.ink, fontSize: 35, lineHeight: 42 },
   searchRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginTop: 14 },
   search: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12, height: 54, borderRadius: radius.pill, paddingHorizontal: 18, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
-  input: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, zIndex: 1 },
+  input: { flex: 1, minWidth: 0, fontSize: 13, color: colors.ink, zIndex: 1 },
   chip: { flexDirection: "row", alignItems: "center", gap: 8, height: 40, paddingHorizontal: 18, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.02)" },
-  chipText: { color: colors.ink, fontSize: 14, fontWeight: "600" },
+  chipText: { color: colors.ink, fontSize: 12, fontWeight: "600" },
   chipBadge: { minWidth: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 5, overflow: "hidden" },
-  chipBadgeText: { color: colors.onPrimary, fontSize: 12, fontWeight: "800" },
+  chipBadgeText: { color: colors.onPrimary, fontSize: 11, fontWeight: "800" },
   row: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(53,48,42,0.7)" },
   avatarRing: { width: 74, height: 74, borderRadius: 37, padding: 2, overflow: "hidden" },
   avatarInner: { flex: 1, borderRadius: 35, overflow: "hidden", backgroundColor: "#141210", alignItems: "center", justifyContent: "center" },
-  avatarMono: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 22 },
-  name: { fontFamily: fonts.serif, color: colors.ink, fontSize: 19, flexShrink: 1 },
+  avatarMono: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 19 },
+  name: { fontFamily: fonts.serif, color: colors.ink, fontSize: 17, flexShrink: 1 },
   rolePill: { backgroundColor: "rgba(255,255,255,0.08)", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 3 },
-  rolePillText: { color: colors.ink, fontSize: 11, fontWeight: "600" },
-  time: { color: colors.muted, fontSize: 12 },
-  preview: { flex: 1, color: colors.inkSoft, fontSize: 14, lineHeight: 19 },
-  unreadText: { color: colors.onPrimary, fontSize: 13, fontWeight: "800" },
+  rolePillText: { color: colors.ink, fontSize: 10, fontWeight: "600" },
+  time: { color: colors.muted, fontSize: 11 },
+  preview: { flex: 1, color: colors.inkSoft, fontSize: 12, lineHeight: 17 },
+  unreadText: { color: colors.onPrimary, fontSize: 11, fontWeight: "800" },
   conv: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, padding: 12, borderRadius: radius.lg },
   unread: { minWidth: 28, height: 28, borderRadius: 14, paddingHorizontal: 6, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   wallet: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.night, borderRadius: radius.lg, padding: 16 },
