@@ -1,63 +1,174 @@
+// Menu flottant du bouton « + » : actions rapides selon le type de compte.
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { useState } from "react";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn, FadeInDown, SlideInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "../src/kit";
+import { GlossFill, GoldFill, GoldText, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../src/lux";
 import { useMe } from "../src/store";
-import { colors, radius, shadow, type } from "../src/theme";
-import { IconButton, Press } from "../src/ui";
+import { colors, fonts, radius } from "../src/theme";
+import { Press } from "../src/ui";
 
-type Action = { icon: keyof typeof Ionicons.glyphMap; title: string; sub: string; color: string; to: string; tab?: boolean };
+type Role = "brand" | "creator";
+type Action = { icon: keyof typeof Ionicons.glyphMap; title: string; sub: string; to: string; image?: number };
 
-const BRAND: Action[] = [
-  { icon: "megaphone-outline", title: "Publier une offre", sub: "Décrivez votre campagne et recevez des candidatures", color: "#FF5A36", to: "/offer/edit" },
-  { icon: "people-outline", title: "Trouver des créateurs", sub: "Parcourez la marketplace et proposez vos offres", color: "#141414", to: "/marketplace" },
-];
-const CREATOR: Action[] = [
-  { icon: "compass-outline", title: "Explorer les offres", sub: "Trouvez des campagnes adaptées à votre audience", color: "#FF5A36", to: "/(tabs)/offers?tab=offers", tab: true },
-  { icon: "images-outline", title: "Ajouter au portfolio", sub: "Photos, vidéos, liens TikTok ou Instagram", color: "#2F6BFF", to: "/edit/portfolio" },
-  { icon: "shield-checkmark-outline", title: "Vérifier un réseau", sub: "Certifiez vos abonnés pour rassurer les marques", color: "#1FA463", to: "/verification/social" },
-  { icon: "wallet-outline", title: "Mon portefeuille", sub: "Solde, retraits et historique", color: "#141414", to: "/wallet" },
-];
+const W = Dimensions.get("window").width;
+const CARD_W = Math.floor((W - 16 - 32 - 12 - 4) / 2);
 
-export default function Create() {
+const ACTIONS: Record<Role, Action[]> = {
+  brand: [
+    { icon: "megaphone-outline", title: "Créer une offre", sub: "Publier une campagne et trouver des créateurs.", to: "/offer/edit", image: require("../assets/menu/offer.jpg") },
+    { icon: "search", title: "Rechercher des créateurs", sub: "Trouver les talents idéaux pour ta marque.", to: "/(tabs)/offers?tab=creators", image: require("../assets/menu/search.jpg") },
+    { icon: "paper-plane-outline", title: "Inviter un créateur", sub: "Proposer une collaboration directe.", to: "/marketplace", image: require("../assets/menu/invite.jpg") },
+    { icon: "stats-chart", title: "Mes campagnes", sub: "Gérer tes offres, candidatures et résultats.", to: "/(tabs)/offers?tab=offers", image: require("../assets/menu/campaigns.jpg") },
+  ],
+  creator: [
+    { icon: "compass-outline", title: "Explorer les offres", sub: "Trouver les campagnes faites pour toi.", to: "/(tabs)/offers?tab=offers", image: require("../assets/menu/search.jpg") },
+    { icon: "images-outline", title: "Ajouter au portfolio", sub: "Photos, vidéos, liens TikTok ou Instagram.", to: "/edit/portfolio", image: require("../assets/menu/offer.jpg") },
+    { icon: "shield-checkmark-outline", title: "Vérifier un réseau", sub: "Rassure les marques sur tes abonnés.", to: "/verification/social", image: require("../assets/menu/invite.jpg") },
+    { icon: "wallet-outline", title: "Mon portefeuille", sub: "Solde, retraits et historique.", to: "/wallet", image: require("../assets/menu/campaigns.jpg") },
+  ],
+};
+
+function ActionCard({ a, onPress, index }: { a: Action; onPress: () => void; index: number }) {
+  return (
+    <Animated.View entering={FadeInDown.delay(120 + index * 70).springify()}>
+      <Press onPress={onPress} style={[styles.card, luxShadow]} scaleTo={0.96}>
+        <GlossFill />
+        {a.image ? <Image source={a.image} style={styles.cardImg} contentFit="cover" /> : null}
+        <LinearGradient colors={["rgba(10,10,10,0.1)", "rgba(10,10,10,0.75)", "#0A0A0A"]} locations={[0, 0.5, 0.75]} style={StyleSheet.absoluteFill} />
+        <View style={[styles.cardIcon, goldGlow]}>
+          <GoldFill style={{ borderRadius: 26 }} />
+          <Ionicons name={a.icon} size={24} color={colors.onPrimary} />
+        </View>
+        <View style={{ flex: 1 }} />
+        <Text style={styles.cardTitle}>{a.title}</Text>
+        <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 6 }}>
+          <Text style={styles.cardSub}>{a.sub}</Text>
+          <Ionicons name="arrow-forward" size={20} color={colors.primary} />
+        </View>
+      </Press>
+    </Animated.View>
+  );
+}
+
+export default function CreateMenu() {
   const insets = useSafeAreaInsets();
   const me = useMe();
-  const actions = me?.role === "brand" ? BRAND : CREATOR;
+  const myRole: Role = me?.role === "brand" ? "brand" : "creator";
+  const [role, setRole] = useState<Role>(myRole);
+  const close = () => router.back();
   const go = (a: Action) => {
+    if (role !== myRole) {
+      toast(role === "brand" ? "Réservé aux comptes Marque" : "Réservé aux comptes Créateur", "info");
+      return;
+    }
     router.back();
-    setTimeout(() => (a.tab ? router.navigate(a.to as never) : router.push(a.to as never)), 60);
+    setTimeout(() => router.push(a.to as never), 80);
   };
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
-      <View style={styles.grabber} />
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <Text style={type.h1}>Créer</Text>
-        <IconButton name="close" onPress={() => router.back()} />
-      </View>
-      <Text style={[type.body, { marginBottom: 20 }]}>Que voulez-vous faire aujourd'hui ?</Text>
-      <View style={{ gap: 12 }}>
-        {actions.map((a, i) => (
-          <Animated.View key={a.title} entering={FadeInDown.delay(60 + i * 70).springify()}>
-            <Press style={[styles.row, shadow.soft]} scaleTo={0.97} onPress={() => go(a)}>
-              <View style={[styles.icon, { backgroundColor: a.color }]}>
-                <Ionicons name={a.icon} size={22} color="#fff" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={type.h3}>{a.title}</Text>
-                <Text style={type.small}>{a.sub}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.muted} />
-            </Press>
-          </Animated.View>
-        ))}
-      </View>
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      <Animated.View entering={FadeIn.duration(250)} style={StyleSheet.absoluteFill}>
+        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+        <Pressable onPress={close} style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.55)" }]} />
+      </Animated.View>
+
+      <Animated.View entering={SlideInDown.springify().damping(18)} style={[styles.sheet, { paddingBottom: insets.bottom + 18 }]}>
+        <GlossFill />
+        {/* reflets dorés du bord supérieur */}
+        <LinearGradient colors={["rgba(245,211,148,0.16)", "rgba(245,211,148,0)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 0.35 }} style={styles.glowL} pointerEvents="none" />
+        <LinearGradient colors={["rgba(245,211,148,0.12)", "rgba(245,211,148,0)"]} start={{ x: 1, y: 0 }} end={{ x: 0.55, y: 0.3 }} style={styles.glowR} pointerEvents="none" />
+
+        <View style={styles.grabber}>
+          <GoldFill style={{ borderRadius: 3 }} />
+        </View>
+        <Press onPress={close} style={styles.close} scaleTo={0.88}>
+          <Ionicons name="close" size={24} color={colors.ink} />
+        </Press>
+
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Que veux-</Text>
+          <GoldText style={styles.title}>tu faire</GoldText>
+          <Text style={styles.title}> ?</Text>
+        </View>
+        <Text style={styles.subtitle}>Choisis une option pour commencer.</Text>
+
+        <View style={styles.toggle}>
+          {(
+            [
+              ["brand", "Compte Marque", "business-outline"],
+              ["creator", "Compte Créateur", "person-outline"],
+            ] as const
+          ).map(([k, l, ic]) => {
+            const on = role === k;
+            return (
+              <Press key={k} onPress={() => setRole(k)} style={[styles.toggleItem, on && goldGlow]} scaleTo={0.97}>
+                {on && <GoldFill style={{ borderRadius: radius.pill }} />}
+                <Ionicons name={ic} size={22} color={on ? colors.onPrimary : colors.ink} />
+                <Text style={[styles.toggleText, on && { color: colors.onPrimary, fontWeight: "800" }]}>{l}</Text>
+              </Press>
+            );
+          })}
+        </View>
+
+        <View key={role} style={styles.grid}>
+          {ACTIONS[role].map((a, i) => (
+            <ActionCard key={a.title} a={a} index={i} onPress={() => go(a)} />
+          ))}
+        </View>
+        {role !== myRole && (
+          <Animated.Text entering={FadeIn} style={styles.note}>
+            {me ? `Ces actions sont réservées aux comptes ${role === "brand" ? "Marque" : "Créateur"}.` : "Crée ton compte pour utiliser ces actions."}
+          </Animated.Text>
+        )}
+        <View style={[styles.grabber, { marginTop: 18, marginBottom: 0 }]}>
+          <GoldFill style={{ borderRadius: 3 }} />
+        </View>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  grabber: { alignSelf: "center", width: 40, height: 5, borderRadius: 3, backgroundColor: colors.line, marginBottom: 16 },
-  row: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: colors.surface, padding: 16, borderRadius: radius.lg },
-  icon: { width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  sheet: {
+    position: "absolute",
+    left: 8,
+    right: 8,
+    bottom: 8,
+    borderRadius: 34,
+    overflow: "hidden",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderWidth: 1.2,
+    borderColor: goldBorderStrong,
+    backgroundColor: "#0B0B0B",
+    shadowColor: "#D9AC65",
+    shadowOpacity: 0.35,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 20,
+  },
+  glowL: { position: "absolute", top: 0, left: 0, width: "70%", height: 220 },
+  glowR: { position: "absolute", top: 0, right: 0, width: "50%", height: 180 },
+  grabber: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, overflow: "hidden", marginBottom: 14 },
+  close: { position: "absolute", top: 16, right: 16, width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(11,11,11,0.75)", alignItems: "center", justifyContent: "center", zIndex: 2 },
+  titleRow: { flexDirection: "row", justifyContent: "center", marginTop: 14 },
+  title: { fontFamily: fonts.serif, fontSize: 30, lineHeight: 38, color: colors.ink },
+  subtitle: { color: colors.ink, fontSize: 15, textAlign: "center", marginTop: 4, opacity: 0.9 },
+  toggle: { flexDirection: "row", marginTop: 20, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.03)" },
+  toggleItem: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, height: 52, borderRadius: radius.pill },
+  toggleText: { color: colors.ink, fontSize: 15, fontWeight: "600" },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 16 },
+  card: { width: CARD_W, height: 170, borderRadius: radius.lg, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, padding: 14, backgroundColor: "#0A0A0A" },
+  cardImg: { position: "absolute", top: 0, right: 0, width: "78%", height: "62%", opacity: 0.9 },
+  cardIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
+  cardTitle: { fontFamily: fonts.serif, color: colors.ink, fontSize: 18, lineHeight: 22 },
+  cardSub: { flex: 1, color: colors.inkSoft, fontSize: 12, lineHeight: 16, marginTop: 3 },
+  note: { color: colors.muted, fontSize: 12, textAlign: "center", marginTop: 12 },
 });

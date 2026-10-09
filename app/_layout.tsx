@@ -13,7 +13,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: "slide_from_right" }}>
         <Stack.Screen name="index" options={{ animation: "fade" }} />
         <Stack.Screen name="(tabs)" options={{ animation: "fade_from_bottom" }} />
-        <Stack.Screen name="create" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="create" options={{ presentation: "transparentModal", animation: "fade", contentStyle: { backgroundColor: "transparent" } }} />
       </Stack>
       <ToastHost />
     </GestureHandlerRootView>
