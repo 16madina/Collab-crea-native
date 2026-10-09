@@ -10,8 +10,8 @@ import { Press, tap } from "../../src/ui";
 
 const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap, string]> = {
   home: ["home", "home-outline", "Accueil"],
-  campaigns: ["briefcase", "briefcase-outline", "Campagnes"],
-  messages: ["chatbubble-ellipses", "chatbubble-ellipses-outline", "Messages"],
+  offers: ["briefcase", "briefcase-outline", "Offres"],
+  collabs: ["chatbubble-ellipses", "chatbubble-ellipses-outline", "Collabs"],
   profile: ["person", "person-outline", "Profil"],
 };
 
@@ -46,9 +46,9 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
       <View style={[styles.bar, shadow.soft]}>
         <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
         <TabItem focused={state.index === 0} name="home" onPress={() => go(0)} />
-        <TabItem focused={state.index === 1} name="campaigns" onPress={() => go(1)} />
+        <TabItem focused={state.index === 1} name="offers" onPress={() => go(1)} />
         <View style={{ width: 70 }} />
-        <TabItem focused={state.index === 2} name="messages" onPress={() => go(2)} />
+        <TabItem focused={state.index === 2} name="collabs" onPress={() => go(2)} />
         <TabItem focused={state.index === 3} name="profile" onPress={() => go(3)} />
       </View>
       <Press onPress={() => router.push("/create")} style={[styles.fab, shadow.glow]} scaleTo={0.88}>
@@ -65,8 +65,8 @@ export default function TabsLayout() {
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg }, animation: "shift" }}
     >
       <Tabs.Screen name="home" />
-      <Tabs.Screen name="campaigns" />
-      <Tabs.Screen name="messages" />
+      <Tabs.Screen name="offers" />
+      <Tabs.Screen name="collabs" />
       <Tabs.Screen name="profile" />
     </Tabs>
   );

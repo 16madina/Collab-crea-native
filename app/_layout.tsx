@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ToastHost } from "../src/kit";
 import { colors } from "../src/theme";
 
 export default function RootLayout() {
@@ -11,9 +12,8 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ animation: "fade" }} />
         <Stack.Screen name="(tabs)" options={{ animation: "fade_from_bottom" }} />
         <Stack.Screen name="create" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
-        <Stack.Screen name="offer/[id]" />
-        <Stack.Screen name="chat/[id]" />
       </Stack>
+      <ToastHost />
     </GestureHandlerRootView>
   );
 }
