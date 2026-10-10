@@ -64,21 +64,9 @@ export function Glass({
 
 const LOGO_MARK = require("../assets/logo-mark.png"); // 300 × 176
 
-/** Logo de l'app : emblème CC doré + « Collab Créa ». (Le badge complet assets/logo.png sert à l'onboarding et à l'icône.) */
-export function Logo({ size = 44, showText = true, tagline = true }: { size?: number; showText?: boolean; tagline?: boolean }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      <Image source={LOGO_MARK} style={{ width: Math.round(size * 1.7), height: size }} contentFit="contain" accessibilityLabel="Collab Créa" />
-      {showText && (
-        <View>
-          <Text style={{ fontSize: size * 0.55, fontWeight: "800", letterSpacing: -0.8, color: colors.ink }}>
-            Collab <Text style={{ color: "#E2B873" }}>Créa</Text>
-          </Text>
-          {tagline && <Text style={{ fontSize: 9, letterSpacing: 1.6, fontWeight: "600", color: colors.inkSoft }}>CRÉER · COLLABORER · GRANDIR</Text>}
-        </View>
-      )}
-    </View>
-  );
+/** Logo de l'app : emblème CC doré seul. (Le badge complet assets/logo.png sert à l'onboarding, l'authentification et l'icône.) */
+export function Logo({ size = 44 }: { size?: number; showText?: boolean; tagline?: boolean }) {
+  return <Image source={LOGO_MARK} style={{ width: Math.round(size * 1.7), height: size }} contentFit="contain" accessibilityLabel="Collab Créa" />;
 }
 
 export function Button({

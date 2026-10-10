@@ -6,7 +6,10 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } fr
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, type } from "../../theme";
-import { IconButton, Logo } from "../../ui";
+import { IconButton } from "../../ui";
+import { Image } from "expo-image";
+
+const BADGE = require("../../../assets/logo.png");
 
 export function AuthShell({ title, subtitle, children, onBack, top, eyebrow }: { title: string; subtitle?: string; children: ReactNode; onBack?: () => void; top?: ReactNode; eyebrow?: string }) {
   const insets = useSafeAreaInsets();
@@ -17,8 +20,10 @@ export function AuthShell({ title, subtitle, children, onBack, top, eyebrow }: {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 40, paddingHorizontal: 22, gap: 18 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <IconButton name="chevron-back" onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace("/")))} />
-          <Logo size={30} showText={false} />
         </View>
+        <Animated.View entering={FadeInDown.springify()} style={{ alignItems: "center", marginTop: -36 }}>
+          <Image source={BADGE} style={{ width: 120, height: 120 }} contentFit="contain" accessibilityLabel="Collab Créa" />
+        </Animated.View>
         {top}
         <Animated.View entering={FadeInDown.springify()} style={{ gap: 6, marginTop: 6 }}>
           {eyebrow ? <Text style={{ color: colors.primary, fontWeight: "800", letterSpacing: 2, fontSize: 11 }}>{eyebrow}</Text> : null}
