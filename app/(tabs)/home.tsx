@@ -17,7 +17,6 @@ import { timeLeft } from "../../src/kit";
 import { colors, fonts, radius } from "../../src/theme";
 import type { Offer, Profile, SocialPlatform } from "../../src/types";
 import { Logo, Press } from "../../src/ui";
-import { BrandHome } from "../../src/components/home/BrandHome";
 import { SpaceSwitcher } from "../../src/components/SpaceSwitcher";
 
 const W = Dimensions.get("window").width;
@@ -74,6 +73,57 @@ function Tag({ label }: { label: string }) {
         {label}
       </Text>
     </View>
+  );
+}
+
+function FeaturedCard({ p }: { p: Profile }) {
+  return (
+    <Press onPress={() => router.push(`/profile/${p.user_id}`)} style={[styles.feat, luxShadow]} scaleTo={0.98}>
+      <Photo p={p} mono={90} side />
+      <LinearGradient colors={["#0E0E0E", "rgba(14,14,14,0.6)", "rgba(14,14,14,0)"]} locations={[0.3, 0.5, 0.7]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={["rgba(11,11,11,0)", "rgba(11,11,11,0.75)"]} locations={[0.55, 1]} style={StyleSheet.absoluteFill} />
+      <Heart p={p} />
+      <View style={styles.featBody}>
+        <View style={styles.nameRow}>
+          <Text style={styles.featName} numberOfLines={1}>
+            {shortName(p.full_name)}
+          </Text>
+          {p.identity_verified && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
+        </View>
+        <Text style={styles.featFollowers}>{formatFollowers(totalFollowers(p))} abonnés</Text>
+        <View style={{ flexDirection: "row", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+          {tagsOf(p)
+            .slice(0, 3)
+            .map((t) => (
+              <Tag key={t} label={t} />
+            ))}
+        </View>
+        <GoldButton label="Voir le profil" onPress={() => router.push(`/profile/${p.user_id}`)} style={{ marginTop: 12, minWidth: 170 }} />
+      </View>
+    </Press>
+  );
+}
+
+function PopularOffer({ o, brand, apps }: { o: Offer; brand?: Profile; apps: number }) {
+  return (
+    <Press onPress={() => router.push(`/offer/${o.id}`)} style={[styles.pop, luxShadow]} scaleTo={0.97}>
+      <GlossFill />
+      <View style={styles.popLogo}>
+        <Text style={styles.offerLogoText}>{nameOf(brand).slice(0, 2).toUpperCase()}</Text>
+        <Image source={avatarOf(brand)} style={StyleSheet.absoluteFill} contentFit="cover" />
+      </View>
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={styles.popTitle} numberOfLines={1}>{o.title}</Text>
+        <View style={{ flexDirection: "row", gap: 6 }}>
+          <Tag label={o.category} />
+        </View>
+        <Text style={styles.popBudget} numberOfLines={1}>{budgetLabel(o)}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Ionicons name="flame" size={11} color={colors.primary} />
+          <Text style={styles.offerApps}>{apps} candidature{apps > 1 ? "s" : ""}</Text>
+        </View>
+      </View>
+    </Press>
   );
 }
 
@@ -161,7 +211,7 @@ function SectionHead({ title, onAll }: { title: string; onAll: () => void }) {
   );
 }
 
-function CreatorHome() {
+function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
   const insets = useSafeAreaInsets();
   const me = useMe();
   const profiles = useDB((s) => s.profiles);
@@ -199,6 +249,17 @@ function CreatorHome() {
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
       .slice(0, 8);
   }, [offers, q, cat]);
+  const popularOffers = useMemo(() => {
+    const count = (id: string) => applications.filter((x) => x.offer_id === id).length;
+    return offers
+      .filter((o) => o.status === "active" && (cat === "Tous" || o.category === cat))
+      .sort((a, b) => count(b.id) - count(a.id))
+      .slice(0, 8);
+  }, [offers, applications, cat]);
+  const recommended = useMemo(() => {
+    const myCat = me?.sector ?? me?.category;
+    return [...filtered].sort((a, b) => Number(b.category === myCat) - Number(a.category === myCat) || Number(!!b.identity_verified) - Number(!!a.identity_verified) || totalFollowers(b) - totalFollowers(a)).slice(0, 6);
+  }, [filtered, me]);
   const popular = useMemo(() => [...filtered].sort((a, b) => totalFollowers(b) - totalFollowers(a)), [filtered]);
   const activeFilters = (country !== "all" ? 1 : 0) + (platform !== "all" ? 1 : 0);
   const isBrand = me?.role === "brand";
@@ -232,7 +293,10 @@ function CreatorHome() {
         <Press onPress={() => router.navigate(me ? "/(tabs)/profile" : "/auth/signup")} scaleTo={0.92}>
           <GoldRing size={60}>
             {me ? (
-              <Image source={avatarOf(me)} style={{ flex: 1 }} contentFit="cover" />
+              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0B0B0B" }}>
+                <Text style={[styles.offerLogoText, { fontSize: 18 }]}>{initials(nameOf(me))}</Text>
+                <Image source={avatarOf(me)} style={StyleSheet.absoluteFill} contentFit="cover" />
+              </View>
             ) : (
               <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
                 <Ionicons name="person" size={28} color={colors.primary} />
@@ -245,7 +309,7 @@ function CreatorHome() {
             Bonjour {firstName} 👋
           </Text>
           <Text style={styles.sub} numberOfLines={2}>
-            {!me ? "Découvre des créateurs incroyables. Crée ton compte pour collaborer." : "Découvre des créateurs incroyables et collabore avec des marques."}
+            {!me ? "Découvre des créateurs incroyables. Crée ton compte pour collaborer." : brandSpace ? "Trouve les créateurs idéaux pour ta marque." : "Découvre les offres des marques et collabore avec elles."}
           </Text>
         </View>
       </Animated.View>
@@ -299,6 +363,35 @@ function CreatorHome() {
         })}
       </ScrollView>
 
+      {brandSpace ? (
+        <>
+      {/* Créateurs recommandés */}
+      <SectionHead title="Créateurs recommandés" onAll={seeAll} />
+      {recommended.length === 0 ? (
+        <Empty icon="people-outline" title="Aucun créateur trouvé" text="Essaie une autre catégorie, un autre pays ou une autre plateforme." />
+      ) : (
+        <>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={FEAT_W + FEAT_GAP}
+            decelerationRate="fast"
+            contentContainerStyle={{ paddingHorizontal: 16, gap: FEAT_GAP }}
+            onScroll={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / (FEAT_W + FEAT_GAP)))}
+            scrollEventThrottle={32}
+          >
+            {recommended.map((p, i) => (
+              <Animated.View key={p.user_id} entering={FadeInRight.delay(220 + i * 80).springify()}>
+                <FeaturedCard p={p} />
+              </Animated.View>
+            ))}
+          </ScrollView>
+          <PagerDots count={recommended.length} index={Math.min(page, recommended.length - 1)} />
+        </>
+      )}
+        </>
+      ) : (
+        <>
       {/* Nouvelles offres des marques */}
       <SectionHead title="Nouvelles offres" onAll={() => router.push("/(tabs)/offers?tab=offers")} />
       {newOffers.length === 0 ? (
@@ -324,6 +417,23 @@ function CreatorHome() {
         </>
       )}
 
+        </>
+      )}
+
+      {/* Annonces populaires */}
+      <SectionHead title="Annonces populaires" onAll={() => router.push("/(tabs)/offers?tab=offers")} />
+      {popularOffers.length === 0 ? (
+        <Empty icon="flame-outline" title="Aucune annonce" text="Essaie une autre catégorie." />
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10, paddingBottom: 6 }}>
+          {popularOffers.map((o, i) => (
+            <Animated.View key={o.id} entering={FadeInRight.delay(260 + i * 60).springify()}>
+              <PopularOffer o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={applications.filter((x) => x.offer_id === o.id).length} />
+            </Animated.View>
+          ))}
+        </ScrollView>
+      )}
+
       {/* Créateurs populaires */}
       <SectionHead title="Créateurs populaires" onAll={seeAll} />
       {popular.length === 0 ? (
@@ -342,6 +452,10 @@ function CreatorHome() {
 }
 
 const styles = StyleSheet.create({
+  pop: { width: Math.round(W * 0.68), flexDirection: "row", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
+  popLogo: { width: 50, height: 50, borderRadius: 25, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0B0B0B", alignItems: "center", justifyContent: "center" },
+  popTitle: { color: colors.ink, fontSize: 13, fontWeight: "700" },
+  popBudget: { color: colors.primary, fontSize: 12, fontWeight: "800" },
   offerImg: { position: "absolute", top: 0, bottom: 0, right: 0, width: "62%" },
   offerBrand: { flexDirection: "row", alignItems: "center", gap: 7, maxWidth: "62%" },
   offerLogo: { width: 26, height: 26, borderRadius: 13, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0B0B0B", alignItems: "center", justifyContent: "center" },
@@ -390,5 +504,5 @@ const styles = StyleSheet.create({
 
 export default function Home() {
   const role = useDB((s) => s.profiles.find((p) => p.user_id === s.userId)?.role);
-  return role === "brand" ? <BrandHome /> : <CreatorHome />;
+  return <CreatorHome key={role} brandSpace={role === "brand"} />;
 }
