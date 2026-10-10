@@ -254,9 +254,11 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       <View style={styles.adHead}>
         <MaterialCommunityIcons name="bullhorn-outline" size={24} color={colors.primary} style={{ marginTop: 2 }} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.adHeadTitle}>
-            Annonces <GoldText style={styles.adHeadTitle}>populaires</GoldText>
-          </Text>
+          {/* Mots côte à côte : un GoldText (MaskedView) imbriqué dans un <Text> fait planter iOS. */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            <Text style={styles.adHeadTitle}>Annonces </Text>
+            <GoldText style={styles.adHeadTitle}>populaires</GoldText>
+          </View>
           <Text style={styles.adHeadSub}>Découvrez les dernières campagnes publiées par les marques.</Text>
         </View>
         <Press onPress={() => router.push("/(tabs)/offers?tab=offers")} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}>
