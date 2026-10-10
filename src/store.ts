@@ -27,7 +27,8 @@ import {
 import * as seed from "./seed";
 import { errMsg, supabase } from "./backend/supabase";
 import { refresh, startSync, stopSync } from "./backend/sync";
-import { toast } from "./kit";
+// Chargé à la demande pour éviter le cycle store → kit → ui → store.
+const toast = (msg: string, tone?: "success" | "error" | "info") => (require("./kit") as typeof import("./kit")).toast(msg, tone);
 
 // ---------- règles ----------
 export const MIN_AGREED = 200;

@@ -172,10 +172,13 @@ export default function Onboarding() {
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<Role>("creator");
   const list = useRef<FlatList>(null);
+  const initial = useRef<"user" | "guest" | null>(userId ? "user" : guest ? "guest" : null);
 
-  if (userId)
+  // Redirection seulement à l'ouverture de l'app (session déjà active) : ensuite, ce sont les
+  // boutons qui naviguent. Deux navigations simultanées font planter iOS.
+  if (initial.current === "user")
     return <Redirect href={role === "admin" ? "/admin" : "/(tabs)/home"} />;
-  if (guest) return <Redirect href="/(tabs)/home" />;
+  if (initial.current === "guest") return <Redirect href="/(tabs)/home" />;
   const asGuest = () => {
     continueAsGuest();
     router.replace("/(tabs)/home");
@@ -251,12 +254,9 @@ export default function Onboarding() {
                   />
                 </Animated.View>
                 <View style={{ flex: 1 }} />
-                <Animated.Text
-                  entering={FadeInDown.delay(300).springify()}
-                  style={styles.script}
-                >
-                  Le talent crée{"\n"}des opportunités.
-                </Animated.Text>
+                <Animated.View entering={FadeInDown.delay(300).springify()}>
+                  <Text style={styles.script}>Le talent crée{"\n"}des opportunités.</Text>
+                </Animated.View>
                 <Animated.Text
                   entering={FadeInDown.delay(420).springify()}
                   style={styles.welcomeBody}
