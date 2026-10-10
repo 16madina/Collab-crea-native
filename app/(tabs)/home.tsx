@@ -104,29 +104,6 @@ function FeaturedCard({ p }: { p: Profile }) {
   );
 }
 
-function PopularOffer({ o, brand, apps }: { o: Offer; brand?: Profile; apps: number }) {
-  return (
-    <Press onPress={() => router.push(`/offer/${o.id}`)} style={[styles.pop, luxShadow]} scaleTo={0.97}>
-      <GlossFill />
-      <View style={styles.popLogo}>
-        <Text style={styles.offerLogoText}>{nameOf(brand).slice(0, 2).toUpperCase()}</Text>
-        <Image source={avatarOf(brand)} style={StyleSheet.absoluteFill} contentFit="cover" />
-      </View>
-      <View style={{ flex: 1, gap: 4 }}>
-        <Text style={styles.popTitle} numberOfLines={1}>{o.title}</Text>
-        <View style={{ flexDirection: "row", gap: 6 }}>
-          <Tag label={o.category} />
-        </View>
-        <Text style={styles.popBudget} numberOfLines={1}>{budgetLabel(o)}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <Ionicons name="flame" size={11} color={colors.primary} />
-          <Text style={styles.offerApps}>{apps} candidature{apps > 1 ? "s" : ""}</Text>
-        </View>
-      </View>
-    </Press>
-  );
-}
-
 const AD_W = Math.round(W * 0.7);
 const AD_H = Math.round(AD_W * 1.25);
 const AD_STATUS: Record<string, { label: string; bg: string; fg: string }> = {
@@ -344,22 +321,6 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       )}
     </>
   );
-  const adsSection = (
-    <>
-      <SectionHead title="Annonces populaires" onAll={() => router.push("/(tabs)/offers?tab=offers")} />
-      {popularOffers.length === 0 ? (
-        <Empty icon="flame-outline" title="Aucune annonce" text="Essaie une autre catégorie." />
-      ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10, paddingBottom: 6 }}>
-          {popularOffers.map((o, i) => (
-            <Animated.View key={o.id} entering={FadeInRight.delay(260 + i * 60).springify()}>
-              <PopularOffer o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={applications.filter((x) => x.offer_id === o.id).length} />
-            </Animated.View>
-          ))}
-        </ScrollView>
-      )}
-    </>
-  );
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 6, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
@@ -515,7 +476,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
         </>
       )}
 
-      {!brandSpace && premiumAds}
+
 
       {/* Créateurs populaires */}
       <SectionHead title="Créateurs populaires" onAll={seeAll} />
@@ -531,7 +492,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
         </ScrollView>
       )}
 
-      {brandSpace && adsSection}
+      {premiumAds}
     </ScrollView>
   );
 }
@@ -554,10 +515,6 @@ const styles = StyleSheet.create({
   adHead: { flexDirection: "row", alignItems: "flex-start", gap: 10, paddingHorizontal: 16, marginTop: 14, marginBottom: 12 },
   adHeadTitle: { fontFamily: fonts.serif, color: "#F8F6F2", fontSize: 20, lineHeight: 25 },
   adHeadSub: { color: colors.inkSoft, fontSize: 11, marginTop: 2 },
-  pop: { width: Math.round(W * 0.68), flexDirection: "row", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
-  popLogo: { width: 50, height: 50, borderRadius: 25, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0B0B0B", alignItems: "center", justifyContent: "center" },
-  popTitle: { color: colors.ink, fontSize: 13, fontWeight: "700" },
-  popBudget: { color: colors.primary, fontSize: 12, fontWeight: "800" },
   offerImg: { position: "absolute", top: 0, bottom: 0, right: 0, width: "62%" },
   offerBrand: { flexDirection: "row", alignItems: "center", gap: 7, maxWidth: "62%" },
   offerLogo: { width: 26, height: 26, borderRadius: 13, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0B0B0B", alignItems: "center", justifyContent: "center" },
