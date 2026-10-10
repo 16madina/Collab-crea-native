@@ -85,13 +85,13 @@ export function GoldButton({
   label: string;
   onPress?: () => void;
   icon?: keyof typeof Ionicons.glyphMap | null;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   style?: StyleProp<ViewStyle>;
 }) {
-  const h = size === "sm" ? 32 : size === "lg" ? 54 : 42;
-  const fs = size === "sm" ? 11 : size === "lg" ? 15 : 13;
+  const h = size === "xs" ? 26 : size === "sm" ? 32 : size === "lg" ? 54 : 42;
+  const fs = size === "xs" ? 10 : size === "sm" ? 11 : size === "lg" ? 15 : 13;
   return (
-    <Press onPress={onPress} style={[styles.btn, { height: h, paddingHorizontal: size === "sm" ? 12 : 20 }, goldGlow, style]} scaleTo={0.95}>
+    <Press onPress={onPress} style={[styles.btn, { height: h, paddingHorizontal: size === "xs" ? 10 : size === "sm" ? 12 : 20 }, goldGlow, style]} scaleTo={0.95}>
       <GoldFill style={{ borderRadius: radius.pill }} />
       <Text style={[styles.btnText, { fontSize: fs }]}>{label}</Text>
       {icon ? <Ionicons name={icon} size={fs + 2} color={colors.onPrimary} /> : null}

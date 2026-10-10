@@ -61,19 +61,19 @@ export function AdCard({ o, brand, apps, width = AD_W, badge, compact }: { o: Of
         <Text style={[styles.adBadgeText, { color: st.fg }]}>{st.label}</Text>
       </View>
       <View style={[styles.adBody, compact && { left: 10, right: 10, bottom: 10 }]}>
-        <Text style={[styles.adTitle, compact && { fontSize: 13, lineHeight: 17 }]} numberOfLines={2}>{o.title}</Text>
+        <Text style={[styles.adTitle, compact && { fontSize: 12, lineHeight: 15 }]} numberOfLines={2}>{o.title}</Text>
         <View style={styles.adCat}>
           <Text style={styles.adCatText}>{o.category}</Text>
         </View>
         <View style={styles.adLine}>
           <MaterialCommunityIcons name="currency-usd" size={13} color="#0B0B0B" style={styles.adCoin} />
-          <Text style={styles.adBudget} numberOfLines={1}>{budgetLabel(o)}</Text>
+          <Text style={[styles.adBudget, compact && { fontSize: 11 }]} numberOfLines={1}>{budgetLabel(o)}</Text>
         </View>
         <View style={styles.adLine}>
           <Ionicons name="person-outline" size={12} color={colors.inkSoft} />
-          <Text style={styles.adApps}>{apps} candidature{apps > 1 ? "s" : ""}</Text>
+          <Text style={[styles.adApps, compact && { fontSize: 10 }]}>{apps} candidature{apps > 1 ? "s" : ""}</Text>
         </View>
-        <GoldButton label={compact ? "Voir" : "Voir l'annonce"} size={compact ? "sm" : "md"} onPress={() => router.push(`/offer/${o.id}`)} style={{ marginTop: compact ? 6 : 10, alignSelf: "stretch" }} />
+        <GoldButton label={compact ? "Voir l'offre" : "Voir l'annonce"} size={compact ? "xs" : "md"} onPress={() => router.push(`/offer/${o.id}`)} style={{ marginTop: compact ? 6 : 10, alignSelf: compact ? "flex-start" : "stretch" }} />
       </View>
     </Press>
   );
@@ -130,7 +130,7 @@ export function OfferRow({ o, brand, apps, badge }: { o: Offer; brand?: Profile;
           <Ionicons name="people-outline" size={13} color={colors.inkSoft} />
           <Text style={styles.adApps}>{apps} candidature{apps > 1 ? "s" : ""}</Text>
         </View>
-        <GoldButton label="Voir l'offre" size="sm" onPress={() => router.push(`/offer/${o.id}`)} style={{ marginTop: 6 }} />
+        <GoldButton label="Voir l'offre" size="xs" onPress={() => router.push(`/offer/${o.id}`)} style={{ marginTop: 5 }} />
       </View>
     </Press>
   );
@@ -151,14 +151,14 @@ const styles = StyleSheet.create({
   adCoin: { width: 16, height: 16, borderRadius: 8, backgroundColor: "#D9AC65", textAlign: "center", lineHeight: 16, overflow: "hidden" },
   adBudget: { color: "#D9AC65", fontSize: 13, fontWeight: "800", flexShrink: 1 },
   adApps: { color: colors.inkSoft, fontSize: 11 },
-  row: { height: 168, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: "rgba(217,172,101,0.5)", backgroundColor: "#171717" },
+  row: { height: 150, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: "rgba(217,172,101,0.5)", backgroundColor: "#171717" },
   rowImg: { position: "absolute", top: 0, bottom: 0, right: 0, width: "68%" },
   rowLeft: { position: "absolute", left: 12, top: 12, bottom: 12, width: "57%", justifyContent: "space-between" },
-  rowLogo: { width: 50, height: 50, borderRadius: 25, overflow: "hidden", backgroundColor: "#050505", borderWidth: 1, borderColor: "rgba(217,172,101,0.6)", alignItems: "center", justifyContent: "center" },
+  rowLogo: { width: 42, height: 42, borderRadius: 21, overflow: "hidden", backgroundColor: "#050505", borderWidth: 1, borderColor: "rgba(217,172,101,0.6)", alignItems: "center", justifyContent: "center" },
   rowBadge: { alignSelf: "flex-start", paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, borderWidth: 1, borderColor: "rgba(248,246,242,0.18)" },
-  rowTitle: { color: "#F8F6F2", fontSize: 14, lineHeight: 18, fontWeight: "800", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 6 },
-  rowMeta: { color: "#E9E4DA", fontSize: 11, flexShrink: 1 },
-  rowHeart: { position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: "rgba(248,246,242,0.5)", backgroundColor: "rgba(5,5,5,0.45)", alignItems: "center", justifyContent: "center" },
+  rowTitle: { color: "#F8F6F2", fontSize: 12.5, lineHeight: 16, fontWeight: "800", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 6 },
+  rowMeta: { color: "#E9E4DA", fontSize: 10, flexShrink: 1 },
+  rowHeart: { position: "absolute", top: 10, right: 10, width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: "rgba(248,246,242,0.5)", backgroundColor: "rgba(5,5,5,0.45)", alignItems: "center", justifyContent: "center" },
   rowRight: { position: "absolute", right: 12, bottom: 12, width: "36%", alignItems: "flex-start", gap: 3 },
-  rowBudget: { color: "#E7BE78", fontSize: 14, lineHeight: 17, fontWeight: "800" },
+  rowBudget: { color: "#E7BE78", fontSize: 12, lineHeight: 15, fontWeight: "800" },
 });
