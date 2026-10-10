@@ -22,10 +22,28 @@ export default function Reset() {
   };
 
   return (
-    <AuthShell title="Nouveau mot de passe" subtitle="Choisissez un mot de passe sécurisé d'au moins 6 caractères.">
-      <Animated.View entering={FadeInDown.delay(100).springify()} style={{ gap: 14 }}>
-        <PasswordField label="Nouveau mot de passe" value={pw} onChangeText={setPw} error={err.pw} placeholder="••••••" />
-        <PasswordField label="Confirmer le mot de passe" value={confirm} onChangeText={setConfirm} error={err.confirm} placeholder="••••••" />
+    <AuthShell
+      title="Nouveau mot de passe"
+      subtitle="Choisissez un mot de passe sécurisé d'au moins 6 caractères."
+    >
+      <Animated.View
+        entering={FadeInDown.delay(100).springify()}
+        style={{ gap: 14 }}
+      >
+        <PasswordField
+          label="Nouveau mot de passe"
+          value={pw}
+          onChangeText={setPw}
+          error={err.pw}
+          placeholder="••••••"
+        />
+        <PasswordField
+          label="Confirmer le mot de passe"
+          value={confirm}
+          onChangeText={setConfirm}
+          error={err.confirm}
+          placeholder="••••••"
+        />
         <Button label="Mettre à jour" icon="checkmark" onPress={submit} />
       </Animated.View>
     </AuthShell>

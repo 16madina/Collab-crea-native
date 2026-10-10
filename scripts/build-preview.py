@@ -39,7 +39,7 @@ html.framed .fx{display:flex}
 .status{position:fixed;top:0;left:0;right:0;height:50px;z-index:99999;justify-content:space-between;align-items:center;padding:0 28px 0 36px;color:#F8F6F2;font:600 15px -apple-system,system-ui,sans-serif;pointer-events:none;background:#0B0B0B}
 .homebar{position:fixed;bottom:6px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#F8F6F2;z-index:100000;pointer-events:none;opacity:.85}
 """
-HEAD = """try{history.replaceState(null,"","/")}catch(e){}
+HEAD = """window.__CC_PREVIEW__=true;try{history.replaceState(null,"","/")}catch(e){}
 var isPhone=Math.min(screen.width,screen.height)<600&&(navigator.maxTouchPoints||0)>0;
 if(!isPhone){
   document.documentElement.className="framed";

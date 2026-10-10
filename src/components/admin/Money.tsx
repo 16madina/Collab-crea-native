@@ -6,7 +6,7 @@ import { displayName, fcfa, useDB } from "../../store";
 import { COLLAB_LABEL, Withdrawal, WithdrawalStatus } from "../../types";
 import { colors, radius, type } from "../../theme";
 import { Button, Press } from "../../ui";
-import { Grid, H, Item, StatTile, st } from "./common";
+import { Act, Grid, H, Item, StatTile, st } from "./common";
 import { Sheet } from "./Sheet";
 
 export function Commissions() {
@@ -53,6 +53,19 @@ export function Commissions() {
             <Text style={[type.small, { flex: 1 }]}>Montant {fcfa(c.agreed_amount)}</Text>
             <Text style={{ fontWeight: "800", color: colors.primary }}>+{fcfa(c.platform_fee)}</Text>
           </View>
+          {!["completed", "refunded", "cancelled", "refused", "expired"].includes(c.status) ? (
+            <View style={st.wrap}>
+              <Act
+                label="Rembourser la marque"
+                icon="return-down-back"
+                tone="danger"
+                onPress={() => {
+                  useDB.getState().adminRefund(c.id, "Remboursement décidé par l'administration");
+                  toast("Remboursement demandé");
+                }}
+              />
+            </View>
+          ) : null}
         </Item>
       ))}
     </View>

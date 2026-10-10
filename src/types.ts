@@ -32,6 +32,8 @@ export type Profile = {
   identity_verified: boolean;
   identity_submitted_at?: string;
   identity_method?: "document" | "selfie";
+  identity_document_url?: string; // chemin privé (bucket identity-documents)
+  selfie_url?: string; // chemin privé (bucket selfies)
   // modération
   is_banned?: boolean;
   ban_reason?: string;

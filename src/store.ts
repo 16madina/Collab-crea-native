@@ -25,16 +25,26 @@ import {
   Withdrawal,
 } from "./types";
 import * as seed from "./seed";
+import { errMsg, supabase } from "./backend/supabase";
+import { refresh, startSync, stopSync } from "./backend/sync";
+import { toast } from "./kit";
 
 // ---------- règles ----------
 export const MIN_AGREED = 200;
 export const BRAND_FEE = 0.1;
 export const CREATOR_FEE = 0.05;
 export const CARD_SURCHARGE = 0.05;
-export const WITHDRAW_MIN = { mobile_money: 1000, paypal: 3000, bank: 1000 } as const;
+export const WITHDRAW_MIN = {
+  mobile_money: 1000,
+  paypal: 3000,
+  bank: 1000,
+} as const;
 
 export function computeCommission(agreed: number) {
-  const a = Math.max(MIN_AGREED, Math.round(Number.isFinite(agreed) ? agreed : MIN_AGREED));
+  const a = Math.max(
+    MIN_AGREED,
+    Math.round(Number.isFinite(agreed) ? agreed : MIN_AGREED),
+  );
   const brandFee = Math.round(a * BRAND_FEE);
   const creatorFee = Math.round(a * CREATOR_FEE);
   return {
@@ -48,7 +58,10 @@ export function computeCommission(agreed: number) {
   };
 }
 
-export const fcfa = (n: number) => `${Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} FCFA`;
+export const fcfa = (n: number) =>
+  `${Math.round(Math.abs(n))
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, " ")} FCFA`;
 
 export const budgetLabel = (o: Pick<Offer, "budget_min" | "budget_max">) =>
   o.budget_min === 0 && o.budget_max === 0
@@ -59,19 +72,64 @@ export const budgetLabel = (o: Pick<Offer, "budget_min" | "budget_max">) =>
 
 // Aperçu web : ?demo=creator|brand|admin connecte directement le compte de démo.
 function demoFromUrl(): string | null {
-  const q = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search).get("demo") : null;
-  return q === "admin" ? seed.ADMIN_ID : q === "brand" ? seed.BRAND_ID : q === "creator" ? seed.CREATOR_ID : null;
+  const q =
+    typeof window !== "undefined" && window.location
+      ? new URLSearchParams(window.location.search).get("demo")
+      : null;
+  return q === "admin"
+    ? seed.ADMIN_ID
+    : q === "brand"
+      ? seed.BRAND_ID
+      : q === "creator"
+        ? seed.CREATOR_ID
+        : null;
 }
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+// UUID v4 (identifiants compatibles avec les tables Supabase).
+const uid = () =>
+  "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+    const r = (Math.random() * 16) | 0;
+    return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
 const now = () => new Date().toISOString();
 const inDays = (d: number) => new Date(Date.now() + d * 864e5).toISOString();
 
 type Result = { ok: true; id?: string } | { ok: false; error: string };
+type AsyncResult = Promise<Result & { needsConfirmation?: boolean }>;
+const EMPTY = {
+  profiles: [],
+  offers: [],
+  applications: [],
+  collaborations: [],
+  conversations: [],
+  messages: [],
+  notifications: [],
+  transactions: [],
+  wallets: [],
+  withdrawals: [],
+  portfolio: [],
+  socialVerifications: [],
+  reports: [],
+  blocked: [],
+  favorites: [],
+  reviews: [],
+  inviteCodes: [],
+  legalPages: [],
+  templates: [],
+  adminLogs: [],
+  archived: [],
+  follows: [],
+  offerFavs: [],
+};
 
 type DB = {
   // session
   userId: string | null;
+  /** « demo » = données de démonstration en mémoire ; « live » = Supabase. */
+  mode: "demo" | "live";
+  ready: boolean; // session restaurée
+  activeRole?: Role; // en ligne : espace actif (un même compte peut être créateur et marque)
+  myRoles: Role[];
   guest: boolean; // visiteur sans compte (accès en lecture)
   archived: string[]; // conversations archivées par l'utilisateur courant
   follows: string[]; // créateurs suivis par l'utilisateur courant
@@ -95,42 +153,89 @@ type DB = {
   reports: Report[];
   blocked: { blocker_id: string; blocked_id: string }[];
   favorites: { brand_id: string; creator_id: string }[];
-  reviews: { id: string; brand_id: string; creator_id: string; collaboration_id: string; rating: number; comment: string; created_at: string }[];
+  reviews: {
+    id: string;
+    brand_id: string;
+    creator_id: string;
+    collaboration_id: string;
+    rating: number;
+    comment: string;
+    created_at: string;
+  }[];
   inviteCodes: InviteCode[];
   legalPages: LegalPage[];
   templates: NotificationTemplate[];
-  adminLogs: { id: string; action_type: string; target_user_id?: string; details?: unknown; created_at: string }[];
+  adminLogs: {
+    id: string;
+    action_type: string;
+    target_user_id?: string;
+    details?: unknown;
+    created_at: string;
+  }[];
 };
 
 type Actions = {
   // auth
-  signIn: (email: string, password: string) => Result;
+  signIn: (email: string, password: string) => AsyncResult;
   demoSignIn: (role: Role) => void;
-  signUp: (p: Omit<Profile, "user_id" | "email_verified" | "identity_verified" | "followers"> & { email: string; inviteCode?: string }) => Result;
+  signUp: (
+    p: Omit<
+      Profile,
+      "user_id" | "email_verified" | "identity_verified" | "followers"
+    > & {
+      email: string;
+      password: string;
+      inviteCode?: string;
+      followers?: Profile["followers"];
+    },
+  ) => AsyncResult;
   signOut: () => void;
+  resetPassword: (email: string) => AsyncResult;
+  adminRefund: (collabId: string, reason: string) => void;
   continueAsGuest: () => void;
   toggleArchive: (conversationId: string) => boolean;
   toggleFollow: (userId: string) => boolean;
   toggleOfferFav: (offerId: string) => void;
   switchSpace: () => Result;
-  createSpace: (p: { company_name: string; sector: string; company_description?: string } | { category: string; bio?: string }) => Result;
+  createSpace: (
+    p:
+      | { company_name: string; sector: string; company_description?: string }
+      | { category: string; bio?: string },
+  ) => Result;
   startConversation: (otherId: string) => Result;
-  claimInvite: (code: string) => Result;
+  claimInvite: (code: string) => AsyncResult;
   // profil
   updateProfile: (patch: Partial<Profile>) => void;
-  submitIdentity: (method: "document" | "selfie") => void;
-  submitSocialVerification: (v: Pick<SocialVerification, "platform" | "page_name" | "claimed_followers">) => SocialVerification;
+  submitIdentity: (method: "document" | "selfie", files?: { document_url?: string; selfie_url?: string }) => void;
+  submitSocialVerification: (
+    v: Pick<SocialVerification, "platform" | "page_name" | "claimed_followers" | "screenshot_url">,
+  ) => SocialVerification;
   // offres
-  saveOffer: (o: Omit<Offer, "id" | "brand_id" | "created_at"> & { id?: string }) => Result;
+  saveOffer: (
+    o: Omit<Offer, "id" | "brand_id" | "created_at"> & { id?: string },
+  ) => Result;
   deleteOffer: (id: string) => void;
   renewOffer: (id: string) => void;
-  applyToOffer: (offerId: string, message?: string, slot?: Slot, extra?: Pick<Application, "examples" | "links" | "notes">) => Result;
-  proposeOffer: (offerId: string, creatorId: string, message?: string) => Result;
+  applyToOffer: (
+    offerId: string,
+    message?: string,
+    slot?: Slot,
+    extra?: Pick<Application, "examples" | "links" | "notes">,
+  ) => Result;
+  proposeOffer: (
+    offerId: string,
+    creatorId: string,
+    message?: string,
+  ) => Result;
   // collaborations
   acceptProposal: (conversationId: string, agreed?: number) => Result;
   refuseProposal: (conversationId: string) => Result;
   pay: (collabId: string, method: "mobile_money" | "card") => Result;
-  submitContent: (collabId: string, urls: string[], description?: string) => Result;
+  submitContent: (
+    collabId: string,
+    urls: string[],
+    description?: string,
+  ) => Result;
   markPreviewViewed: (collabId: string) => void;
   approveContent: (collabId: string) => Result;
   requestRevision: (collabId: string, feedback: string) => Result;
@@ -142,105 +247,285 @@ type Actions = {
   sendMessage: (conversationId: string, content: string) => Result;
   markConversationRead: (conversationId: string) => void;
   blockUser: (id: string) => Result;
-  report: (r: Omit<Report, "id" | "reporter_id" | "status" | "created_at">) => void;
+  report: (
+    r: Omit<Report, "id" | "reporter_id" | "status" | "created_at">,
+  ) => void;
   // portefeuille
-  requestWithdrawal: (w: Omit<Withdrawal, "id" | "user_id" | "status" | "created_at">) => Result;
+  requestWithdrawal: (
+    w: Omit<Withdrawal, "id" | "user_id" | "status" | "created_at">,
+  ) => Result;
   // portfolio
   addPortfolio: (p: Omit<PortfolioItem, "id" | "user_id">) => void;
   removePortfolio: (id: string) => void;
   // notifications
-  notify: (userId: string, title: string, message: string, type?: NotificationType) => void;
+  notify: (
+    userId: string,
+    title: string,
+    message: string,
+    type?: NotificationType,
+  ) => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
   // admin
   adminSetBan: (userId: string, banned: boolean, reason?: string) => void;
-  adminReviewIdentity: (userId: string, approve: boolean, reason?: string) => void;
+  adminReviewIdentity: (
+    userId: string,
+    approve: boolean,
+    reason?: string,
+  ) => void;
   adminReviewSocial: (id: string, approve: boolean, notes?: string) => void;
-  adminReviewReport: (id: string, action: "dismiss" | "resolve" | "ban", notes?: string) => void;
+  adminReviewReport: (
+    id: string,
+    action: "dismiss" | "resolve" | "ban",
+    notes?: string,
+  ) => void;
   adminFinalizeWithdrawal: (id: string) => void;
   adminRejectWithdrawal: (id: string, reason: string) => void;
-  adminBroadcast: (target: "all" | Role, title: string, message: string, type: NotificationType) => number;
+  adminBroadcast: (
+    target: "all" | Role,
+    title: string,
+    message: string,
+    type: NotificationType,
+  ) => number;
   adminSetInviteRequired: (v: boolean) => void;
   adminGenerateCodes: (n: number, note?: string) => string[];
   adminToggleCode: (code: string) => void;
   adminDeleteCode: (code: string) => void;
   adminUpdateLegal: (slug: string, title: string, content: string) => void;
-  adminSaveTemplate: (t: Omit<NotificationTemplate, "id"> & { id?: string }) => void;
+  adminSaveTemplate: (
+    t: Omit<NotificationTemplate, "id"> & { id?: string },
+  ) => void;
   adminDeleteTemplate: (id: string) => void;
 };
 
 export const useDB = create<DB & Actions>()((set, get) => {
-  const log = (action_type: string, target_user_id?: string, details?: unknown) =>
-    set((s) => ({ adminLogs: [{ id: uid(), action_type, target_user_id, details, created_at: now() }, ...s.adminLogs] }));
-  const patchCollab = (id: string, patch: Partial<Collaboration>) =>
-    set((s) => ({ collaborations: s.collaborations.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
-  const collab = (id: string) => get().collaborations.find((c) => c.id === id);
-  const offerOf = (c: Collaboration) => get().offers.find((o) => o.id === c.offer_id);
-  const systemMsg = (conversation_id: string, sender_id: string, content: string) =>
+  const live = () => get().mode === "live";
+  /** Appel d'une fonction serveur ; rafraîchit les données, affiche l'erreur éventuelle. */
+  const rpc = (fn: string, args: Record<string, unknown>, okMsg?: string) => {
+    void supabase.rpc(fn, args).then(({ error }) => {
+      if (error) toast(errMsg(error), "error");
+      else if (okMsg) toast(okMsg);
+      void refresh(useDB as never);
+    });
+  };
+  const log = (
+    action_type: string,
+    target_user_id?: string,
+    details?: unknown,
+  ) =>
     set((s) => ({
-      messages: [...s.messages, { id: uid(), conversation_id, sender_id, content, created_at: now() }],
-      conversations: s.conversations.map((c) => (c.id === conversation_id ? { ...c, updated_at: now() } : c)),
+      adminLogs: [
+        { id: uid(), action_type, target_user_id, details, created_at: now() },
+        ...s.adminLogs,
+      ],
+    }));
+  const patchCollab = (id: string, patch: Partial<Collaboration>) =>
+    set((s) => ({
+      collaborations: s.collaborations.map((c) =>
+        c.id === id ? { ...c, ...patch } : c,
+      ),
+    }));
+  const collab = (id: string) => get().collaborations.find((c) => c.id === id);
+  const offerOf = (c: Collaboration) =>
+    get().offers.find((o) => o.id === c.offer_id);
+  const systemMsg = (
+    conversation_id: string,
+    sender_id: string,
+    content: string,
+  ) =>
+    set((s) => ({
+      messages: [
+        ...s.messages,
+        { id: uid(), conversation_id, sender_id, content, created_at: now() },
+      ],
+      conversations: s.conversations.map((c) =>
+        c.id === conversation_id ? { ...c, updated_at: now() } : c,
+      ),
     }));
   const ensureWallet = (user_id: string) => {
-    if (!get().wallets.find((w) => w.user_id === user_id)) set((s) => ({ wallets: [...s.wallets, { user_id, balance: 0, pending_balance: 0 }] }));
+    if (!get().wallets.find((w) => w.user_id === user_id))
+      set((s) => ({
+        wallets: [...s.wallets, { user_id, balance: 0, pending_balance: 0 }],
+      }));
   };
   const release = (c: Collaboration) => {
     ensureWallet(c.creator_id);
     set((s) => ({
-      wallets: s.wallets.map((w) => (w.user_id === c.creator_id ? { ...w, balance: w.balance + c.creator_amount } : w)),
+      wallets: s.wallets.map((w) =>
+        w.user_id === c.creator_id
+          ? { ...w, balance: w.balance + c.creator_amount }
+          : w,
+      ),
       transactions: [
-        { id: uid(), user_id: c.creator_id, type: "release", amount: c.creator_amount, status: "completed", label: `${offerOf(c)?.title ?? "Collaboration"}`, collaboration_id: c.id, created_at: now() },
-        ...s.transactions.map((t) => (t.collaboration_id === c.id && t.type === "escrow" ? { ...t, status: "completed" as const } : t)),
+        {
+          id: uid(),
+          user_id: c.creator_id,
+          type: "release",
+          amount: c.creator_amount,
+          status: "completed",
+          label: `${offerOf(c)?.title ?? "Collaboration"}`,
+          collaboration_id: c.id,
+          created_at: now(),
+        },
+        ...s.transactions.map((t) =>
+          t.collaboration_id === c.id && t.type === "escrow"
+            ? { ...t, status: "completed" as const }
+            : t,
+        ),
       ],
     }));
     patchCollab(c.id, { status: "completed", payout_status: "completed" });
-    get().notify(c.creator_id, "💰 Paiement reçu !", `${fcfa(c.creator_amount)} ont été crédités sur votre portefeuille.`, "payment");
+    get().notify(
+      c.creator_id,
+      "💰 Paiement reçu !",
+      `${fcfa(c.creator_amount)} ont été crédités sur votre portefeuille.`,
+      "payment",
+    );
   };
-  const newConversation = (created_by: string, other: string, subject: string, offer_id?: string) => {
+  const newConversation = (
+    created_by: string,
+    other: string,
+    subject: string,
+    offer_id?: string,
+  ) => {
     const id = uid();
-    set((s) => ({ conversations: [{ id, created_by, participants: [created_by, other], subject, offer_id, updated_at: now() }, ...s.conversations] }));
+    set((s) => ({
+      conversations: [
+        {
+          id,
+          created_by,
+          participants: [created_by, other],
+          subject,
+          offer_id,
+          updated_at: now(),
+        },
+        ...s.conversations,
+      ],
+    }));
     return id;
   };
 
+  const demo = demoFromUrl();
+  // Aperçu web (artifact) : toujours en données de démonstration, sans accès réseau.
+  const preview = typeof window !== "undefined" && !!(window as { __CC_PREVIEW__?: boolean }).__CC_PREVIEW__;
   return {
-    ...seed.db,
-    userId: demoFromUrl(),
+    ...(demo || preview ? seed.db : { ...seed.db, ...EMPTY }),
+    mode: demo || preview ? "demo" : "live",
+    myRoles: [],
+    ready: !!demo,
+    userId: demo,
     guest: false,
     archived: [],
     follows: [],
     offerFavs: [],
-    linked: { [seed.CREATOR_ID]: seed.BRAND_ID, [seed.BRAND_ID]: seed.CREATOR_ID },
+    linked: {
+      [seed.CREATOR_ID]: seed.BRAND_ID,
+      [seed.BRAND_ID]: seed.CREATOR_ID,
+    },
     inviteRequired: false,
     inviteUnlocked: false,
 
-    signIn: (email, password) => {
-      if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email invalide" };
-      if (password.length < 6) return { ok: false, error: "Minimum 6 caractères" };
-      const role: Role = email.startsWith("admin") ? "admin" : email.startsWith("marque") || email.startsWith("brand") ? "brand" : "creator";
-      get().demoSignIn(role);
-      return { ok: true };
-    },
-    demoSignIn: (role) => set({ guest: false, userId: role === "admin" ? seed.ADMIN_ID : role === "brand" ? seed.BRAND_ID : seed.CREATOR_ID }),
-    signUp: ({ email, inviteCode, ...p }) => {
-      const s = get();
-      if (s.inviteRequired) {
-        const c = s.inviteCodes.find((x) => x.code === inviteCode?.toUpperCase());
-        if (!c || !c.is_active || c.used_by) return { ok: false, error: "Code invalide ou déjà utilisé" };
+    signIn: async (email, password) => {
+      if (!/^\S+@\S+\.\S+$/.test(email))
+        return { ok: false, error: "Email invalide" };
+      if (password.length < 6)
+        return { ok: false, error: "Minimum 6 caractères" };
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) return { ok: false, error: errMsg(error) };
+      await connect(data.user.id);
+      const me = get().profiles.find((p) => p.user_id === data.user.id);
+      if (me?.is_banned) {
+        get().signOut();
+        return {
+          ok: false,
+          error: `Compte suspendu${me.ban_reason ? ` : ${me.ban_reason}` : ""}`,
+        };
       }
-      if (email === "deja@collabcrea.com") return { ok: false, error: "Cet email est déjà utilisé" };
-      const user_id = uid();
-      set((st) => ({
-        profiles: [...st.profiles, { ...p, user_id, followers: {}, email_verified: false, identity_verified: false } as Profile],
-        inviteCodes: st.inviteCodes.map((c) => (c.code === inviteCode?.toUpperCase() ? { ...c, used_by: user_id, used_at: now() } : c)),
-        userId: user_id,
-        wallets: [...st.wallets, { user_id, balance: 0, pending_balance: 0 }],
-      }));
-      return { ok: true, id: user_id };
+      return { ok: true, id: data.user.id };
     },
-    signOut: () => set({ userId: null, guest: false, inviteUnlocked: false }),
+    demoSignIn: (role) => {
+      stopSync();
+      set({
+        ...seed.db,
+        mode: "demo",
+        guest: false,
+        archived: [],
+        follows: [],
+        offerFavs: [],
+        userId:
+          role === "admin"
+            ? seed.ADMIN_ID
+            : role === "brand"
+              ? seed.BRAND_ID
+              : seed.CREATOR_ID,
+      });
+    },
+    signUp: async ({ email, password, inviteCode, followers, ...p }) => {
+      const meta: Record<string, unknown> = {
+        role: p.role === "brand" ? "brand" : "creator",
+        invite_code: inviteCode ?? "",
+        full_name: p.full_name,
+        avatar_url: typeof p.avatar_url === "string" ? p.avatar_url : null,
+        country: p.country,
+        residence_country: p.residence_country,
+        company_name: p.company_name,
+        sector: p.sector,
+        website: p.website,
+        company_description: p.company_description,
+        logo_url: typeof p.logo_url === "string" ? p.logo_url : null,
+        brand_prefs: p.brand_prefs,
+        category: p.category,
+        bio: p.bio,
+        ...Object.fromEntries(
+          Object.entries(followers ?? {}).map(([k, v]) => [
+            `${k}_followers`,
+            v,
+          ]),
+        ),
+      };
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: meta },
+      });
+      if (error) return { ok: false, error: errMsg(error) };
+      if (!data.session || !data.user)
+        return { ok: true, needsConfirmation: true };
+      await connect(data.user.id);
+      return { ok: true, id: data.user.id };
+    },
+    resetPassword: async (email) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      return error ? { ok: false, error: errMsg(error) } : { ok: true };
+    },
+    signOut: () => {
+      if (live()) {
+        stopSync();
+        void supabase.auth.signOut();
+        set({ ...EMPTY, userId: null, guest: false, inviteUnlocked: false });
+        void loadPublic();
+        return;
+      }
+      set({ userId: null, guest: false, inviteUnlocked: false });
+    },
     continueAsGuest: () => set({ guest: true }),
     switchSpace: () => {
       const s = get();
+      if (live()) {
+        const me = s.profiles.find((p) => p.user_id === s.userId);
+        const other = s.myRoles.find((r) => r !== me?.role && r !== "admin");
+        if (!other || !me) return { ok: false, error: "no_space" };
+        set({
+          activeRole: other,
+          profiles: s.profiles.map((p) =>
+            p.user_id === me.user_id ? { ...p, role: other } : p,
+          ),
+        });
+        return { ok: true, id: me.user_id };
+      }
       const other = s.userId ? s.linked[s.userId] : undefined;
       if (!other) return { ok: false, error: "no_space" };
       set({ userId: other, archived: [] });
@@ -250,13 +535,54 @@ export const useDB = create<DB & Actions>()((set, get) => {
       const s = get();
       const me = s.profiles.find((p) => p.user_id === s.userId);
       if (!me) return { ok: false, error: "Connecte-toi d'abord" };
+      if (live()) {
+        // Un seul compte : on ajoute le second rôle et les informations de l'espace au même profil.
+        const brand = "company_name" in data;
+        if (brand && data.company_name.trim().length < 2)
+          return { ok: false, error: "Nom de l'entreprise invalide" };
+        const role: Role = brand ? "brand" : "creator";
+        const patch = brand
+          ? {
+              company_name: data.company_name.trim(),
+              sector: data.sector,
+              company_description: data.company_description,
+            }
+          : { category: data.category, bio: data.bio };
+        set({
+          myRoles: [...s.myRoles, role],
+          activeRole: role,
+          linked: { ...s.linked, [me.user_id]: me.user_id },
+          profiles: s.profiles.map((p) =>
+            p.user_id === me.user_id ? { ...p, ...patch, role } : p,
+          ),
+        });
+        void supabase
+          .from("user_roles")
+          .insert({ user_id: me.user_id, role })
+          .then(({ error }) => error && toast(errMsg(error), "error"));
+        return { ok: true, id: me.user_id };
+      }
       const id = uid();
       const brand = "company_name" in data;
-      if (brand && data.company_name.trim().length < 2) return { ok: false, error: "Nom de l'entreprise invalide" };
+      if (brand && data.company_name.trim().length < 2)
+        return { ok: false, error: "Nom de l'entreprise invalide" };
       const profile: Profile = {
         ...(brand
-          ? { role: "brand" as const, full_name: me.full_name, company_name: data.company_name.trim(), sector: data.sector, company_description: data.company_description, avatar_url: me.avatar_url }
-          : { role: "creator" as const, full_name: me.full_name, category: data.category, bio: data.bio, avatar_url: me.avatar_url }),
+          ? {
+              role: "brand" as const,
+              full_name: me.full_name,
+              company_name: data.company_name.trim(),
+              sector: data.sector,
+              company_description: data.company_description,
+              avatar_url: me.avatar_url,
+            }
+          : {
+              role: "creator" as const,
+              full_name: me.full_name,
+              category: data.category,
+              bio: data.bio,
+              avatar_url: me.avatar_url,
+            }),
         user_id: id,
         country: me.country,
         residence_country: me.residence_country,
@@ -266,7 +592,10 @@ export const useDB = create<DB & Actions>()((set, get) => {
       };
       set((st) => ({
         profiles: [...st.profiles, profile],
-        wallets: [...st.wallets, { user_id: id, balance: 0, pending_balance: 0 }],
+        wallets: [
+          ...st.wallets,
+          { user_id: id, balance: 0, pending_balance: 0 },
+        ],
         linked: { ...st.linked, [me.user_id]: id, [id]: me.user_id },
         userId: id,
       }));
@@ -276,39 +605,91 @@ export const useDB = create<DB & Actions>()((set, get) => {
       set((s) => {
         if (!s.userId) return {};
         const k = `${s.userId}:${offerId}`;
-        return { offerFavs: s.offerFavs.includes(k) ? s.offerFavs.filter((x) => x !== k) : [...s.offerFavs, k] };
+        return {
+          offerFavs: s.offerFavs.includes(k)
+            ? s.offerFavs.filter((x) => x !== k)
+            : [...s.offerFavs, k],
+        };
       }),
     toggleFollow: (id) => {
       const on = !get().follows.includes(id);
-      set((s) => ({ follows: on ? [...s.follows, id] : s.follows.filter((x) => x !== id) }));
+      set((s) => ({
+        follows: on ? [...s.follows, id] : s.follows.filter((x) => x !== id),
+      }));
       return on;
     },
     startConversation: (otherId) => {
       const s = get();
-      if (!s.userId) return { ok: false, error: "Connecte-toi pour envoyer un message" };
-      const existing = s.conversations.find((c) => !c.offer_id && c.participants.includes(s.userId!) && c.participants.includes(otherId));
+      if (!s.userId)
+        return { ok: false, error: "Connecte-toi pour envoyer un message" };
+      const existing = s.conversations.find(
+        (c) =>
+          !c.offer_id &&
+          c.participants.includes(s.userId!) &&
+          c.participants.includes(otherId),
+      );
       if (existing) return { ok: true, id: existing.id };
       const me = s.profiles.find((p) => p.user_id === s.userId)!;
-      return { ok: true, id: newConversation(s.userId, otherId, `Conversation avec ${me.company_name ?? me.full_name}`) };
+      return {
+        ok: true,
+        id: newConversation(
+          s.userId,
+          otherId,
+          `Conversation avec ${me.company_name ?? me.full_name}`,
+        ),
+      };
     },
     toggleArchive: (id) => {
       const on = !get().archived.includes(id);
-      set((s) => ({ archived: on ? [...s.archived, id] : s.archived.filter((x) => x !== id) }));
+      set((s) => ({
+        archived: on ? [...s.archived, id] : s.archived.filter((x) => x !== id),
+      }));
       return on;
     },
-    claimInvite: (code) => {
+    claimInvite: async (code) => {
       const c = code.trim().toUpperCase();
-      if (!/^COLLAB-[A-Z0-9]{4}$/.test(c)) return { ok: false, error: "Format invalide (ex: COLLAB-X7K9)" };
-      const found = get().inviteCodes.find((x) => x.code === c && x.is_active && !x.used_by);
+      if (!/^COLLAB-[A-Z0-9]{4}$/.test(c))
+        return { ok: false, error: "Format invalide (ex: COLLAB-X7K9)" };
+      if (live()) {
+        const { data, error } = await supabase.rpc("validate_invite_code", {
+          p_code: c,
+        });
+        if (error || !data)
+          return { ok: false, error: "Code invalide ou déjà utilisé" };
+        set({ inviteUnlocked: true });
+        return { ok: true };
+      }
+      const found = get().inviteCodes.find(
+        (x) => x.code === c && x.is_active && !x.used_by,
+      );
       if (!found) return { ok: false, error: "Code invalide ou déjà utilisé" };
       set({ inviteUnlocked: true });
       return { ok: true };
     },
 
-    updateProfile: (patch) => set((s) => ({ profiles: s.profiles.map((p) => (p.user_id === s.userId ? { ...p, ...patch } : p)) })),
-    submitIdentity: (method) => get().updateProfile({ identity_method: method, identity_submitted_at: now() }),
+    updateProfile: (patch) =>
+      set((s) => ({
+        profiles: s.profiles.map((p) =>
+          p.user_id === s.userId ? { ...p, ...patch } : p,
+        ),
+      })),
+    submitIdentity: (method, files = {}) => {
+      get().updateProfile({ identity_method: method, identity_submitted_at: now() });
+      if (live() && get().userId)
+        void supabase
+          .from("profiles")
+          .update({ identity_document_url: files.document_url ?? null, selfie_url: files.selfie_url ?? null })
+          .eq("user_id", get().userId!)
+          .then(({ error }) => error && toast(errMsg(error), "error"));
+    },
     submitSocialVerification: (v) => {
       // Simule l'analyse IA de la capture : confiance aléatoire, vérifié au-delà de 80 %.
+      if (live()) {
+        // En ligne : vérification par un administrateur (l'analyse IA arrivera avec sa clé d'API).
+        const rec: SocialVerification = { ...v, id: uid(), user_id: get().userId!, status: "pending_admin", created_at: now() };
+        set((s) => ({ socialVerifications: [rec, ...s.socialVerifications] }));
+        return rec;
+      }
       const conf = 60 + Math.round(Math.random() * 40);
       const rec: SocialVerification = {
         ...v,
@@ -323,7 +704,9 @@ export const useDB = create<DB & Actions>()((set, get) => {
       set((s) => ({ socialVerifications: [rec, ...s.socialVerifications] }));
       if (rec.status === "verified") {
         const me = get().profiles.find((p) => p.user_id === rec.user_id)!;
-        get().updateProfile({ followers: { ...me.followers, [v.platform]: v.claimed_followers } });
+        get().updateProfile({
+          followers: { ...me.followers, [v.platform]: v.claimed_followers },
+        });
       }
       return rec;
     },
@@ -331,65 +714,195 @@ export const useDB = create<DB & Actions>()((set, get) => {
     saveOffer: ({ id, ...o }) => {
       const s = get();
       if (!o.title.trim()) return { ok: false, error: "Le titre est requis" };
-      if (!o.description.trim()) return { ok: false, error: "La description est requise" };
+      if (!o.description.trim())
+        return { ok: false, error: "La description est requise" };
       if (!o.category) return { ok: false, error: "La catégorie est requise" };
-      if (!o.content_types.length) return { ok: false, error: "Sélectionnez au moins un type de contenu" };
+      if (!o.content_types.length)
+        return { ok: false, error: "Sélectionnez au moins un type de contenu" };
       if (o.presence_mode === "on_site") {
-        if (!o.on_site_city?.trim()) return { ok: false, error: "La ville est requise pour le mode sur place" };
-        if (!o.on_site_slots.length) return { ok: false, error: "Ajoutez au moins un créneau de disponibilité" };
-        if (o.on_site_slots.some((x) => !x.date)) return { ok: false, error: "Remplissez la date de chaque créneau" };
+        if (!o.on_site_city?.trim())
+          return {
+            ok: false,
+            error: "La ville est requise pour le mode sur place",
+          };
+        if (!o.on_site_slots.length)
+          return {
+            ok: false,
+            error: "Ajoutez au moins un créneau de disponibilité",
+          };
+        if (o.on_site_slots.some((x) => !x.date))
+          return { ok: false, error: "Remplissez la date de chaque créneau" };
       }
       if (!(o.budget_min === 0 && o.budget_max === 0)) {
-        if (o.budget_min < MIN_AGREED) return { ok: false, error: "Le montant minimum est de 200 FCFA" };
-        if (o.budget_min > o.budget_max) return { ok: false, error: "Le minimum doit être inférieur au maximum" };
+        if (o.budget_min < MIN_AGREED)
+          return { ok: false, error: "Le montant minimum est de 200 FCFA" };
+        if (o.budget_min > o.budget_max)
+          return {
+            ok: false,
+            error: "Le minimum doit être inférieur au maximum",
+          };
       }
-      const clean = o.presence_mode === "remote" ? { ...o, on_site_city: undefined, on_site_neighborhood: undefined, on_site_store_name: undefined, on_site_slots: [], filming_by: "creator" as const } : o;
+      const clean =
+        o.presence_mode === "remote"
+          ? {
+              ...o,
+              on_site_city: undefined,
+              on_site_neighborhood: undefined,
+              on_site_store_name: undefined,
+              on_site_slots: [],
+              filming_by: "creator" as const,
+            }
+          : o;
       if (id) {
-        set((st) => ({ offers: st.offers.map((x) => (x.id === id && x.brand_id === s.userId ? { ...x, ...clean } : x)) }));
+        set((st) => ({
+          offers: st.offers.map((x) =>
+            x.id === id && x.brand_id === s.userId ? { ...x, ...clean } : x,
+          ),
+        }));
         return { ok: true, id };
       }
       const nid = uid();
-      set((st) => ({ offers: [{ ...clean, id: nid, brand_id: s.userId!, created_at: now() }, ...st.offers] }));
+      set((st) => ({
+        offers: [
+          { ...clean, id: nid, brand_id: s.userId!, created_at: now() },
+          ...st.offers,
+        ],
+      }));
       return { ok: true, id: nid };
     },
-    deleteOffer: (id) => set((s) => ({ offers: s.offers.filter((o) => !(o.id === id && o.brand_id === s.userId)) })),
-    renewOffer: (id) => set((s) => ({ offers: s.offers.map((o) => (o.id === id && o.brand_id === s.userId ? { ...o, status: "active", deadline: inDays(30) } : o)) })),
+    deleteOffer: (id) =>
+      set((s) => ({
+        offers: s.offers.filter(
+          (o) => !(o.id === id && o.brand_id === s.userId),
+        ),
+      })),
+    renewOffer: (id) =>
+      set((s) => ({
+        offers: s.offers.map((o) =>
+          o.id === id && o.brand_id === s.userId
+            ? { ...o, status: "active", deadline: inDays(30) }
+            : o,
+        ),
+      })),
 
     applyToOffer: (offerId, message, slot, extra = {}) => {
       const s = get();
       const me = s.profiles.find((p) => p.user_id === s.userId)!;
-      if (!me.identity_verified) return { ok: false, error: "Vérifiez votre identité pour postuler aux offres" };
+      if (!me.identity_verified)
+        return {
+          ok: false,
+          error: "Vérifiez votre identité pour postuler aux offres",
+        };
       const offer = s.offers.find((o) => o.id === offerId)!;
-      if (offer.on_site_slots.length && !slot) return { ok: false, error: "Veuillez sélectionner un créneau" };
-      const existing = s.applications.find((a) => a.offer_id === offerId && a.creator_id === me.user_id);
-      const activeCollab = s.collaborations.some((c) => c.offer_id === offerId && c.creator_id === me.user_id && !["cancelled", "refused"].includes(c.status));
-      if (existing && (existing.status === "accepted" || (existing.status === "pending" && activeCollab)))
+      if (offer.on_site_slots.length && !slot)
+        return { ok: false, error: "Veuillez sélectionner un créneau" };
+      const existing = s.applications.find(
+        (a) => a.offer_id === offerId && a.creator_id === me.user_id,
+      );
+      const activeCollab = s.collaborations.some(
+        (c) =>
+          c.offer_id === offerId &&
+          c.creator_id === me.user_id &&
+          !["cancelled", "refused"].includes(c.status),
+      );
+      if (
+        existing &&
+        (existing.status === "accepted" ||
+          (existing.status === "pending" && activeCollab))
+      )
         return { ok: false, error: "Vous avez déjà postulé à cette offre" };
-      const convId = existing?.conversation_id ?? newConversation(me.user_id, offer.brand_id, offer.title, offer.id);
+      const convId =
+        existing?.conversation_id ??
+        newConversation(me.user_id, offer.brand_id, offer.title, offer.id);
       const content = existing
         ? "📩 Je souhaite postuler à nouveau pour cette offre."
         : `${slot ? `📅 Créneau choisi : ${slot.date} ${slot.start_time}–${slot.end_time}\n\n` : ""}${message?.trim() || "Bonjour, je suis intéressé(e) par votre offre."}${
             extra.notes?.trim() ? `\n\n📝 ${extra.notes.trim()}` : ""
-          }${Object.values(extra.links ?? {}).filter(Boolean).length ? `\n\n🔗 ${Object.values(extra.links ?? {}).filter(Boolean).join("\n🔗 ")}` : ""}${extra.examples?.length ? `\n\n🎬 ${extra.examples.length} exemple(s) de travail joint(s)` : ""}`;
-      if (existing) set((st) => ({ applications: st.applications.map((a) => (a.id === existing.id ? { ...a, ...extra, status: "pending", message, selected_slot: slot } : a)) }));
+          }${
+            Object.values(extra.links ?? {}).filter(Boolean).length
+              ? `\n\n🔗 ${Object.values(extra.links ?? {})
+                  .filter(Boolean)
+                  .join("\n🔗 ")}`
+              : ""
+          }${extra.examples?.length ? `\n\n🎬 ${extra.examples.length} exemple(s) de travail joint(s)` : ""}`;
+      if (existing)
+        set((st) => ({
+          applications: st.applications.map((a) =>
+            a.id === existing.id
+              ? {
+                  ...a,
+                  ...extra,
+                  status: "pending",
+                  message,
+                  selected_slot: slot,
+                }
+              : a,
+          ),
+        }));
       else
         set((st) => ({
-          applications: [{ id: uid(), offer_id: offerId, creator_id: me.user_id, message, selected_slot: slot, ...extra, status: "pending", conversation_id: convId, created_at: now() }, ...st.applications],
+          applications: [
+            {
+              id: uid(),
+              offer_id: offerId,
+              creator_id: me.user_id,
+              message,
+              selected_slot: slot,
+              ...extra,
+              status: "pending",
+              conversation_id: convId,
+              created_at: now(),
+            },
+            ...st.applications,
+          ],
         }));
       systemMsg(convId, me.user_id, content);
-      get().notify(offer.brand_id, "Nouvelle candidature", `${me.full_name} a postulé à « ${offer.title} »`, "info");
+      get().notify(
+        offer.brand_id,
+        "Nouvelle candidature",
+        `${me.full_name} a postulé à « ${offer.title} »`,
+        "info",
+      );
       return { ok: true, id: convId };
     },
     proposeOffer: (offerId, creatorId, message) => {
       const s = get();
       const me = s.profiles.find((p) => p.user_id === s.userId)!;
-      if (!me.email_verified) return { ok: false, error: "Vous devez vérifier votre email avant de contacter un créateur" };
+      if (!me.email_verified)
+        return {
+          ok: false,
+          error:
+            "Vous devez vérifier votre email avant de contacter un créateur",
+        };
       const offer = s.offers.find((o) => o.id === offerId)!;
-      const dup = s.collaborations.find((c) => c.offer_id === offerId && c.creator_id === creatorId && !["completed", "refused"].includes(c.status));
-      if (dup) return { ok: false, error: "Une collaboration est déjà en cours pour cette offre" };
-      const convId = newConversation(me.user_id, creatorId, `Proposition: ${offer.title}`, offer.id);
-      systemMsg(convId, me.user_id, `📢 Proposition d'offre: ${offer.title}\n💰 Budget: ${budgetLabel(offer)}\n\n${message?.trim() || "Bonjour, je vous propose cette collaboration."}`);
-      get().notify(creatorId, "Nouvelle proposition", `${me.company_name ?? me.full_name} vous propose « ${offer.title} »`, "proposal");
+      const dup = s.collaborations.find(
+        (c) =>
+          c.offer_id === offerId &&
+          c.creator_id === creatorId &&
+          !["completed", "refused"].includes(c.status),
+      );
+      if (dup)
+        return {
+          ok: false,
+          error: "Une collaboration est déjà en cours pour cette offre",
+        };
+      const convId = newConversation(
+        me.user_id,
+        creatorId,
+        `Proposition: ${offer.title}`,
+        offer.id,
+      );
+      systemMsg(
+        convId,
+        me.user_id,
+        `📢 Proposition d'offre: ${offer.title}\n💰 Budget: ${budgetLabel(offer)}\n\n${message?.trim() || "Bonjour, je vous propose cette collaboration."}`,
+      );
+      get().notify(
+        creatorId,
+        "Nouvelle proposition",
+        `${me.company_name ?? me.full_name} vous propose « ${offer.title} »`,
+        "proposal",
+      );
       return { ok: true, id: convId };
     },
 
@@ -399,7 +912,8 @@ export const useDB = create<DB & Actions>()((set, get) => {
       const offer = s.offers.find((o) => o.id === conv.offer_id);
       if (!offer) return { ok: false, error: "Offre introuvable" };
       const creator_id = conv.participants.find((p) => p !== offer.brand_id)!;
-      const amount = agreed ?? Math.round((offer.budget_min + offer.budget_max) / 2);
+      const amount =
+        agreed ?? Math.round((offer.budget_min + offer.budget_max) / 2);
       const c = computeCommission(amount);
       const id = uid();
       set((st) => ({
@@ -421,11 +935,24 @@ export const useDB = create<DB & Actions>()((set, get) => {
           },
           ...st.collaborations,
         ],
-        applications: st.applications.map((a) => (a.conversation_id === conversationId ? { ...a, status: "accepted" } : a)),
+        applications: st.applications.map((a) =>
+          a.conversation_id === conversationId
+            ? { ...a, status: "accepted" }
+            : a,
+        ),
       }));
-      systemMsg(conversationId, s.userId!, "✅ J'accepte cette proposition ! La collaboration a été créée.");
+      systemMsg(
+        conversationId,
+        s.userId!,
+        "✅ J'accepte cette proposition ! La collaboration a été créée.",
+      );
       const other = conv.participants.find((p) => p !== s.userId)!;
-      get().notify(other, "✅ Collaboration acceptée !", offer.title, "success");
+      get().notify(
+        other,
+        "✅ Collaboration acceptée !",
+        offer.title,
+        "success",
+      );
       return { ok: true, id };
     },
     refuseProposal: (conversationId) => {
@@ -433,31 +960,98 @@ export const useDB = create<DB & Actions>()((set, get) => {
       const conv = s.conversations.find((c) => c.id === conversationId)!;
       const offer = s.offers.find((o) => o.id === conv.offer_id)!;
       const creator_id = conv.participants.find((p) => p !== offer.brand_id)!;
+      if (live()) {
+        set((st) => ({
+          applications: st.applications.map((a) =>
+            a.conversation_id === conversationId
+              ? { ...a, status: "rejected" }
+              : a,
+          ),
+        }));
+        systemMsg(
+          conversationId,
+          s.userId!,
+          "❌ Je décline cette proposition. Merci pour votre intérêt.",
+        );
+        return { ok: true };
+      }
       set((st) => ({
         collaborations: [
-          { id: uid(), offer_id: offer.id, brand_id: offer.brand_id, creator_id, conversation_id: conversationId, agreed_amount: 0, creator_amount: 0, platform_fee: 0, status: "refused", deadline: now(), content_urls: [], paid: false, created_at: now() },
+          {
+            id: uid(),
+            offer_id: offer.id,
+            brand_id: offer.brand_id,
+            creator_id,
+            conversation_id: conversationId,
+            agreed_amount: 0,
+            creator_amount: 0,
+            platform_fee: 0,
+            status: "refused",
+            deadline: now(),
+            content_urls: [],
+            paid: false,
+            created_at: now(),
+          },
           ...st.collaborations,
         ],
-        applications: st.applications.map((a) => (a.conversation_id === conversationId ? { ...a, status: "rejected" } : a)),
+        applications: st.applications.map((a) =>
+          a.conversation_id === conversationId
+            ? { ...a, status: "rejected" }
+            : a,
+        ),
       }));
-      systemMsg(conversationId, s.userId!, "❌ Je décline cette proposition. Merci pour votre intérêt.");
+      systemMsg(
+        conversationId,
+        s.userId!,
+        "❌ Je décline cette proposition. Merci pour votre intérêt.",
+      );
       return { ok: true };
     },
     pay: (collabId, method) => {
       const c = collab(collabId)!;
-      if (!["pending_payment", "content_submitted"].includes(c.status)) return { ok: false, error: "Paiement impossible à cette étape" };
-      const next: CollabStatus = c.status === "pending_payment" ? "in_progress" : "in_review";
+      if (!["pending_payment", "content_submitted"].includes(c.status))
+        return { ok: false, error: "Paiement impossible à cette étape" };
+      if (live()) {
+        rpc(
+          "pay_collaboration",
+          { p_collab: collabId, p_method: method },
+          "Paiement sécurisé en séquestre",
+        );
+        return { ok: true };
+      }
+      const next: CollabStatus =
+        c.status === "pending_payment" ? "in_progress" : "in_review";
       set((s) => ({
-        transactions: [{ id: uid(), user_id: c.brand_id, type: "escrow", amount: computeCommission(c.agreed_amount)[method === "card" ? "brand_total_card" : "brand_total"], status: "pending", label: `Séquestre — ${offerOf(c)?.title}`, collaboration_id: c.id, created_at: now() }, ...s.transactions],
+        transactions: [
+          {
+            id: uid(),
+            user_id: c.brand_id,
+            type: "escrow",
+            amount: computeCommission(c.agreed_amount)[
+              method === "card" ? "brand_total_card" : "brand_total"
+            ],
+            status: "pending",
+            label: `Séquestre — ${offerOf(c)?.title}`,
+            collaboration_id: c.id,
+            created_at: now(),
+          },
+          ...s.transactions,
+        ],
       }));
       patchCollab(collabId, { status: next, paid: true });
-      get().notify(c.creator_id, "Paiement sécurisé", "La marque a versé le montant en séquestre. Vous pouvez commencer !", "payment");
+      get().notify(
+        c.creator_id,
+        "Paiement sécurisé",
+        "La marque a versé le montant en séquestre. Vous pouvez commencer !",
+        "payment",
+      );
       return { ok: true };
     },
     submitContent: (collabId, urls, description) => {
       const c = collab(collabId)!;
       const clean = urls.map((u) => u.trim()).filter(Boolean);
-      if (!clean.length) return { ok: false, error: "Ajoutez au moins un lien ou une vidéo" };
+      if (!clean.length)
+        return { ok: false, error: "Ajoutez au moins un lien ou une vidéo" };
       const brandFilms = offerOf(c)?.filming_by === "brand";
       patchCollab(collabId, {
         content_urls: clean,
@@ -466,51 +1060,116 @@ export const useDB = create<DB & Actions>()((set, get) => {
         auto_approve_at: inDays(brandFilms ? 2 : 7),
         status: "content_submitted",
       });
-      get().notify(brandFilms ? c.creator_id : c.brand_id, "📤 Contenu soumis !", offerOf(c)?.title ?? "", "info");
+      get().notify(
+        brandFilms ? c.creator_id : c.brand_id,
+        "📤 Contenu soumis !",
+        offerOf(c)?.title ?? "",
+        "info",
+      );
       return { ok: true };
     },
-    markPreviewViewed: (collabId) => patchCollab(collabId, { preview_viewed_at: now() }),
+    markPreviewViewed: (collabId) =>
+      patchCollab(collabId, { preview_viewed_at: now() }),
     approveContent: (collabId) => {
       const c = collab(collabId)!;
-      if (!c.paid) return { ok: false, error: "Payez d'abord pour débloquer le contenu" };
+      if (!c.paid)
+        return { ok: false, error: "Payez d'abord pour débloquer le contenu" };
+      if (live()) {
+        rpc("approve_content", { p_collab: collabId, p_mode: "final" });
+        return { ok: true };
+      }
       if (offerOf(c)?.delivery_mode === "network") {
         patchCollab(collabId, { status: "pending_publication" });
-        get().notify(c.creator_id, "🎉 Aperçu approuvé !", "Publiez le contenu puis soumettez le lien.", "success");
+        get().notify(
+          c.creator_id,
+          "🎉 Aperçu approuvé !",
+          "Publiez le contenu puis soumettez le lien.",
+          "success",
+        );
         return { ok: true };
       }
       release(c);
       return { ok: true };
     },
     requestRevision: (collabId, feedback) => {
-      if (!feedback.trim()) return { ok: false, error: "Décrivez les modifications souhaitées" };
+      if (!feedback.trim())
+        return { ok: false, error: "Décrivez les modifications souhaitées" };
       const c = collab(collabId)!;
-      patchCollab(collabId, { status: "revision_requested", brand_feedback: feedback, content_submitted_at: undefined, auto_approve_at: undefined });
+      patchCollab(collabId, {
+        status: "revision_requested",
+        brand_feedback: feedback,
+        content_submitted_at: undefined,
+        auto_approve_at: undefined,
+      });
       const brandFilms = offerOf(c)?.filming_by === "brand";
-      get().notify(brandFilms ? c.brand_id : c.creator_id, "🔄 Révision demandée", feedback, "warning");
+      get().notify(
+        brandFilms ? c.brand_id : c.creator_id,
+        "🔄 Révision demandée",
+        feedback,
+        "warning",
+      );
       return { ok: true };
     },
     submitPublication: (collabId, url) => {
-      if (!/^https?:\/\/\S+\.\S+/.test(url.trim())) return { ok: false, error: "Lien invalide" };
-      patchCollab(collabId, { publication_url: url.trim(), status: "publication_submitted" });
+      if (!/^https?:\/\/\S+\.\S+/.test(url.trim()))
+        return { ok: false, error: "Lien invalide" };
+      patchCollab(collabId, {
+        publication_url: url.trim(),
+        status: "publication_submitted",
+      });
       return { ok: true };
     },
     approvePublication: (collabId) => {
+      if (live()) {
+        rpc("approve_content", { p_collab: collabId, p_mode: "final" });
+        return { ok: true };
+      }
       release(collab(collabId)!);
       return { ok: true };
     },
     rateCreator: (collabId, rating, comment) => {
       const c = collab(collabId)!;
       set((s) => {
-        const reviews = [{ id: uid(), brand_id: c.brand_id, creator_id: c.creator_id, collaboration_id: c.id, rating, comment, created_at: now() }, ...s.reviews];
+        const reviews = [
+          {
+            id: uid(),
+            brand_id: c.brand_id,
+            creator_id: c.creator_id,
+            collaboration_id: c.id,
+            rating,
+            comment,
+            created_at: now(),
+          },
+          ...s.reviews,
+        ];
         const mine = reviews.filter((r) => r.creator_id === c.creator_id);
-        const avg = Math.round((mine.reduce((a, r) => a + r.rating, 0) / mine.length) * 10) / 10;
-        return { reviews, profiles: s.profiles.map((p) => (p.user_id === c.creator_id ? { ...p, rating: avg } : p)) };
+        const avg =
+          Math.round(
+            (mine.reduce((a, r) => a + r.rating, 0) / mine.length) * 10,
+          ) / 10;
+        // En ligne, la note moyenne est recalculée par le serveur.
+        return live()
+          ? { reviews }
+          : {
+              reviews,
+              profiles: s.profiles.map((p) =>
+                p.user_id === c.creator_id ? { ...p, rating: avg } : p,
+              ),
+            };
       });
     },
     toggleFavorite: (creatorId) =>
       set((s) => {
-        const has = s.favorites.some((f) => f.brand_id === s.userId && f.creator_id === creatorId);
-        return { favorites: has ? s.favorites.filter((f) => !(f.brand_id === s.userId && f.creator_id === creatorId)) : [...s.favorites, { brand_id: s.userId!, creator_id: creatorId }] };
+        const has = s.favorites.some(
+          (f) => f.brand_id === s.userId && f.creator_id === creatorId,
+        );
+        return {
+          favorites: has
+            ? s.favorites.filter(
+                (f) => !(f.brand_id === s.userId && f.creator_id === creatorId),
+              )
+            : [...s.favorites, { brand_id: s.userId!, creator_id: creatorId }],
+        };
       }),
 
     sendMessage: (conversationId, content) => {
@@ -519,98 +1178,385 @@ export const useDB = create<DB & Actions>()((set, get) => {
       const me = s.profiles.find((p) => p.user_id === s.userId)!;
       const conv = s.conversations.find((c) => c.id === conversationId)!;
       const other = conv.participants.find((p) => p !== me.user_id)!;
-      if (s.blocked.some((b) => b.blocker_id === me.user_id && b.blocked_id === other))
-        return { ok: false, error: "Vous avez bloqué cet utilisateur. Débloquez-le pour envoyer un message." };
-      if (me.role === "creator" && !me.identity_verified) return { ok: false, error: "Vous devez vérifier votre identité pour envoyer des messages." };
-      if (me.role === "brand" && !me.email_verified) return { ok: false, error: "Vous devez vérifier votre email pour envoyer des messages." };
+      if (
+        s.blocked.some(
+          (b) => b.blocker_id === me.user_id && b.blocked_id === other,
+        )
+      )
+        return {
+          ok: false,
+          error:
+            "Vous avez bloqué cet utilisateur. Débloquez-le pour envoyer un message.",
+        };
+      if (me.role === "creator" && !me.identity_verified)
+        return {
+          ok: false,
+          error:
+            "Vous devez vérifier votre identité pour envoyer des messages.",
+        };
+      if (me.role === "brand" && !me.email_verified)
+        return {
+          ok: false,
+          error: "Vous devez vérifier votre email pour envoyer des messages.",
+        };
       systemMsg(conversationId, me.user_id, content.trim());
       return { ok: true };
     },
     markConversationRead: (conversationId) =>
-      set((s) => ({ messages: s.messages.map((m) => (m.conversation_id === conversationId && m.sender_id !== s.userId && !m.read_at ? { ...m, read_at: now() } : m)) })),
+      set((s) => ({
+        messages: s.messages.map((m) =>
+          m.conversation_id === conversationId &&
+          m.sender_id !== s.userId &&
+          !m.read_at
+            ? { ...m, read_at: now() }
+            : m,
+        ),
+      })),
     blockUser: (id) => {
       const s = get();
-      if (s.blocked.some((b) => b.blocker_id === s.userId && b.blocked_id === id)) return { ok: false, error: "Cet utilisateur est déjà bloqué" };
-      set({ blocked: [...s.blocked, { blocker_id: s.userId!, blocked_id: id }] });
+      if (
+        s.blocked.some((b) => b.blocker_id === s.userId && b.blocked_id === id)
+      )
+        return { ok: false, error: "Cet utilisateur est déjà bloqué" };
+      set({
+        blocked: [...s.blocked, { blocker_id: s.userId!, blocked_id: id }],
+      });
       return { ok: true };
     },
-    report: (r) => set((s) => ({ reports: [{ ...r, id: uid(), reporter_id: s.userId!, status: "pending", created_at: now() }, ...s.reports] })),
+    report: (r) =>
+      set((s) => ({
+        reports: [
+          {
+            ...r,
+            id: uid(),
+            reporter_id: s.userId!,
+            status: "pending",
+            created_at: now(),
+          },
+          ...s.reports,
+        ],
+      })),
 
     requestWithdrawal: (w) => {
       const s = get();
       const wallet = s.wallets.find((x) => x.user_id === s.userId)!;
-      if (w.amount < WITHDRAW_MIN[w.method]) return { ok: false, error: `Montant minimum : ${fcfa(WITHDRAW_MIN[w.method])}` };
-      if (w.amount > wallet.balance) return { ok: false, error: "Solde insuffisant" };
+      if (w.amount < WITHDRAW_MIN[w.method])
+        return {
+          ok: false,
+          error: `Montant minimum : ${fcfa(WITHDRAW_MIN[w.method])}`,
+        };
+      if (w.amount > (wallet?.balance ?? 0))
+        return { ok: false, error: "Solde insuffisant" };
+      if (live()) {
+        const { amount, method, ...details } = w;
+        rpc(
+          "request_withdrawal",
+          { p_amount: amount, p_method: method, p_details: details },
+          "Demande de retrait envoyée",
+        );
+        return { ok: true };
+      }
       const id = uid();
       set((st) => ({
-        withdrawals: [{ ...w, id, user_id: st.userId!, status: "pending", created_at: now() }, ...st.withdrawals],
-        wallets: st.wallets.map((x) => (x.user_id === st.userId ? { ...x, balance: x.balance - w.amount, pending_balance: x.pending_balance + w.amount } : x)),
-        transactions: [{ id: uid(), user_id: st.userId!, type: "withdrawal", amount: -w.amount, status: "pending", label: "Retrait en cours", collaboration_id: id, created_at: now() }, ...st.transactions],
+        withdrawals: [
+          {
+            ...w,
+            id,
+            user_id: st.userId!,
+            status: "pending",
+            created_at: now(),
+          },
+          ...st.withdrawals,
+        ],
+        wallets: st.wallets.map((x) =>
+          x.user_id === st.userId
+            ? {
+                ...x,
+                balance: x.balance - w.amount,
+                pending_balance: x.pending_balance + w.amount,
+              }
+            : x,
+        ),
+        transactions: [
+          {
+            id: uid(),
+            user_id: st.userId!,
+            type: "withdrawal",
+            amount: -w.amount,
+            status: "pending",
+            label: "Retrait en cours",
+            collaboration_id: id,
+            created_at: now(),
+          },
+          ...st.transactions,
+        ],
       }));
       return { ok: true, id };
     },
 
-    addPortfolio: (p) => set((s) => ({ portfolio: [{ ...p, id: uid(), user_id: s.userId! }, ...s.portfolio] })),
-    removePortfolio: (id) => set((s) => ({ portfolio: s.portfolio.filter((p) => p.id !== id) })),
+    addPortfolio: (p) =>
+      set((s) => ({
+        portfolio: [{ ...p, id: uid(), user_id: s.userId! }, ...s.portfolio],
+      })),
+    removePortfolio: (id) =>
+      set((s) => ({ portfolio: s.portfolio.filter((p) => p.id !== id) })),
 
     notify: (user_id, title, message, type = "info") =>
-      set((s) => ({ notifications: [{ id: uid(), user_id, title, message, type, is_read: false, created_at: now() }, ...s.notifications] })),
-    markRead: (id) => set((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, is_read: true } : n)) })),
-    markAllRead: () => set((s) => ({ notifications: s.notifications.map((n) => (n.user_id === s.userId ? { ...n, is_read: true } : n)) })),
+      live()
+        ? void supabase
+            .rpc("notify_user", {
+              p_user: user_id,
+              p_title: title,
+              p_message: message,
+              p_type: type,
+            })
+            .then(
+              ({ error }) => error && console.warn("[notify]", error.message),
+            )
+        : set((s) => ({
+            notifications: [
+              {
+                id: uid(),
+                user_id,
+                title,
+                message,
+                type,
+                is_read: false,
+                created_at: now(),
+              },
+              ...s.notifications,
+            ],
+          })),
+    markRead: (id) =>
+      set((s) => ({
+        notifications: s.notifications.map((n) =>
+          n.id === id ? { ...n, is_read: true } : n,
+        ),
+      })),
+    markAllRead: () =>
+      set((s) => ({
+        notifications: s.notifications.map((n) =>
+          n.user_id === s.userId ? { ...n, is_read: true } : n,
+        ),
+      })),
 
     adminSetBan: (userId, banned, reason) => {
-      set((s) => ({ profiles: s.profiles.map((p) => (p.user_id === userId ? { ...p, is_banned: banned, ban_reason: banned ? reason : undefined } : p)) }));
+      set((s) => ({
+        profiles: s.profiles.map((p) =>
+          p.user_id === userId
+            ? {
+                ...p,
+                is_banned: banned,
+                ban_reason: banned ? reason : undefined,
+              }
+            : p,
+        ),
+      }));
+      if (live())
+        void supabase
+          .from("profiles")
+          .update({ banned_at: banned ? now() : null })
+          .eq("user_id", userId);
       log(banned ? "ban" : "unban", userId, { reason });
     },
     adminReviewIdentity: (userId, approve, reason) => {
       set((s) => ({
         profiles: s.profiles.map((p) =>
-          p.user_id === userId ? (approve ? { ...p, identity_verified: true } : { ...p, identity_submitted_at: undefined, identity_method: undefined }) : p,
+          p.user_id === userId
+            ? approve
+              ? { ...p, identity_verified: true }
+              : {
+                  ...p,
+                  identity_submitted_at: undefined,
+                  identity_method: undefined,
+                }
+            : p,
         ),
       }));
-      get().notify(userId, approve ? "Identité vérifiée ✅" : "Vérification refusée", approve ? "Votre identité a été vérifiée." : `Motif : ${reason}`, approve ? "success" : "error");
-      log(approve ? "identity_approved" : "identity_rejected", userId, { reason });
+      get().notify(
+        userId,
+        approve ? "Identité vérifiée ✅" : "Vérification refusée",
+        approve ? "Votre identité a été vérifiée." : `Motif : ${reason}`,
+        approve ? "success" : "error",
+      );
+      log(approve ? "identity_approved" : "identity_rejected", userId, {
+        reason,
+      });
     },
     adminReviewSocial: (id, approve, notes) => {
       const v = get().socialVerifications.find((x) => x.id === id)!;
       set((s) => ({
-        socialVerifications: s.socialVerifications.map((x) => (x.id === id ? { ...x, status: approve ? "verified" : "rejected", admin_notes: notes } : x)),
-        profiles: approve ? s.profiles.map((p) => (p.user_id === v.user_id ? { ...p, followers: { ...p.followers, [v.platform]: v.ai_extracted_followers ?? v.claimed_followers } } : p)) : s.profiles,
+        socialVerifications: s.socialVerifications.map((x) =>
+          x.id === id
+            ? {
+                ...x,
+                status: approve ? "verified" : "rejected",
+                admin_notes: notes,
+              }
+            : x,
+        ),
+        profiles: approve
+          ? s.profiles.map((p) =>
+              p.user_id === v.user_id
+                ? {
+                    ...p,
+                    followers: {
+                      ...p.followers,
+                      [v.platform]:
+                        v.ai_extracted_followers ?? v.claimed_followers,
+                    },
+                  }
+                : p,
+            )
+          : s.profiles,
       }));
-      get().notify(v.user_id, approve ? "Réseau social vérifié ✅" : "Vérification refusée ❌", v.platform, approve ? "success" : "error");
-      log(approve ? "social_verification_approved" : "social_verification_rejected", v.user_id);
+      get().notify(
+        v.user_id,
+        approve ? "Réseau social vérifié ✅" : "Vérification refusée ❌",
+        v.platform,
+        approve ? "success" : "error",
+      );
+      log(
+        approve
+          ? "social_verification_approved"
+          : "social_verification_rejected",
+        v.user_id,
+      );
     },
     adminReviewReport: (id, action, notes) => {
       const r = get().reports.find((x) => x.id === id)!;
-      set((s) => ({ reports: s.reports.map((x) => (x.id === id ? { ...x, status: action === "dismiss" ? "dismissed" : "resolved", admin_notes: notes } : x)) }));
+      set((s) => ({
+        reports: s.reports.map((x) =>
+          x.id === id
+            ? {
+                ...x,
+                status: action === "dismiss" ? "dismissed" : "resolved",
+                admin_notes: notes,
+              }
+            : x,
+        ),
+      }));
       if (action === "ban" && r.target_user_id) {
-        get().adminSetBan(r.target_user_id, true, notes || "Compte banni suite à un signalement");
-        get().notify(r.target_user_id, "Compte suspendu", notes || "Compte banni suite à un signalement", "error");
+        get().adminSetBan(
+          r.target_user_id,
+          true,
+          notes || "Compte banni suite à un signalement",
+        );
+        get().notify(
+          r.target_user_id,
+          "Compte suspendu",
+          notes || "Compte banni suite à un signalement",
+          "error",
+        );
       }
       log(`report_${action}`, r.target_user_id, { report_id: id, notes });
     },
+    adminRefund: (collabId, reason) => {
+      if (live())
+        return rpc(
+          "refund_collaboration",
+          { p_collab: collabId, p_reason: reason },
+          "Collaboration remboursée",
+        );
+      const c = collab(collabId)!;
+      patchCollab(collabId, { status: "refunded" });
+      if (c.paid)
+        set((s) => ({
+          transactions: [
+            {
+              id: uid(),
+              user_id: c.brand_id,
+              type: "refund",
+              amount: c.agreed_amount,
+              status: "completed",
+              label: `Remboursement — ${reason}`,
+              collaboration_id: c.id,
+              created_at: now(),
+            },
+            ...s.transactions,
+          ],
+        }));
+      get().notify(c.brand_id, "Collaboration remboursée", reason, "info");
+      get().notify(c.creator_id, "Collaboration annulée", reason, "warning");
+      log("collaboration_refunded", c.brand_id, { collabId, reason });
+    },
     adminFinalizeWithdrawal: (id) => {
+      if (live())
+        return rpc(
+          "admin_finalize_withdrawal",
+          { p_id: id },
+          "Retrait finalisé",
+        );
       const w = get().withdrawals.find((x) => x.id === id)!;
       set((s) => ({
-        withdrawals: s.withdrawals.map((x) => (x.id === id ? { ...x, status: "completed", proof_url: "preuve.jpg" } : x)),
-        wallets: s.wallets.map((x) => (x.user_id === w.user_id ? { ...x, pending_balance: Math.max(0, x.pending_balance - w.amount) } : x)),
-        transactions: s.transactions.map((t) => (t.collaboration_id === id && t.type === "withdrawal" ? { ...t, status: "completed", label: "Retrait effectué" } : t)),
+        withdrawals: s.withdrawals.map((x) =>
+          x.id === id
+            ? { ...x, status: "completed", proof_url: "preuve.jpg" }
+            : x,
+        ),
+        wallets: s.wallets.map((x) =>
+          x.user_id === w.user_id
+            ? {
+                ...x,
+                pending_balance: Math.max(0, x.pending_balance - w.amount),
+              }
+            : x,
+        ),
+        transactions: s.transactions.map((t) =>
+          t.collaboration_id === id && t.type === "withdrawal"
+            ? { ...t, status: "completed", label: "Retrait effectué" }
+            : t,
+        ),
       }));
-      get().notify(w.user_id, "✅ Retrait effectué !", fcfa(w.amount), "success");
-      log("withdrawal_completed", w.user_id, { withdrawal_id: id, amount: w.amount });
+      get().notify(
+        w.user_id,
+        "✅ Retrait effectué !",
+        fcfa(w.amount),
+        "success",
+      );
+      log("withdrawal_completed", w.user_id, {
+        withdrawal_id: id,
+        amount: w.amount,
+      });
     },
     adminRejectWithdrawal: (id, reason) => {
+      if (live())
+        return rpc(
+          "admin_reject_withdrawal",
+          { p_id: id, p_reason: reason },
+          "Retrait refusé",
+        );
       const w = get().withdrawals.find((x) => x.id === id)!;
       set((s) => ({
-        withdrawals: s.withdrawals.map((x) => (x.id === id ? { ...x, status: "rejected", rejection_reason: reason } : x)),
-        wallets: s.wallets.map((x) => (x.user_id === w.user_id ? { ...x, balance: x.balance + w.amount, pending_balance: Math.max(0, x.pending_balance - w.amount) } : x)),
-        transactions: s.transactions.map((t) => (t.collaboration_id === id && t.type === "withdrawal" ? { ...t, status: "cancelled", label: "Retrait annulé" } : t)),
+        withdrawals: s.withdrawals.map((x) =>
+          x.id === id
+            ? { ...x, status: "rejected", rejection_reason: reason }
+            : x,
+        ),
+        wallets: s.wallets.map((x) =>
+          x.user_id === w.user_id
+            ? {
+                ...x,
+                balance: x.balance + w.amount,
+                pending_balance: Math.max(0, x.pending_balance - w.amount),
+              }
+            : x,
+        ),
+        transactions: s.transactions.map((t) =>
+          t.collaboration_id === id && t.type === "withdrawal"
+            ? { ...t, status: "cancelled", label: "Retrait annulé" }
+            : t,
+        ),
       }));
       get().notify(w.user_id, "❌ Retrait refusé", reason, "error");
       log("withdrawal_rejected", w.user_id, { withdrawal_id: id, reason });
     },
     adminBroadcast: (target, title, message, type) => {
-      const ids = get().profiles.filter((p) => p.role !== "admin" && (target === "all" || p.role === target)).map((p) => p.user_id);
+      const ids = get()
+        .profiles.filter(
+          (p) => p.role !== "admin" && (target === "all" || p.role === target),
+        )
+        .map((p) => p.user_id);
       ids.forEach((id) => get().notify(id, title, message, type));
       log("broadcast_notification", undefined, { target, count: ids.length });
       return ids.length;
@@ -620,25 +1566,106 @@ export const useDB = create<DB & Actions>()((set, get) => {
       log("invite_codes_required", undefined, { value: v });
     },
     adminGenerateCodes: (n, note) => {
+      if (live()) {
+        void Promise.all(
+          Array.from({ length: n }, () =>
+            supabase.rpc("generate_invite_code", { p_note: note ?? null }),
+          ),
+        ).then((rs) => {
+          const err = rs.find((r) => r.error)?.error;
+          if (err) toast(errMsg(err), "error");
+          void refresh(useDB as never);
+        });
+        log("invite_codes_generated", undefined, { count: n, note });
+        return [];
+      }
       const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      const codes = Array.from({ length: n }, () => `COLLAB-${Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join("")}`);
-      set((s) => ({ inviteCodes: [...codes.map((code) => ({ code, is_active: true, note })), ...s.inviteCodes] }));
+      const codes = Array.from(
+        { length: n },
+        () =>
+          `COLLAB-${Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join("")}`,
+      );
+      set((s) => ({
+        inviteCodes: [
+          ...codes.map((code) => ({ code, is_active: true, note })),
+          ...s.inviteCodes,
+        ],
+      }));
       log("invite_codes_generated", undefined, { count: n, note });
       return codes;
     },
-    adminToggleCode: (code) => set((s) => ({ inviteCodes: s.inviteCodes.map((c) => (c.code === code ? { ...c, is_active: !c.is_active } : c)) })),
-    adminDeleteCode: (code) => set((s) => ({ inviteCodes: s.inviteCodes.filter((c) => c.code !== code) })),
+    adminToggleCode: (code) =>
+      set((s) => ({
+        inviteCodes: s.inviteCodes.map((c) =>
+          c.code === code ? { ...c, is_active: !c.is_active } : c,
+        ),
+      })),
+    adminDeleteCode: (code) =>
+      set((s) => ({
+        inviteCodes: s.inviteCodes.filter((c) => c.code !== code),
+      })),
     adminUpdateLegal: (slug, title, content) => {
-      set((s) => ({ legalPages: s.legalPages.map((p) => (p.slug === slug ? { ...p, title, content } : p)) }));
+      set((s) => ({
+        legalPages: s.legalPages.map((p) =>
+          p.slug === slug ? { ...p, title, content } : p,
+        ),
+      }));
       log("legal_page_updated", undefined, { slug });
     },
     adminSaveTemplate: ({ id, ...t }) =>
-      set((s) => ({ templates: id ? s.templates.map((x) => (x.id === id ? { ...x, ...t } : x)) : [{ ...t, id: uid() }, ...s.templates] })),
-    adminDeleteTemplate: (id) => set((s) => ({ templates: s.templates.filter((t) => t.id !== id) })),
+      set((s) => ({
+        templates: id
+          ? s.templates.map((x) => (x.id === id ? { ...x, ...t } : x))
+          : [{ ...t, id: uid() }, ...s.templates],
+      })),
+    adminDeleteTemplate: (id) =>
+      set((s) => ({ templates: s.templates.filter((t) => t.id !== id) })),
   };
 });
 
 // ---------- sélecteurs ----------
-export const useMe = () => useDB((s) => s.profiles.find((p) => p.user_id === s.userId));
-export const displayName = (p?: Profile) => (p ? (p.role === "brand" ? p.company_name || p.full_name : p.full_name) : "");
-export const profileOf = (id: string) => useDB.getState().profiles.find((p) => p.user_id === id);
+export const useMe = () =>
+  useDB((s) => s.profiles.find((p) => p.user_id === s.userId));
+export const displayName = (p?: Profile) =>
+  p ? (p.role === "brand" ? p.company_name || p.full_name : p.full_name) : "";
+export const profileOf = (id: string) =>
+  useDB.getState().profiles.find((p) => p.user_id === id);
+
+// ---------- session Supabase ----------
+const NIL = "00000000-0000-0000-0000-000000000000";
+
+/** Ouvre la session en ligne et charge les données de l'utilisateur. */
+async function connect(userId: string) {
+  useDB.setState({ mode: "live", userId, guest: false });
+  await startSync(useDB as never, userId, {
+    onError: (m) => toast(m, "error"),
+  });
+  useDB.setState({ ready: true });
+}
+
+/** Visiteur / déconnecté : données publiques (offres actives, profils, portfolios, pages légales). */
+async function loadPublic() {
+  await startSync(useDB as never, NIL, { onError: () => {} });
+  useDB.setState({ ready: true });
+}
+
+if (useDB.getState().mode === "live") {
+  void supabase.auth
+    .getSession()
+    .then(({ data }) =>
+      data.session ? connect(data.session.user.id) : loadPublic(),
+    );
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (
+      event === "SIGNED_OUT" &&
+      useDB.getState().mode === "live" &&
+      useDB.getState().userId
+    ) {
+      stopSync();
+      useDB.setState({ ...EMPTY, userId: null });
+      void loadPublic();
+    }
+    if (event === "TOKEN_REFRESHED" && session && !useDB.getState().userId)
+      void connect(session.user.id);
+  });
+}

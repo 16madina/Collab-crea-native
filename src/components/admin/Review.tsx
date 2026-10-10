@@ -8,6 +8,7 @@ import { colors, radius, type } from "../../theme";
 import { Avatar, Button } from "../../ui";
 import { Act, Item, Placeholder, st } from "./common";
 import { Sheet } from "./Sheet";
+import { PrivateFolder, PrivateImage } from "../PrivateImage";
 
 const APPROVE_TPL = ["Approbation standard", "Bienvenue créateur", "Court & efficace", "Avec rappel sécurité"];
 const REJECT = ["Document illisible", "Document non valide", "Profil incorrect", "Selfie non conforme", "Soupçon de fraude", "Document expiré"];
@@ -42,8 +43,16 @@ export function Identities() {
           </View>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Image source={p.avatar_url} style={{ flex: 1, height: 120, borderRadius: radius.md }} contentFit="cover" />
-            <Placeholder label="Pièce d'identité" icon="card-outline" h={120} />
-            <Placeholder label="Selfie" icon="camera-outline" h={120} />
+            {p.identity_document_url ? (
+              <PrivateImage bucket="identity-documents" path={p.identity_document_url} style={{ flex: 1, height: 120, borderRadius: radius.md }} />
+            ) : p.selfie_url ? (
+              <PrivateFolder bucket="selfies" folder={p.selfie_url.split("/").slice(0, -1).join("/")} style={{ flex: 1, height: 120, borderRadius: radius.md }} />
+            ) : (
+              <>
+                <Placeholder label="Pièce d'identité" icon="card-outline" h={120} />
+                <Placeholder label="Selfie" icon="camera-outline" h={120} />
+              </>
+            )}
           </View>
           <View style={st.wrap}>
             <Act label="Approuver" icon="checkmark" tone="success" onPress={() => { setCur({ p, approve: true }); setChoice(APPROVE_TPL[0]); }} />
@@ -84,7 +93,7 @@ export function Socials() {
                 <Text style={type.small}>{displayName(p)} · {v.platform} · {v.claimed_followers} déclarés</Text>
               </View>
             </View>
-            {v.screenshot_url ? <Image source={v.screenshot_url} style={{ height: 160, borderRadius: radius.md }} /> : <Placeholder label="Capture d'écran" icon="image-outline" h={140} />}
+            {v.screenshot_url ? <PrivateImage bucket="social-screenshots" path={v.screenshot_url} style={{ height: 160, borderRadius: radius.md }} /> : <Placeholder label="Capture d'écran" icon="image-outline" h={140} />}
             <View style={{ backgroundColor: colors.night, borderRadius: radius.md, padding: 12, gap: 6 }}>
               <Text style={{ color: "#fff", fontWeight: "800" }}>✨ Analyse IA</Text>
               <Text style={{ color: "#ddd" }}>Nom détecté : {v.ai_extracted_name ?? "—"}</Text>

@@ -10,6 +10,7 @@ import { useDB } from "../../src/store";
 import { colors, radius, type } from "../../src/theme";
 import { SocialPlatform, SocialVerification } from "../../src/types";
 import { Button, Press } from "../../src/ui";
+import { isLive, pickMedia, uploadFile, type Picked } from "../../src/backend/upload";
 
 type Phase = "form" | "extracting" | "uploading" | "analyzing" | "result";
 const PHASE_LABEL: Record<"extracting" | "uploading" | "analyzing", [string, keyof typeof Ionicons.glyphMap]> = {
@@ -29,6 +30,7 @@ export default function SocialVerificationScreen() {
   const [page, setPage] = useState("");
   const [claimed, setClaimed] = useState(me?.followers[platform] ?? "");
   const [shot, setShot] = useState<string>();
+  const [shotFile, setShotFile] = useState<Picked | null>(null);
   const [phase, setPhase] = useState<Phase>("form");
   const [result, setResult] = useState<SocialVerification>();
 
@@ -56,11 +58,26 @@ export default function SocialVerificationScreen() {
     if (page.trim().length < 2) return toast("Indiquez le nom de la page", "error");
     if (!/^\d+([.,]\d+)?\s*[kKmM]?$/.test(claimed.trim())) return toast("Nombre d'abonnés invalide (ex : 48.2K)", "error");
     if (!shot) return toast("Ajoutez une capture d'écran de votre profil", "error");
+    const claimedN = claimed.trim().toUpperCase().replace(",", ".");
+    if (isLive()) {
+      setPhase("uploading");
+      void (async () => {
+        try {
+          const screenshot_url = shotFile ? await uploadFile("social-screenshots", shotFile, "social") : undefined;
+          setResult(submit({ platform, page_name: page.trim(), claimed_followers: claimedN, screenshot_url }));
+          setPhase("result");
+        } catch (e) {
+          toast((e as Error).message, "error");
+          setPhase("form");
+        }
+      })();
+      return;
+    }
     setPhase("extracting");
     setTimeout(() => setPhase("uploading"), 1100);
     setTimeout(() => setPhase("analyzing"), 2200);
     setTimeout(() => {
-      const r = submit({ platform, page_name: page.trim(), claimed_followers: claimed.trim().toUpperCase().replace(",", ".") });
+      const r = submit({ platform, page_name: page.trim(), claimed_followers: claimedN });
       setResult(r);
       setPhase("result");
     }, 3800);
@@ -149,7 +166,19 @@ export default function SocialVerificationScreen() {
       <Field label="Nom de la page" value={page} onChangeText={setPage} autoCapitalize="none" placeholder="@moncompte" />
       <Field label="Abonnés revendiqués" value={claimed} onChangeText={setClaimed} placeholder="48.2K" hint="Formats acceptés : 12000, 48.2K, 1.2M" />
       <Label>Capture d'écran du profil</Label>
-      <Press onPress={() => setShot(SAMPLE_MEDIA[Math.floor(Math.random() * SAMPLE_MEDIA.length)])} scaleTo={0.98} style={[styles.drop, shot && { borderStyle: "solid", padding: 0, overflow: "hidden" }]}>
+      <Press
+        onPress={async () => {
+          if (!isLive()) return setShot(SAMPLE_MEDIA[Math.floor(Math.random() * SAMPLE_MEDIA.length)]);
+          try {
+            const f = await pickMedia("image");
+            if (f) {
+              setShotFile(f);
+              setShot(f.uri);
+            }
+          } catch (e) {
+            toast((e as Error).message, "error");
+          }
+        }} scaleTo={0.98} style={[styles.drop, shot && { borderStyle: "solid", padding: 0, overflow: "hidden" }]}>
         {shot ? (
           <Animated.View entering={FadeIn} style={{ width: "100%", height: 200 }}>
             <Image source={shot} style={{ flex: 1 }} contentFit="cover" />

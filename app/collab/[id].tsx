@@ -1,4 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { usePreventScreenCapture } from "expo-screen-capture";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { isLive, pickMedia, signedUrl, uploadFile } from "../../src/backend/upload";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -14,7 +17,9 @@ import { colors, radius, shadow, type } from "../../src/theme";
 import { CollabStatus, COLLAB_LABEL } from "../../src/types";
 import { Avatar, Button, Press } from "../../src/ui";
 
-const isVideo = (u: string) => u.startsWith("video://");
+// Vidéo importée : « video://… » (démo) ou « storage://chemin » (fichier privé Supabase).
+const isVideo = (u: string) => u.startsWith("video://") || u.startsWith("storage://");
+const STORAGE = "storage://";
 
 function useTick(ms = 30000) {
   const [, set] = useState(0);
@@ -76,6 +81,7 @@ export default function CollabDetail() {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [links, setLinks] = useState<string[]>([""]);
   const [video, setVideo] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [desc, setDesc] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -407,9 +413,25 @@ export default function CollabDetail() {
         ))}
         {links.length < 4 ? <Button label="Ajouter un lien" variant="ghost" small icon="add" onPress={() => setLinks((x) => [...x, ""])} /> : null}
         <Label>Vidéo (optionnel)</Label>
-        <Press onPress={() => setVideo(video ? null : `video://upload-${Date.now()}.mp4`)} style={[styles.videoBox, video && { borderColor: colors.success, backgroundColor: "#E4F6EC" }]}>
+        <Press
+          onPress={async () => {
+            if (video) return setVideo(null);
+            if (!isLive()) return setVideo(`video://upload-${Date.now()}.mp4`);
+            try {
+              setUploading(true);
+              const f = await pickMedia("video");
+              if (!f) return;
+              // Dossier du créateur / de la collaboration : seuls ses deux participants peuvent le lire.
+              const path = await uploadFile("collaboration-content", f, collab.id, collab.creator_id);
+              setVideo(STORAGE + path);
+            } catch (e) {
+              toast((e as Error).message, "error");
+            } finally {
+              setUploading(false);
+            }
+          }} style={[styles.videoBox, video && { borderColor: colors.success, backgroundColor: "#E4F6EC" }]}>
           <Ionicons name={video ? "checkmark-circle" : "videocam-outline"} size={26} color={video ? colors.success : colors.primary} />
-          <Text style={type.small}>{video ? "Vidéo ajoutée — touchez pour retirer" : "Importer une vidéo (aperçu)"}</Text>
+          <Text style={type.small}>{uploading ? "Envoi de la vidéo…" : video ? "Vidéo ajoutée — touchez pour retirer" : "Importer une vidéo"}</Text>
         </Press>
         <Field label="Description" value={desc} onChangeText={setDesc} multiline placeholder="Précisions sur votre livraison…" />
       </Sheet>
@@ -452,7 +474,10 @@ export default function CollabDetail() {
           <Text style={{ color: "rgba(255,255,255,0.7)", textAlign: "center" }}>Cet aperçu filigrané ne peut être visionné qu'une seule fois.</Text>
           <View style={styles.previewFrame}>
             <View style={{ gap: 10, padding: 18 }}>
-              {collab.content_urls.map((u, i) => (
+              {collab.content_urls.filter((u) => u.startsWith(STORAGE)).map((u) => (
+                <ProtectedVideo key={u} path={u.slice(STORAGE.length)} />
+              ))}
+              {collab.content_urls.filter((u) => !u.startsWith(STORAGE)).map((u, i) => (
                 <View key={i} style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
                   <Ionicons name={isVideo(u) ? "play-circle" : "image"} size={22} color="#fff" />
                   <Text style={{ color: "#fff" }} numberOfLines={1}>
@@ -501,3 +526,23 @@ const styles = StyleSheet.create({
   watermark: { position: "absolute", left: -40, right: -40, textAlign: "center", color: "rgba(255,255,255,0.18)", fontWeight: "900", fontSize: 16, transform: [{ rotate: "-20deg" }] },
   previewClose: { backgroundColor: "#fff", borderRadius: radius.pill, paddingHorizontal: 22, height: 52, alignItems: "center", justifyContent: "center" },
 });
+
+/** Lecture protégée d'une vidéo privée : lien signé de courte durée, pas de téléchargement, filigrane par-dessus. */
+function ProtectedVideo({ path }: { path: string }) {
+  // Bloque captures et enregistrements d'écran tant que l'aperçu est affiché.
+  usePreventScreenCapture("collab-preview");
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    signedUrl("collaboration-content", path, 300)
+      .then(setUrl)
+      .catch((e) => toast((e as Error).message, "error"));
+  }, [path]);
+  const player = useVideoPlayer(url, (p) => {
+    p.loop = false;
+  });
+  return (
+    <View style={{ width: "100%", aspectRatio: 9 / 16, maxHeight: 420, borderRadius: 12, overflow: "hidden", backgroundColor: "#000" }}>
+      {url ? <VideoView player={player} style={{ flex: 1 }} nativeControls allowsPictureInPicture={false} contentFit="contain" /> : null}
+    </View>
+  );
+}

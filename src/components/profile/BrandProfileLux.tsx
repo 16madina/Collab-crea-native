@@ -1,5 +1,6 @@
 // Profil de l'espace Marque (maquette) : couverture, logo, infos, stats et onglets.
 import { Ionicons } from "@expo/vector-icons";
+import { GalleryTile } from "../GalleryTile";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
@@ -369,6 +370,16 @@ export function BrandProfileLux({ me, onLogout }: { me: Profile; onLogout: () =>
 
       {/* Couverture */}
       <Sheet visible={cover} onClose={() => setCover(false)} title="Photo de couverture" subtitle="Sélection démo — la galerie sera branchée plus tard.">
+        <GalleryTile
+          bucket="avatars"
+          sub="banner"
+          style={{ width: "100%", height: 80, marginBottom: 10 }}
+          onUploaded={(u) => {
+            updateProfile({ banner_url: u });
+            toast("Couverture mise à jour");
+            setCover(false);
+          }}
+        />
         {SAMPLE_BANNERS.map((u, i) => (
           <Press
             key={i}

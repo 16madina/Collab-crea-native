@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { GalleryTile } from "../../src/components/GalleryTile";
 import { Image } from "expo-image";
 import { useMemo, useState } from "react";
 import { Alert, Dimensions, Modal, Platform, StyleSheet, Text, View } from "react-native";
@@ -112,6 +113,16 @@ export default function EditPortfolio() {
       <Sheet visible={adding} onClose={() => setAdding(false)} title="Ajouter un contenu" footer={<Button label="Ajouter au portfolio" icon="add" onPress={add} />}>
         <Label>Média</Label>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          {media && /^https?:/.test(media) && !(SAMPLE_MEDIA as readonly unknown[]).includes(media) ? (
+            <Press onPress={() => {}} style={[styles.pick, { borderColor: colors.primary }]}>
+              <Image source={media} style={{ flex: 1 }} contentFit="cover" />
+            </Press>
+          ) : null}
+          <GalleryTile bucket="portfolio" kind="all" style={styles.pick} onUploaded={(u) => {
+              setMedia(u);
+              setMediaType(/\.(mp4|mov|m4v|webm)$/i.test(u) ? "video" : "image");
+            }}
+          />
           {SAMPLE_MEDIA.map((m) => (
             <Press key={m} onPress={() => setMedia(m)} scaleTo={0.92} style={[styles.pick, media === m && { borderColor: colors.primary }]}>
               <Image source={m} style={{ flex: 1 }} contentFit="cover" />

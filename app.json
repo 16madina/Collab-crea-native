@@ -26,7 +26,16 @@
     },
     "scheme": "collabcrea",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-video",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Collab Créa accède à tes photos pour ton profil, ton portfolio et tes contenus.",
+          "cameraPermission": "Collab Créa utilise l'appareil photo pour la vérification d'identité et tes contenus.",
+          "microphonePermission": "Collab Créa utilise le micro pour filmer tes contenus."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false

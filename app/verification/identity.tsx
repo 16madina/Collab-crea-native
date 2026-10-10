@@ -9,6 +9,9 @@ import { useDB } from "../../src/store";
 import { colors, radius, shadow, type } from "../../src/theme";
 import { Profile } from "../../src/types";
 import { Button, Press } from "../../src/ui";
+import { isLive, pickMedia, uploadFile, type Picked } from "../../src/backend/upload";
+
+const SELFIE_STEPS = ["Regarde droit devant", "Tourne la tête à gauche", "Tourne la tête à droite", "Souris"];
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const DOCS = ["Carte d'identité", "Passeport", "Permis de conduire", "Carte de séjour"];
@@ -53,6 +56,8 @@ function Identity({ me }: { me: Profile }) {
   const [file, setFile] = useState<{ name: string; size: string } | null>(null);
   const [face, setFace] = useState<"idle" | "running" | "done">("idle");
   const [sending, setSending] = useState(false);
+  const [docFile, setDocFile] = useState<Picked | null>(null);
+  const [selfies, setSelfies] = useState<Picked[]>([]);
 
   if (me.identity_verified)
     return (
@@ -86,10 +91,46 @@ function Identity({ me }: { me: Profile }) {
       </Screen>
     );
 
+  // En ligne : 4 photos du visage prises à l'appareil photo (comme la version web).
+  const captureSelfies = async () => {
+    const shots: Picked[] = [];
+    try {
+      for (const step of SELFIE_STEPS) {
+        toast(`Photo ${shots.length + 1}/4 : ${step}`);
+        const p = await pickMedia("image", { camera: true });
+        if (!p) return;
+        shots.push(p);
+      }
+      setSelfies(shots);
+      setFace("done");
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
+
   const submit = () => {
     if (method === "document" && !file) return toast("Ajoutez une photo de votre document", "error");
     if (method === "selfie" && face !== "done") return toast("Terminez la vérification faciale", "error");
     setSending(true);
+    if (isLive()) {
+      void (async () => {
+        try {
+          const document_url = method === "document" && docFile ? await uploadFile("identity-documents", docFile, "identity") : undefined;
+          let selfie_url: string | undefined;
+          for (const p of method === "selfie" ? selfies : []) {
+            const path = await uploadFile("selfies", p, "identity");
+            selfie_url = selfie_url ?? path;
+          }
+          submitIdentity(method, { document_url, selfie_url });
+          toast("Demande envoyée ! Vérification sous 24–48 h.");
+        } catch (e) {
+          toast((e as Error).message, "error");
+        } finally {
+          setSending(false);
+        }
+      })();
+      return;
+    }
     setTimeout(() => {
       submitIdentity(method);
       setSending(false);
@@ -132,7 +173,19 @@ function Identity({ me }: { me: Profile }) {
           <Label>Type de document</Label>
           <Chips options={DOCS} value={docType} onChange={setDocType} />
           <Press
-            onPress={() => {
+            onPress={async () => {
+              if (isLive()) {
+                try {
+                  const p = await pickMedia("image");
+                  if (!p) return;
+                  setDocFile(p);
+                  setFile({ name: p.name, size: "Photo prête" });
+                  toast("Document ajouté");
+                } catch (e) {
+                  toast((e as Error).message, "error");
+                }
+                return;
+              }
               setFile({ name: `${docType.toLowerCase().replace(/[^a-z]/g, "_")}_recto.jpg`, size: `${(1.2 + Math.random() * 3).toFixed(1)} Mo` });
               toast("Document ajouté");
             }}
@@ -149,7 +202,15 @@ function Identity({ me }: { me: Profile }) {
         </Animated.View>
       ) : (
         <Animated.View key="face" entering={FadeIn} style={{ gap: 14 }}>
-          <FaceScan state={face} onStart={() => setFace("running")} onDone={() => setFace("done")} onRestart={() => setFace("running")} />
+          {isLive() ? (
+            <Press onPress={captureSelfies} scaleTo={0.98} style={[styles.drop, face === "done" && { borderColor: colors.success }]}>
+              <Ionicons name={face === "done" ? "checkmark-circle" : "camera-outline"} size={34} color={face === "done" ? colors.success : colors.primary} />
+              <Text style={type.h3}>{face === "done" ? "4 photos prises" : "Prendre les 4 photos du visage"}</Text>
+              <Text style={[type.small, { textAlign: "center" }]}>{SELFIE_STEPS.join(" · ")}</Text>
+            </Press>
+          ) : (
+            <FaceScan state={face} onStart={() => setFace("running")} onDone={() => setFace("done")} onRestart={() => setFace("running")} />
+          )}
         </Animated.View>
       )}
     </Screen>

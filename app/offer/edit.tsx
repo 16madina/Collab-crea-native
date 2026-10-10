@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { GalleryTile } from "../../src/components/GalleryTile";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
@@ -307,6 +308,16 @@ export default function EditOffer() {
 
       <Sheet visible={photoOpen} onClose={() => setPhotoOpen(false)} title={photoTarget === "logo" ? "Choisir le logo" : photoTarget === "cover" ? "Choisir l'image de fond" : "Choisir une photo"} subtitle="Aperçu — l'envoi réel arrivera avec le back-end">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          <GalleryTile
+            bucket="offer-images"
+            square={photoTarget === "logo"}
+            onUploaded={(u) => {
+              if (photoTarget === "logo") setLogo(u);
+              else if (photoTarget === "cover") setCover(u);
+              else setExtras((l) => (l.length >= 2 ? l : [...l, u]));
+              setPhotoOpen(false);
+            }}
+          />
           {SAMPLE_PHOTOS.filter((u) => photoTarget !== "extra" || !images.includes(u)).map((u) => (
             <Press
               key={u}

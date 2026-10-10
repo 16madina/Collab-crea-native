@@ -1,5 +1,6 @@
 // Profil créateur (maquette Noir & Or) : couverture, identité, réseaux, stats et 5 onglets.
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { GalleryTile } from "../GalleryTile";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -501,6 +502,16 @@ export function CreatorProfileLux({ me, onLogout }: { me: Profile; onLogout: () 
 
       <Sheet visible={sheet !== null} onClose={() => setSheet(null)} title={sheet === "avatar" ? "Photo de profil" : "Photo de couverture"} subtitle="Sélection démo — la galerie sera branchée plus tard.">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          <GalleryTile
+            bucket="avatars"
+            sub={sheet ?? undefined}
+            square={sheet === "avatar"}
+            onUploaded={(u) => {
+              updateProfile(sheet === "banner" ? { banner_url: u } : { avatar_url: u });
+              toast(sheet === "banner" ? "Couverture mise à jour" : "Photo mise à jour");
+              setSheet(null);
+            }}
+          />
           {(sheet === "banner" ? SAMPLE_BANNERS : SAMPLE_AVATARS).map((u, i) => (
             <Press
               key={i}
