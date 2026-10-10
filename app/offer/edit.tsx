@@ -62,6 +62,9 @@ export default function EditOffer() {
   const [deadline, setDeadline] = useState(toDateInput(existing?.deadline));
   const [expectations, setExpectations] = useState(existing?.expectations ?? "");
   const [restrictions, setRestrictions] = useState(existing?.restrictions ?? "");
+  const [deliverables, setDeliverables] = useState((existing?.deliverables ?? []).join("\n"));
+  const [criteria, setCriteria] = useState((existing?.criteria ?? []).join("\n"));
+  const lines = (t: string) => t.split("\n").map((x) => x.trim()).filter(Boolean);
   const [phone, setPhone] = useState(existing?.creative_brief.phone ?? "");
   const [address, setAddress] = useState(existing?.creative_brief.address ?? "");
   const [hashtags, setHashtags] = useState(existing?.creative_brief.hashtags ?? "");
@@ -113,6 +116,8 @@ export default function EditOffer() {
       creative_brief: { phone: phone.trim() || undefined, address: address.trim() || undefined, hashtags: hashtags.trim() || undefined, mentions: mentions.trim() || undefined },
       images,
       logo_url: logo,
+      deliverables: lines(deliverables),
+      criteria: lines(criteria),
       status,
     });
     if (!r.ok) return toast(r.error, "error");
@@ -237,6 +242,8 @@ export default function EditOffer() {
 
       <Field label="Ce que vous attendez" value={expectations} onChangeText={setExpectations} multiline placeholder="Ton, style, éléments à montrer…" />
       <Field label="Restrictions" value={restrictions} onChangeText={setRestrictions} multiline placeholder="Ce qu'il ne faut pas faire ou dire…" />
+      <Field label="Types de contenu attendus (un par ligne)" value={deliverables} onChangeText={setDeliverables} multiline placeholder={"1 Reel Instagram (30 à 60 secondes)\n1 à 2 Stories Instagram"} />
+      <Field label="Critères de sélection (un par ligne)" value={criteria} onChangeText={setCriteria} multiline placeholder={"Audience engagée et authentique\nRespect des délais"} />
 
       <Card>
         <Label>Brief créatif</Label>

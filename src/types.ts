@@ -65,6 +65,8 @@ export type Offer = {
   on_site_slots: Slot[];
   creative_brief: { phone?: string; address?: string; hashtags?: string; mentions?: string };
   images: (string | number)[];
+  deliverables?: string[]; // types de contenu attendus, détaillés (« 1 Reel Instagram (30 à 60 s) »)
+  criteria?: string[]; // critères de sélection
   status: OfferStatus;
   created_at: string;
 };
@@ -77,6 +79,9 @@ export type Application = {
   creator_id: string;
   message?: string;
   selected_slot?: Slot;
+  examples?: (string | number)[]; // exemples de travail joints (portfolio)
+  links?: Partial<Record<"instagram" | "tiktok" | "youtube", string>>;
+  notes?: string; // informations supplémentaires
   status: ApplicationStatus;
   conversation_id: string;
   created_at: string;

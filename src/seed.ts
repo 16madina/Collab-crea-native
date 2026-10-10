@@ -130,7 +130,9 @@ const offers: Offer[] = [
     expectations: "Lumière naturelle, ton doux et sincère, montrer la texture.",
     restrictions: "Pas de mention de marques concurrentes.",
     creative_brief: { hashtags: "#GlowAndCare #KaritéGlow", mentions: "@glowandcare" },
-    images: [require("../assets/brand/c1.jpg")],
+    images: [require("../assets/brand/c1.jpg"), require("../assets/profile/p0.jpg"), require("../assets/profile/p2.jpg"), require("../assets/profile/p4.jpg")],
+    deliverables: ["1 Reel Instagram (30 à 60 secondes)", "1 à 2 Stories Instagram", "Mention de la marque et du produit", "Contenu authentique, créatif et naturel"],
+    criteria: ["Audience engagée et authentique", "Contenu de qualité (bonne image et son)", "Respect des délais", "Correspondance avec la thématique beauté"],
     location: "Côte d'Ivoire",
   }),
   offer({

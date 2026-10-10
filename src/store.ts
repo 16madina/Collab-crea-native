@@ -124,7 +124,7 @@ type Actions = {
   saveOffer: (o: Omit<Offer, "id" | "brand_id" | "created_at"> & { id?: string }) => Result;
   deleteOffer: (id: string) => void;
   renewOffer: (id: string) => void;
-  applyToOffer: (offerId: string, message?: string, slot?: Slot) => Result;
+  applyToOffer: (offerId: string, message?: string, slot?: Slot, extra?: Pick<Application, "examples" | "links" | "notes">) => Result;
   proposeOffer: (offerId: string, creatorId: string, message?: string) => Result;
   // collaborations
   acceptProposal: (conversationId: string, agreed?: number) => Result;
@@ -355,7 +355,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
     deleteOffer: (id) => set((s) => ({ offers: s.offers.filter((o) => !(o.id === id && o.brand_id === s.userId)) })),
     renewOffer: (id) => set((s) => ({ offers: s.offers.map((o) => (o.id === id && o.brand_id === s.userId ? { ...o, status: "active", deadline: inDays(30) } : o)) })),
 
-    applyToOffer: (offerId, message, slot) => {
+    applyToOffer: (offerId, message, slot, extra = {}) => {
       const s = get();
       const me = s.profiles.find((p) => p.user_id === s.userId)!;
       if (!me.identity_verified) return { ok: false, error: "Vérifiez votre identité pour postuler aux offres" };
@@ -368,11 +368,13 @@ export const useDB = create<DB & Actions>()((set, get) => {
       const convId = existing?.conversation_id ?? newConversation(me.user_id, offer.brand_id, offer.title, offer.id);
       const content = existing
         ? "📩 Je souhaite postuler à nouveau pour cette offre."
-        : `${slot ? `📅 Créneau choisi : ${slot.date} ${slot.start_time}–${slot.end_time}\n\n` : ""}${message?.trim() || "Bonjour, je suis intéressé(e) par votre offre."}`;
-      if (existing) set((st) => ({ applications: st.applications.map((a) => (a.id === existing.id ? { ...a, status: "pending", message, selected_slot: slot } : a)) }));
+        : `${slot ? `📅 Créneau choisi : ${slot.date} ${slot.start_time}–${slot.end_time}\n\n` : ""}${message?.trim() || "Bonjour, je suis intéressé(e) par votre offre."}${
+            extra.notes?.trim() ? `\n\n📝 ${extra.notes.trim()}` : ""
+          }${Object.values(extra.links ?? {}).filter(Boolean).length ? `\n\n🔗 ${Object.values(extra.links ?? {}).filter(Boolean).join("\n🔗 ")}` : ""}${extra.examples?.length ? `\n\n🎬 ${extra.examples.length} exemple(s) de travail joint(s)` : ""}`;
+      if (existing) set((st) => ({ applications: st.applications.map((a) => (a.id === existing.id ? { ...a, ...extra, status: "pending", message, selected_slot: slot } : a)) }));
       else
         set((st) => ({
-          applications: [{ id: uid(), offer_id: offerId, creator_id: me.user_id, message, selected_slot: slot, status: "pending", conversation_id: convId, created_at: now() }, ...st.applications],
+          applications: [{ id: uid(), offer_id: offerId, creator_id: me.user_id, message, selected_slot: slot, ...extra, status: "pending", conversation_id: convId, created_at: now() }, ...st.applications],
         }));
       systemMsg(convId, me.user_id, content);
       get().notify(offer.brand_id, "Nouvelle candidature", `${me.full_name} a postulé à « ${offer.title} »`, "info");
