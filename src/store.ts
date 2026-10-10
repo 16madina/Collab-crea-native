@@ -430,6 +430,13 @@ export const useDB = create<DB & Actions>()((set, get) => {
         return { ok: false, error: "Email invalide" };
       if (password.length < 6)
         return { ok: false, error: "Minimum 6 caractères" };
+      if (!live()) {
+        // Aperçu démo (sans réseau) : connexion fictive selon l'email.
+        const mine = get().profiles.find((p) => (p as Profile & { email?: string }).email === email);
+        if (mine) set({ userId: mine.user_id, guest: false });
+        else get().demoSignIn(email.startsWith("admin") ? "admin" : email.startsWith("marque") || email.startsWith("brand") ? "brand" : "creator");
+        return { ok: true };
+      }
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -464,6 +471,24 @@ export const useDB = create<DB & Actions>()((set, get) => {
       });
     },
     signUp: async ({ email, password, inviteCode, followers, ...p }) => {
+      if (!live()) {
+        // Aperçu démo (sans réseau) : compte créé en mémoire.
+        const s = get();
+        if (s.inviteRequired) {
+          const c = s.inviteCodes.find((x) => x.code === inviteCode?.toUpperCase());
+          if (!c || !c.is_active || c.used_by) return { ok: false, error: "Code invalide ou déjà utilisé" };
+        }
+        const user_id = uid();
+        set((st) => ({
+          profiles: [...st.profiles, { ...p, email, user_id, followers: followers ?? {}, email_verified: false, identity_verified: false } as Profile],
+          inviteCodes: st.inviteCodes.map((c) => (c.code === inviteCode?.toUpperCase() ? { ...c, used_by: user_id, used_at: now() } : c)),
+          wallets: [...st.wallets, { user_id, balance: 0, pending_balance: 0 }],
+          userId: user_id,
+          guest: false,
+        }));
+        void password;
+        return { ok: true, id: user_id };
+      }
       const meta: Record<string, unknown> = {
         role: p.role === "brand" ? "brand" : "creator",
         invite_code: inviteCode ?? "",
@@ -498,6 +523,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
       return { ok: true, id: data.user.id };
     },
     resetPassword: async (email) => {
+      if (!live()) return { ok: true };
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       return error ? { ok: false, error: errMsg(error) } : { ok: true };
     },
