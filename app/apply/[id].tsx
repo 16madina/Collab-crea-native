@@ -3,12 +3,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { nameOf } from "../../src/components/collab/common";
-import { Sheet } from "../../src/components/collab/Sheet";
 import { initials } from "../../src/components/home/CreatorTile";
 import { logoOf } from "../../src/components/offers/OfferCards";
 import { Empty, fmtDate, toast } from "../../src/kit";
@@ -18,29 +17,17 @@ import { colors, fonts, radius } from "../../src/theme";
 import type { Slot } from "../../src/types";
 import { Button, Press } from "../../src/ui";
 
-const MAX_EXAMPLES = 3;
-const NETWORKS = [
-  { key: "instagram", icon: "logo-instagram", placeholder: "https://instagram.com/…" },
-  { key: "tiktok", icon: "logo-tiktok", placeholder: "https://tiktok.com/@…" },
-  { key: "youtube", icon: "logo-youtube", placeholder: "https://youtube.com/@…" },
-] as const;
-
 export default function Apply() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const me = useMe();
   const offer = useDB((s) => s.offers.find((o) => o.id === id));
   const brand = useDB((s) => s.profiles.find((p) => p.user_id === offer?.brand_id));
-  const portfolio = useDB((s) => s.portfolio);
   const applyToOffer = useDB((s) => s.applyToOffer);
-  const mine = useMemo(() => portfolio.filter((p) => p.user_id === me?.user_id), [portfolio, me?.user_id]);
 
   const [msg, setMsg] = useState("");
   const [notes, setNotes] = useState("");
   const [slot, setSlot] = useState<Slot | undefined>();
-  const [examples, setExamples] = useState<string[]>([]); // ids portfolio
-  const [links, setLinks] = useState<Record<string, string>>({});
-  const [pickOpen, setPickOpen] = useState(false);
 
   if (!offer || !me) {
     return (
@@ -52,11 +39,7 @@ export default function Apply() {
 
   const send = () => {
     if (!msg.trim()) return toast("Écris ta proposition", "error");
-    const r = applyToOffer(offer.id, msg.trim(), slot, {
-      examples: mine.filter((p) => examples.includes(p.id)).map((p) => p.media_url),
-      links: Object.fromEntries(Object.entries(links).filter(([, v]) => v.trim())),
-      notes: notes.trim() || undefined,
-    });
+    const r = applyToOffer(offer.id, msg.trim(), slot, { notes: notes.trim() || undefined });
     if (!r.ok) return toast(r.error, "error");
     toast("Candidature envoyée !");
     router.replace(`/offer/${offer.id}`);
@@ -126,55 +109,6 @@ export default function Apply() {
         </View>
 
         <View style={{ gap: 6 }}>
-          <Text style={styles.h}>
-            Ajoute des exemples de ton travail <Text style={styles.opt}>(facultatif)</Text>
-          </Text>
-          <Text style={styles.sub}>Montre des contenus similaires que tu as déjà réalisés.</Text>
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 4 }}>
-            {mine
-              .filter((p) => examples.includes(p.id))
-              .map((p) => (
-                <Animated.View key={p.id} entering={FadeIn} exiting={FadeOut} style={styles.ex}>
-                  <Image source={p.media_url} style={StyleSheet.absoluteFill} contentFit="cover" />
-                  <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.55)"]} style={StyleSheet.absoluteFill} />
-                  {p.media_type === "video" ? <Ionicons name="play" size={13} color="#fff" style={{ position: "absolute", left: 7, bottom: 7 }} /> : null}
-                  <Press onPress={() => setExamples((l) => l.filter((x) => x !== p.id))} style={styles.exDel} scaleTo={0.85}>
-                    <Ionicons name="close" size={13} color="#fff" />
-                  </Press>
-                </Animated.View>
-              ))}
-            {examples.length < MAX_EXAMPLES ? (
-              <Press onPress={() => setPickOpen(true)} style={[styles.ex, styles.exAdd]} scaleTo={0.96}>
-                <Ionicons name="add-circle-outline" size={24} color={colors.inkSoft} />
-                <Text style={[styles.hint, { textAlign: "center" }]}>Ajouter une vidéo</Text>
-              </Press>
-            ) : null}
-          </View>
-        </View>
-
-        <View style={{ gap: 8 }}>
-          <Text style={styles.h}>
-            Lien vers tes réseaux <Text style={styles.opt}>(facultatif)</Text>
-          </Text>
-          {NETWORKS.map((n) => (
-            <View key={n.key} style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-              <View style={styles.netIcon}>
-                <Ionicons name={n.icon} size={20} color="#F8F6F2" />
-              </View>
-              <TextInput
-                value={links[n.key] ?? ""}
-                onChangeText={(t) => setLinks((l) => ({ ...l, [n.key]: t }))}
-                placeholder={n.placeholder}
-                placeholderTextColor={colors.muted}
-                autoCapitalize="none"
-                keyboardType="url"
-                style={[styles.input, styles.link]}
-              />
-            </View>
-          ))}
-        </View>
-
-        <View style={{ gap: 6 }}>
           <Text style={styles.h}>Informations supplémentaires</Text>
           <Text style={styles.sub}>As-tu des questions ou des idées particulières ? (facultatif)</Text>
           <View style={styles.area}>
@@ -190,29 +124,6 @@ export default function Apply() {
         </View>
       </ScrollView>
 
-      <Sheet visible={pickOpen} onClose={() => setPickOpen(false)} title="Choisir dans ton portfolio" subtitle="L'envoi depuis la galerie arrivera avec le back-end">
-        {mine.length === 0 ? (
-          <Text style={styles.sub}>Ton portfolio est vide. Ajoute des contenus depuis ton profil.</Text>
-        ) : (
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-            {mine
-              .filter((p) => !examples.includes(p.id))
-              .map((p) => (
-                <Press
-                  key={p.id}
-                  onPress={() => {
-                    setExamples((l) => (l.length >= MAX_EXAMPLES ? l : [...l, p.id]));
-                    setPickOpen(false);
-                  }}
-                  style={styles.pick}
-                >
-                  <Image source={p.media_url} style={StyleSheet.absoluteFill} contentFit="cover" />
-                  {p.media_type === "video" ? <Ionicons name="play-circle" size={22} color="#fff" style={{ position: "absolute", left: 6, bottom: 6 }} /> : null}
-                </Press>
-              ))}
-          </View>
-        )}
-      </Sheet>
     </KeyboardAvoidingView>
   );
 }
