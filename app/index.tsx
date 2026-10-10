@@ -43,23 +43,11 @@ const SLIDES: {
   cta: string;
 }[] = [
   {
-    key: "grow",
-    body: "Des créateurs, des marques et des opportunités, réunis au même endroit.",
-    image: IMG.community,
-    features: [
-      { icon: "people", label: "Une communauté\nde talents" },
-      { icon: "star", label: "Des collaborations\nde qualité" },
-      { icon: "trending-up", label: "Une vraie\ncroissance" },
-    ],
-    cta: "Suivant",
-  },
-  {
     key: "profile",
     body: "Présente ton univers, tes réseaux et tes statistiques en quelques étapes seulement.",
     image: IMG.profile,
     cta: "Suivant",
-  },
-  {
+  },  {
     key: "collab",
     body: "Accède à des campagnes authentiques et rémunérées qui correspondent à ton univers.",
     image: IMG.campaigns,
@@ -68,9 +56,18 @@ const SLIDES: {
       { icon: "people-outline", label: "Des marques\nsérieuses" },
       { icon: "stats-chart-outline", label: "Une communauté\nactive" },
     ],
+    cta: "Suivant",
+  },  {
+    key: "grow",
+    body: "Des créateurs, des marques et des opportunités, réunis au même endroit.",
+    image: IMG.community,
+    features: [
+      { icon: "people", label: "Une communauté\nde talents" },
+      { icon: "star", label: "Des collaborations\nde qualité" },
+      { icon: "trending-up", label: "Une vraie\ncroissance" },
+    ],
     cta: "Commencer maintenant",
-  },
-  // Dernière page : choix créateur / marque.
+  },  // Dernière page : choix créateur / marque.
   { key: "welcome", body: "", cta: "" },
 ];
 
