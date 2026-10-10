@@ -91,6 +91,11 @@ export function BrandProfileLux({ me, onLogout }: { me: Profile; onLogout: () =>
           <Press onPress={() => router.navigate("/(tabs)/home")} style={[styles.coverBtn, { left: 12 }]} scaleTo={0.9}>
             <Ionicons name="chevron-back" size={22} color={colors.ink} />
           </Press>
+          {useDB.getState().myRoles.includes("admin") ? (
+            <Press onPress={() => router.push("/admin")} style={[styles.coverBtn, { right: 60 }]} scaleTo={0.9}>
+              <Ionicons name="shield-checkmark-outline" size={20} color={colors.primary} />
+            </Press>
+          ) : null}
           <Press onPress={() => setMenu(true)} style={[styles.coverBtn, { right: 12 }]} scaleTo={0.9}>
             <Ionicons name="ellipsis-vertical" size={20} color={colors.ink} />
           </Press>

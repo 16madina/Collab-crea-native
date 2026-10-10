@@ -388,6 +388,7 @@ function SecurityTab({ me, onLogout }: { me: Profile; onLogout: () => void }) {
 
 // ---------- écran ----------
 export function CreatorProfileLux({ me, onLogout }: { me: Profile; onLogout: () => void }) {
+  const isAdmin = useDB((s) => s.myRoles.includes("admin"));
   const insets = useSafeAreaInsets();
   const updateProfile = useDB((s) => s.updateProfile);
   const portfolio = useDB((s) => s.portfolio);
@@ -409,9 +410,16 @@ export function CreatorProfileLux({ me, onLogout }: { me: Profile; onLogout: () 
             <Ionicons name="chevron-back" size={24} color={colors.ink} />
           </Press>
           <Text style={styles.headerTitle}>Mon Profil</Text>
-          <Press onPress={() => router.push("/settings")} style={styles.headerBtn} scaleTo={0.9}>
-            <Ionicons name="settings-outline" size={22} color={colors.ink} />
-          </Press>
+          <View style={{ flexDirection: "row", gap: 6 }}>
+            {isAdmin ? (
+              <Press onPress={() => router.push("/admin")} style={styles.headerBtn} scaleTo={0.9}>
+                <Ionicons name="shield-checkmark-outline" size={22} color={colors.primary} />
+              </Press>
+            ) : null}
+            <Press onPress={() => router.push("/settings")} style={styles.headerBtn} scaleTo={0.9}>
+              <Ionicons name="settings-outline" size={22} color={colors.ink} />
+            </Press>
+          </View>
         </View>
 
         {/* Couverture */}

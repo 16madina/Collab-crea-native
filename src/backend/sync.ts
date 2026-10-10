@@ -24,9 +24,11 @@ import type {
   Withdrawal,
 } from "../types";
 import { errMsg, supabase } from "./supabase";
+import { assetKey, img } from "../assets";
 
 type Row = Record<string, unknown>;
-const str = (v: unknown) => (typeof v === "string" && v ? v : null);
+// Chaîne à enregistrer : les images embarquées (nombre) redeviennent « asset:… ».
+const str = (v: unknown) => (typeof v === "string" && v ? v : typeof v === "number" ? assetKey(v) : null);
 const opt = <T>(v: T | null | undefined) => (v === null ? undefined : v);
 const toDate = (iso?: string) => (iso ? iso.slice(0, 10) : null);
 const fromDate = (d: unknown) =>
@@ -55,8 +57,8 @@ export const map = {
         user_id: r.user_id as string,
         role,
         full_name: (r.full_name as string) ?? "",
-        avatar_url: (r.avatar_url as string) ?? "",
-        banner_url: opt(r.banner_url as string),
+        avatar_url: img((r.avatar_url as string) ?? ""),
+        banner_url: r.banner_url ? img(r.banner_url as string) : undefined,
         logo_url: opt(r.logo_url as string),
         bio: opt(r.bio as string),
         category: opt(r.category as string),
@@ -130,7 +132,7 @@ export const map = {
       budget_min: r.budget_min as number,
       budget_max: r.budget_max as number,
       deadline: fromDate(r.deadline),
-      logo_url: opt(r.logo_url as string),
+      logo_url: r.logo_url ? img(r.logo_url as string) : undefined,
       location: opt(r.location as string),
       delivery_mode: r.delivery_mode as Offer["delivery_mode"],
       presence_mode: r.presence_mode as Offer["presence_mode"],
@@ -140,7 +142,7 @@ export const map = {
       on_site_store_name: opt(r.on_site_store_name as string),
       on_site_slots: (r.on_site_slots as Offer["on_site_slots"]) ?? [],
       creative_brief: (r.creative_brief as Offer["creative_brief"]) ?? {},
-      images: (r.images as string[]) ?? [],
+      images: ((r.images as string[]) ?? []).map(img),
       deliverables: (r.deliverables as string[]) ?? [],
       criteria: (r.criteria as string[]) ?? [],
       status: r.status as Offer["status"],
@@ -169,7 +171,7 @@ export const map = {
       on_site_store_name: o.on_site_store_name ?? null,
       on_site_slots: o.on_site_slots,
       creative_brief: o.creative_brief,
-      images: o.images.filter((x): x is string => typeof x === "string"),
+      images: o.images.map(str).filter((x): x is string => !!x),
       deliverables: o.deliverables ?? [],
       criteria: o.criteria ?? [],
       status: o.status,
@@ -282,7 +284,7 @@ export const map = {
       title: r.title as string,
       description: opt(r.description as string),
       media_type: r.media_type as PortfolioItem["media_type"],
-      media_url: r.media_url as string,
+      media_url: img(r.media_url as string),
       platform: opt(r.platform as string),
       views_count: opt(r.views_count as number),
     }),
