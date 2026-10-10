@@ -236,21 +236,22 @@ export default function CollabDetail() {
           {collab.auto_approve_at ? <Badge label={`Validation auto : ${fmtDate(collab.auto_approve_at, true)}`} tone="warning" /> : null}
           {!collab.paid ? (
             <>
-              <Text style={type.small}>Le contenu est verrouillé tant que le paiement n'a pas été effectué.</Text>
-              {isBrand ? <Button label="Payer pour débloquer le contenu" icon="lock-open-outline" onPress={() => setPayOpen(true)} /> : null}
-            </>
-          ) : (
-            <>
+              {/* Avant paiement : aperçu filigrané, visible une seule fois, sans téléchargement. */}
+              <Text style={type.small}>🔒 Contenu protégé par le filigrane Collab Créa tant que le paiement n'a pas été effectué.</Text>
               {isBrand && !brandFilms ? (
                 <Button
-                  label={viewed ? "Aperçu déjà visionné" : "Visionner une fois"}
+                  label={viewed ? "Aperçu déjà visionné" : "Visionner une fois (aperçu filigrané)"}
                   variant={viewed ? "ghost" : "dark"}
                   icon="eye-outline"
                   onPress={() => (viewed ? toast("L'aperçu filigrané ne peut être vu qu'une fois", "info") : setPreviewOpen(true))}
                 />
-              ) : (
-                <ContentLinks />
-              )}
+              ) : null}
+              {isBrand ? <Button label="Payer pour débloquer le contenu" icon="lock-open-outline" onPress={() => setPayOpen(true)} /> : null}
+            </>
+          ) : (
+            <>
+              {/* Après paiement : filigrane retiré, lecture normale et téléchargement. */}
+              <UnlockedContent urls={collab.content_urls} />
               <Button label="Examiner et valider" icon="checkmark-done" onPress={() => setReviewOpen(true)} />
             </>
           )}
@@ -307,6 +308,12 @@ export default function CollabDetail() {
             <Text style={type.small}>{isCreator ? `${fcfa(collab.creator_amount)} ont été crédités sur votre portefeuille.` : "Le paiement a été versé au créateur."}</Text>
             {isCreator ? <Button label="Voir mon portefeuille" small icon="wallet-outline" onPress={() => router.push("/wallet")} /> : null}
           </Card>
+          {isBrand && collab.content_urls.length ? (
+            <Card>
+              <Text style={type.h3}>Votre contenu</Text>
+              <UnlockedContent urls={collab.content_urls} />
+            </Card>
+          ) : null}
           {isBrand && !rated ? (
             <Card>
               <Text style={type.h3}>Notez {nameOf(other)}</Text>
@@ -527,9 +534,58 @@ const styles = StyleSheet.create({
   previewClose: { backgroundColor: "#fff", borderRadius: radius.pill, paddingHorizontal: 22, height: 52, alignItems: "center", justifyContent: "center" },
 });
 
-/** Lecture protégée d'une vidéo privée : lien signé de courte durée, pas de téléchargement, filigrane par-dessus. */
+/** Contenu débloqué (séquestre payé) : vidéos lisibles sans filigrane + téléchargement, liens cliquables. */
+function UnlockedContent({ urls }: { urls: string[] }) {
+  const download = async (u: string) => {
+    try {
+      const link = u.startsWith(STORAGE) ? await signedUrl("collaboration-content", u.slice(STORAGE.length), 600) : u;
+      await Linking.openURL(link);
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
+  return (
+    <View style={{ gap: 10 }}>
+      <Banner tone="success" icon="lock-open-outline">Paiement sécurisé : le filigrane est retiré, vous pouvez télécharger le contenu.</Banner>
+      {urls.map((u, i) =>
+        u.startsWith(STORAGE) ? (
+          <View key={u} style={{ gap: 6 }}>
+            <PlainVideo path={u.slice(STORAGE.length)} />
+            <Button label="Télécharger la vidéo" variant="outline" small icon="download-outline" onPress={() => download(u)} />
+          </View>
+        ) : (
+          <Press key={i} onPress={() => (isVideo(u) ? toast("Vidéo de démonstration", "info") : download(u))} style={styles.link}>
+            <Ionicons name={isVideo(u) ? "videocam" : "link"} size={16} color={colors.primary} />
+            <Text style={[type.small, { flex: 1, color: colors.ink }]} numberOfLines={1}>
+              {isVideo(u) ? "Vidéo importée" : u}
+            </Text>
+            <Ionicons name="download-outline" size={16} color={colors.primary} />
+          </Press>
+        ),
+      )}
+    </View>
+  );
+}
+
+/** Lecture sans filigrane (après paiement). */
+function PlainVideo({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    signedUrl("collaboration-content", path, 600)
+      .then(setUrl)
+      .catch((e) => toast((e as Error).message, "error"));
+  }, [path]);
+  const player = useVideoPlayer(url);
+  return (
+    <View style={{ width: "100%", aspectRatio: 9 / 16, maxHeight: 420, borderRadius: 12, overflow: "hidden", backgroundColor: "#000" }}>
+      {url ? <VideoView player={player} style={{ flex: 1 }} nativeControls contentFit="contain" /> : null}
+    </View>
+  );
+}
+
+/** Aperçu avant paiement : lien signé de courte durée, pas de téléchargement, filigrane par-dessus. */
 function ProtectedVideo({ path }: { path: string }) {
-  // Bloque captures et enregistrements d'écran tant que l'aperçu est affiché.
+  // Bloque captures et enregistrements d'écran tant que l'aperçu filigrané est affiché.
   usePreventScreenCapture("collab-preview");
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
