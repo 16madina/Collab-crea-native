@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { usePreventScreenCapture } from "expo-screen-capture";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -494,6 +495,10 @@ export default function CollabDetail() {
               ))}
             </View>
             <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+              {/* Filigrane : nouveau logo Collab Créa au centre + mention répétée. */}
+              <View style={{ ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" }}>
+                <Image source={require("../../assets/logo-mark.png")} style={{ width: 190, height: 112, opacity: 0.45 }} contentFit="contain" />
+              </View>
               {Array.from({ length: 6 }).map((_, i) => (
                 <Text key={i} style={[styles.watermark, { top: 20 + i * 60 }]}>
                   COLLAB CRÉA • APERÇU • {me.user_id.slice(-4).toUpperCase()}
