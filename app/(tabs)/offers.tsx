@@ -340,7 +340,11 @@ export default function Explore() {
   const insets = useSafeAreaInsets();
   const userId = useDB((s) => s.userId);
   const params = useLocalSearchParams<{ tab?: string; q?: string; cat?: string }>();
-  const [tab, setTab] = useState<"creators" | "offers">(params.tab === "offers" || params.q || params.cat ? "offers" : "creators");
+  const isCreator = useDB((s) => s.profiles.find((p) => p.user_id === s.userId)?.role === "creator");
+  const [tab, setTab] = useState<"creators" | "offers">(params.tab === "offers" || params.q || params.cat || (!params.tab && isCreator) ? "offers" : "creators");
+  useEffect(() => {
+    if (!params.tab) setTab(isCreator ? "offers" : "creators");
+  }, [isCreator]);
   const [searchOpen, setSearchOpen] = useState(false);
   useEffect(() => {
     if (params.tab === "offers" || params.tab === "creators") setTab(params.tab);

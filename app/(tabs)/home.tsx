@@ -1,4 +1,4 @@
-// Accueil : créateurs à la une + nouveaux créateurs (les campagnes vivent dans l'onglet Campagnes).
+// Accueil Créateur : nouvelles offres des marques en tête, puis les créateurs populaires.
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -12,9 +12,10 @@ import { avatarOf, flagOf, nameOf } from "../../src/components/collab/common";
 import { initials, shortName, totalFollowers } from "../../src/components/home/CreatorTile";
 import { Empty } from "../../src/kit";
 import { GlossFill, GoldButton, GoldFill, GoldPill, GoldRing, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../../src/lux";
-import { useDB, useMe } from "../../src/store";
+import { budgetLabel, useDB, useMe } from "../../src/store";
+import { timeLeft } from "../../src/kit";
 import { colors, fonts, radius } from "../../src/theme";
-import type { Profile, SocialPlatform } from "../../src/types";
+import type { Offer, Profile, SocialPlatform } from "../../src/types";
 import { Logo, Press } from "../../src/ui";
 import { BrandHome } from "../../src/components/home/BrandHome";
 import { SpaceSwitcher } from "../../src/components/SpaceSwitcher";
@@ -76,29 +77,33 @@ function Tag({ label }: { label: string }) {
   );
 }
 
-function FeaturedCard({ p }: { p: Profile }) {
+function OfferFeatured({ o, brand, apps }: { o: Offer; brand?: Profile; apps: number }) {
+  const img = o.images?.[0];
   return (
-    <Press onPress={() => router.push(`/profile/${p.user_id}`)} style={[styles.feat, luxShadow]} scaleTo={0.98}>
-      <Photo p={p} mono={90} side />
-      <LinearGradient colors={["#0E0E0E", "rgba(14,14,14,0.6)", "rgba(14,14,14,0)"]} locations={[0.3, 0.5, 0.7]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={["rgba(11,11,11,0)", "rgba(11,11,11,0.75)"]} locations={[0.55, 1]} style={StyleSheet.absoluteFill} />
-      <Heart p={p} />
+    <Press onPress={() => router.push(`/offer/${o.id}`)} style={[styles.feat, luxShadow]} scaleTo={0.98}>
+      {img != null ? (
+        <Image source={typeof img === "string" ? { uri: img } : img} style={styles.offerImg} contentFit="cover" />
+      ) : (
+        <GlossFill />
+      )}
+      <LinearGradient colors={["#0E0E0E", "rgba(14,14,14,0.6)", "rgba(14,14,14,0)"]} locations={[0.3, 0.5, 0.75]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
       <View style={styles.featBody}>
-        <View style={styles.nameRow}>
-          <Text style={styles.featName} numberOfLines={1}>
-            {shortName(p.full_name)}
-          </Text>
-          {p.identity_verified && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
+        <View style={styles.offerBrand}>
+          <View style={styles.offerLogo}>
+            <Text style={styles.offerLogoText}>{nameOf(brand).slice(0, 2).toUpperCase()}</Text>
+            <Image source={avatarOf(brand)} style={StyleSheet.absoluteFill} contentFit="cover" />
+          </View>
+          <Text style={styles.offerBrandName} numberOfLines={1}>{nameOf(brand)}</Text>
+          {brand?.identity_verified && <Ionicons name="checkmark-circle" size={14} color={colors.primary} />}
         </View>
-        <Text style={styles.featFollowers}>{formatFollowers(totalFollowers(p))} abonnés</Text>
-        <View style={{ flexDirection: "row", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-          {tagsOf(p)
-            .slice(0, 3)
-            .map((t) => (
-              <Tag key={t} label={t} />
-            ))}
+        <Text style={styles.offerTitle} numberOfLines={2}>{o.title}</Text>
+        <View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}>
+          <Tag label={o.category} />
+          {o.deadline ? <Tag label={timeLeft(o.deadline).label} /> : null}
         </View>
-        <GoldButton label="Voir le profil" onPress={() => router.push(`/profile/${p.user_id}`)} style={{ marginTop: 12, minWidth: 170 }} />
+        <Text style={styles.offerBudget} numberOfLines={1}>{budgetLabel(o)}</Text>
+        <Text style={styles.offerApps}>{apps} candidature{apps > 1 ? "s" : ""}</Text>
+        <GoldButton label="Voir l'offre" onPress={() => router.push(`/offer/${o.id}`)} style={{ marginTop: 10, minWidth: 150 }} />
       </View>
     </Press>
   );
@@ -183,8 +188,18 @@ function CreatorHome() {
         (!s || `${p.full_name} ${p.category} ${p.tags?.join(" ")} ${p.country}`.toLowerCase().includes(s)),
     );
   }, [creators, q, cat, country, platform]);
-  const featured = useMemo(() => [...filtered].sort((a, b) => totalFollowers(b) - totalFollowers(a)).slice(0, 5), [filtered]);
-  const fresh = useMemo(() => [...filtered].reverse(), [filtered]);
+  const offers = useDB((s) => s.offers);
+  const applications = useDB((s) => s.applications);
+  const newOffers = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return offers
+      .filter((o) => o.status === "active" && (!o.deadline || new Date(o.deadline).getTime() > Date.now()))
+      .filter((o) => cat === "Tous" || o.category === cat)
+      .filter((o) => !s || `${o.title} ${o.category} ${o.description}`.toLowerCase().includes(s))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, 8);
+  }, [offers, q, cat]);
+  const popular = useMemo(() => [...filtered].sort((a, b) => totalFollowers(b) - totalFollowers(a)), [filtered]);
   const activeFilters = (country !== "all" ? 1 : 0) + (platform !== "all" ? 1 : 0);
   const isBrand = me?.role === "brand";
   const firstName = !me ? "Invité" : isBrand ? nameOf(me) : me.full_name.split(" ")[0];
@@ -284,12 +299,12 @@ function CreatorHome() {
         })}
       </ScrollView>
 
-      {filtered.length === 0 ? (
-        <Empty icon="people-outline" title="Aucun créateur trouvé" text="Essaie une autre catégorie, un autre pays ou une autre plateforme." />
+      {/* Nouvelles offres des marques */}
+      <SectionHead title="Nouvelles offres" onAll={() => router.push("/(tabs)/offers?tab=offers")} />
+      {newOffers.length === 0 ? (
+        <Empty icon="briefcase-outline" title="Aucune offre pour l'instant" text="Reviens bientôt ou essaie une autre catégorie." />
       ) : (
         <>
-          {/* Créateurs à la une */}
-          <SectionHead title="Créateurs à la une" onAll={seeAll} />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -299,30 +314,42 @@ function CreatorHome() {
             onScroll={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / (FEAT_W + FEAT_GAP)))}
             scrollEventThrottle={32}
           >
-            {featured.map((p, i) => (
-              <Animated.View key={p.user_id} entering={FadeInRight.delay(220 + i * 80).springify()}>
-                <FeaturedCard p={p} />
+            {newOffers.map((o, i) => (
+              <Animated.View key={o.id} entering={FadeInRight.delay(220 + i * 80).springify()}>
+                <OfferFeatured o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={applications.filter((x) => x.offer_id === o.id).length} />
               </Animated.View>
             ))}
           </ScrollView>
-          <PagerDots count={featured.length} index={Math.min(page, featured.length - 1)} />
-
-          {/* Nouveaux créateurs */}
-          <SectionHead title="Nouveaux créateurs" onAll={seeAll} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 6 }}>
-            {fresh.map((p, i) => (
-              <Animated.View key={p.user_id} entering={FadeInRight.delay(300 + i * 60).springify()}>
-                <NewCard p={p} />
-              </Animated.View>
-            ))}
-          </ScrollView>
+          <PagerDots count={newOffers.length} index={Math.min(page, newOffers.length - 1)} />
         </>
+      )}
+
+      {/* Créateurs populaires */}
+      <SectionHead title="Créateurs populaires" onAll={seeAll} />
+      {popular.length === 0 ? (
+        <Empty icon="people-outline" title="Aucun créateur trouvé" text="Essaie une autre catégorie, un autre pays ou une autre plateforme." />
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 6 }}>
+          {popular.map((p, i) => (
+            <Animated.View key={p.user_id} entering={FadeInRight.delay(300 + i * 60).springify()}>
+              <NewCard p={p} />
+            </Animated.View>
+          ))}
+        </ScrollView>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  offerImg: { position: "absolute", top: 0, bottom: 0, right: 0, width: "62%" },
+  offerBrand: { flexDirection: "row", alignItems: "center", gap: 7, maxWidth: "62%" },
+  offerLogo: { width: 26, height: 26, borderRadius: 13, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0B0B0B", alignItems: "center", justifyContent: "center" },
+  offerLogoText: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 10 },
+  offerBrandName: { color: colors.inkSoft, fontSize: 11, fontWeight: "700", flexShrink: 1 },
+  offerTitle: { fontFamily: fonts.serif, color: colors.ink, fontSize: 18, lineHeight: 22, marginTop: 8, maxWidth: "62%" },
+  offerBudget: { color: colors.primary, fontSize: 13, fontWeight: "800", marginTop: 8 },
+  offerApps: { color: colors.inkSoft, fontSize: 10, marginTop: 2 },
   ambient: { position: "absolute", top: 0, right: 0, width: W, height: 360 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
   iconBtn: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
