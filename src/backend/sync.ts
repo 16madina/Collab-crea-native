@@ -565,11 +565,10 @@ export async function loadAll(store: Store, uid: string) {
     .filter((r) => r.user_id === uid)
     .map((r) => r.role as Role);
   const st = store.getState() as { activeRole?: Role };
-  const active: Role | undefined = myRoles.includes("admin")
-    ? "admin"
-    : st.activeRole && myRoles.includes(st.activeRole)
-      ? st.activeRole
-      : myRoles[0];
+  // Espace par défaut : créateur ou marque ; « admin » seulement pour un compte purement administrateur
+  // (le panneau admin reste accessible depuis le profil).
+  const active: Role | undefined =
+    st.activeRole && myRoles.includes(st.activeRole) ? st.activeRole : (myRoles.find((r) => r !== "admin") ?? myRoles[0]);
   if (active) roleOf.set(uid, active);
 
   applyingServer = true;

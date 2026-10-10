@@ -324,6 +324,7 @@ export function BrandProfileLux({ me, onLogout }: { me: Profile; onLogout: () =>
             ["settings-outline", "Paramètres", () => router.push("/settings")],
             ["notifications-outline", "Notifications", () => router.push("/notifications")],
             ["chatbubbles-outline", "Mes collaborations", () => router.push("/(tabs)/collabs?tab=collabs")],
+            ...(useDB.getState().myRoles.includes("admin") ? ([["shield-outline", "Panneau administrateur", () => router.push("/admin")]] as const) : []),
             ["log-out-outline", "Se déconnecter", onLogout],
           ] as const
         ).map(([ic, l, fn]) => (

@@ -34,6 +34,9 @@ export default function AdminHome() {
           <Text style={type.small}>Collab Créa</Text>
           <Text style={type.h1}>Admin Panel</Text>
         </View>
+        {useDB.getState().myRoles.some((r) => r !== "admin") ? (
+          <IconButton name="phone-portrait-outline" onPress={() => router.replace("/(tabs)/home")} />
+        ) : null}
         <IconButton name="log-out-outline" onPress={logout} />
       </Animated.View>
       <Animated.View entering={FadeInDown.delay(60).springify()}>

@@ -374,6 +374,11 @@ function SecurityTab({ me, onLogout }: { me: Profile; onLogout: () => void }) {
         <Text style={styles.walletText}>{fcfa(wallet?.balance ?? 0)}</Text>
         <Ionicons name="chevron-forward" size={18} color={colors.onPrimary} />
       </Press>
+      {useDB.getState().myRoles.includes("admin") ? (
+        <Text style={[styles.logout, { color: colors.primary }]} onPress={() => router.push("/admin")}>
+          Panneau administrateur
+        </Text>
+      ) : null}
       <Text style={styles.logout} onPress={onLogout}>
         Se déconnecter
       </Text>

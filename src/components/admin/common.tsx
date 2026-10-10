@@ -23,7 +23,8 @@ export type SectionKey = (typeof SECTIONS)[number]["value"];
 
 export function useAdminGuard() {
   const me = useMe();
-  const ok = me?.role === "admin";
+  const isAdmin = useDB((s) => s.myRoles.includes("admin"));
+  const ok = me?.role === "admin" || isAdmin;
   useEffect(() => {
     if (!ok) router.replace("/");
   }, [ok]);
