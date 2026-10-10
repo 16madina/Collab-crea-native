@@ -16,7 +16,7 @@ import { Press } from "../src/ui";
 const { width: W, height: H } = Dimensions.get("window");
 const IMG = {
   hero: require("../assets/onboarding/hero.jpg"),
-  logo: require("../assets/onboarding/logo.png"),
+  logo: require("../assets/logo.png"),
   profile: require("../assets/onboarding/profile.jpg"),
   campaigns: require("../assets/onboarding/campaigns.jpg"),
   community: require("../assets/onboarding/community.jpg"),
@@ -249,7 +249,7 @@ export default function Onboarding() {
 const styles = StyleSheet.create({
   heroImg: { position: "absolute", top: "20%", left: 0, right: 0, height: "60%" },
   welcome: { flex: 1, paddingHorizontal: 22 },
-  logo: { width: 250, height: 166 },
+  logo: { width: 190, height: 190 },
   script: { fontFamily: fonts.serifItalic, color: colors.primaryLight, fontSize: 25, lineHeight: 30, transform: [{ rotate: "-6deg" }], marginBottom: 18, marginLeft: 6 },
   welcomeBody: { color: colors.inkSoft, fontSize: 15, lineHeight: 22 },
   roleBtn: { flexDirection: "row", alignItems: "center", gap: 14, height: 60, borderRadius: radius.pill, paddingHorizontal: 24 },

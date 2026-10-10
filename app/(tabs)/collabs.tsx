@@ -238,7 +238,7 @@ function CollabsInner() {
       <LinearGradient colors={["rgba(217,172,101,0.16)", "rgba(217,172,101,0.05)", "rgba(217,172,101,0)"]} locations={[0, 0.4, 1]} start={{ x: 0.85, y: 0 }} end={{ x: 0.2, y: 1 }} style={styles.ambient} pointerEvents="none" />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 6, paddingBottom: 150 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.top}>
-          <Logo size={30} />
+          <Logo size={28} tagline={false} />
           <View style={{ flexDirection: "row", gap: 6 }}>
             <Press onPress={() => setTab(isCollabs ? "messages" : "collabs")} style={[styles.roundBtn, isCollabs && goldGlow]} scaleTo={0.9}>
               {isCollabs ? <GoldFill style={{ borderRadius: 23 }} /> : <GlossFill style={{ borderRadius: 23 }} />}
