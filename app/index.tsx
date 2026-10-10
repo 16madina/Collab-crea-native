@@ -42,7 +42,17 @@ const SLIDES: {
   features?: Feature[];
   cta: string;
 }[] = [
-  { key: "welcome", body: "", cta: "" },
+  {
+    key: "grow",
+    body: "Des créateurs, des marques et des opportunités, réunis au même endroit.",
+    image: IMG.community,
+    features: [
+      { icon: "people", label: "Une communauté\nde talents" },
+      { icon: "star", label: "Des collaborations\nde qualité" },
+      { icon: "trending-up", label: "Une vraie\ncroissance" },
+    ],
+    cta: "Suivant",
+  },
   {
     key: "profile",
     body: "Présente ton univers, tes réseaux et tes statistiques en quelques étapes seulement.",
@@ -58,19 +68,10 @@ const SLIDES: {
       { icon: "people-outline", label: "Des marques\nsérieuses" },
       { icon: "stats-chart-outline", label: "Une communauté\nactive" },
     ],
-    cta: "Suivant",
-  },
-  {
-    key: "grow",
-    body: "Des créateurs, des marques et des opportunités, réunis au même endroit.",
-    image: IMG.community,
-    features: [
-      { icon: "people", label: "Une communauté\nde talents" },
-      { icon: "star", label: "Des collaborations\nde qualité" },
-      { icon: "trending-up", label: "Une vraie\ncroissance" },
-    ],
     cta: "Commencer maintenant",
   },
+  // Dernière page : choix créateur / marque.
+  { key: "welcome", body: "", cta: "" },
 ];
 
 function GoldCta({
@@ -188,7 +189,7 @@ export default function Onboarding() {
   const finish = () => router.push(`/auth/signup?role=${chosen}`);
   const pick = (r: Role) => {
     setChosen(r);
-    go(1);
+    router.push(`/auth/signup?role=${r}`);
   };
   const demo = (r: Role) => {
     demoSignIn(r);
@@ -214,7 +215,7 @@ export default function Onboarding() {
         scrollEventThrottle={64}
         getItemLayout={(_, i) => ({ length: W, offset: W * i, index: i })}
         renderItem={({ item, index: i }) =>
-          i === 0 ? (
+          item.key === "welcome" ? (
             <View style={{ width: W, height: H }}>
               <Image
                 source={IMG.hero}
@@ -324,7 +325,7 @@ export default function Onboarding() {
                     />
                   </Press>
                 </Animated.View>
-                <Dots i={0} />
+                <Dots i={i} />
                 <View style={styles.smallRow}>
                   <Text
                     style={type.tiny}
@@ -377,7 +378,7 @@ export default function Onboarding() {
                     Continuer comme invité
                   </Text>
                 </Press>
-                <Press onPress={finish} style={styles.skip}>
+                <Press onPress={() => go(SLIDES.length - 1)} style={styles.skip}>
                   <Text style={styles.skipText}>Passer</Text>
                 </Press>
               </View>
@@ -418,7 +419,7 @@ export default function Onboarding() {
                 <GoldCta
                   label={item.cta}
                   onPress={() =>
-                    i === SLIDES.length - 1 ? finish() : go(i + 1)
+                    go(i + 1)
                   }
                 />
                 <Dots i={i} />
