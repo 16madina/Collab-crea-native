@@ -316,7 +316,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
   const firstName = !me ? "Invité" : isBrand ? nameOf(me) : me.full_name.split(" ")[0];
   const seeAll = () => router.push("/marketplace");
 
-  const brandAds = (
+  const premiumAds = (
     <>
       <View style={styles.adHead}>
         <MaterialCommunityIcons name="bullhorn-outline" size={24} color={colors.primary} style={{ marginTop: 2 }} />
@@ -515,7 +515,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
         </>
       )}
 
-      {!brandSpace && adsSection}
+      {!brandSpace && premiumAds}
 
       {/* Créateurs populaires */}
       <SectionHead title="Créateurs populaires" onAll={seeAll} />
@@ -531,7 +531,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
         </ScrollView>
       )}
 
-      {brandSpace && brandAds}
+      {brandSpace && adsSection}
     </ScrollView>
   );
 }
