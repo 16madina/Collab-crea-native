@@ -40,9 +40,11 @@ html.framed .fx{display:flex}
 .homebar{position:fixed;bottom:6px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#F8F6F2;z-index:100000;pointer-events:none;opacity:.85}
 """
 HEAD = """try{history.replaceState(null,"","/")}catch(e){}
-if(innerWidth>=480){
+var isPhone=Math.min(screen.width,screen.height)<600&&(navigator.maxTouchPoints||0)>0;
+if(!isPhone){
   document.documentElement.className="framed";
-  document.documentElement.style.setProperty("--s",Math.min(1,(innerHeight-24)/844,(innerWidth-24)/390));
+  var fit=function(){document.documentElement.style.setProperty("--s",Math.max(0.3,Math.min(1,(innerHeight-24)/844,(innerWidth-24)/390)))};
+  fit();addEventListener("resize",fit);
   var vv={width:366,height:770,scale:1,addEventListener:function(){},removeEventListener:function(){}};
   try{Object.defineProperty(window,"visualViewport",{get:function(){return vv}})}catch(e){}
 }"""
