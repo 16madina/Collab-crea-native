@@ -2,6 +2,7 @@
 // Chaque action reproduit la règle de la version web (docs/spec) ; elle sera
 // remplacée par un appel Supabase (table / RPC / fonction edge) en phase back-end.
 import { create } from "zustand";
+import { dbg } from "./debug";
 import {
   Application,
   AppNotification,
@@ -1672,7 +1673,9 @@ async function connect(userId: string) {
 
 /** Visiteur / déconnecté : données publiques (offres actives, profils, portfolios, pages légales). */
 async function loadPublic() {
+  dbg("chargement des données publiques…");
   await startSync(useDB as never, NIL, { onError: () => {} });
+  dbg("données publiques chargées", useDB.getState().offers.length, "offres");
   useDB.setState({ ready: true });
 }
 

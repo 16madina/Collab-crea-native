@@ -1,5 +1,6 @@
 // Onboarding en 4 écrans (maquette Noir & Or) — point d'entrée des visiteurs.
 import { Ionicons } from "@expo/vector-icons";
+import { dbg } from "../src/debug";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, router } from "expo-router";
@@ -180,6 +181,7 @@ export default function Onboarding() {
     return <Redirect href={role === "admin" ? "/admin" : "/(tabs)/home"} />;
   if (initial.current === "guest") return <Redirect href="/(tabs)/home" />;
   const asGuest = () => {
+    dbg("1. clic « Continuer comme invité »");
     continueAsGuest();
     router.replace("/(tabs)/home");
   };

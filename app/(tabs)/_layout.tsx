@@ -1,4 +1,5 @@
 import { useDB } from "../../src/store";
+import { dbg } from "../../src/debug";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { router, Tabs } from "expo-router";
@@ -52,6 +53,7 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
 }
 
 function GlassTabBar({ state, navigation }: BottomTabBarProps) {
+  dbg("4. barre d'onglets : rendu");
   const insets = useSafeAreaInsets();
   const go = (i: number) => {
     const route = state.routes[i];
@@ -76,6 +78,7 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
 }
 
 export default function TabsLayout() {
+  dbg("2. onglets : rendu");
   return (
     <Tabs
       tabBar={(p) => <GlassTabBar {...p} />}

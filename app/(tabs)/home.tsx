@@ -1,9 +1,10 @@
 // Accueil Créateur : nouvelles offres des marques en tête, puis les créateurs populaires.
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { dbg } from "../../src/debug";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, FadeInRight, useAnimatedStyle, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -190,6 +191,10 @@ function SectionHead({ title, onAll }: { title: string; onAll: () => void }) {
 }
 
 function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
+  dbg("5. accueil (contenu) : rendu");
+  useEffect(() => {
+    dbg("6. accueil affiché ✅");
+  }, []);
   const insets = useSafeAreaInsets();
   const me = useMe();
   const profiles = useDB((s) => s.profiles);
@@ -499,6 +504,7 @@ const styles = StyleSheet.create({
 });
 
 export default function Home() {
+  dbg("3. accueil : rendu");
   const role = useDB((s) => s.profiles.find((p) => p.user_id === s.userId)?.role);
   return <CreatorHome key={role} brandSpace={role === "brand"} />;
 }
