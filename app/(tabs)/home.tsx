@@ -266,6 +266,23 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
   const firstName = !me ? "Invité" : isBrand ? nameOf(me) : me.full_name.split(" ")[0];
   const seeAll = () => router.push("/marketplace");
 
+  const adsSection = (
+    <>
+      <SectionHead title="Annonces populaires" onAll={() => router.push("/(tabs)/offers?tab=offers")} />
+      {popularOffers.length === 0 ? (
+        <Empty icon="flame-outline" title="Aucune annonce" text="Essaie une autre catégorie." />
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10, paddingBottom: 6 }}>
+          {popularOffers.map((o, i) => (
+            <Animated.View key={o.id} entering={FadeInRight.delay(260 + i * 60).springify()}>
+              <PopularOffer o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={applications.filter((x) => x.offer_id === o.id).length} />
+            </Animated.View>
+          ))}
+        </ScrollView>
+      )}
+    </>
+  );
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 6, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
       {/* Reflet doré d'ambiance en haut à droite */}
@@ -420,19 +437,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
         </>
       )}
 
-      {/* Annonces populaires */}
-      <SectionHead title="Annonces populaires" onAll={() => router.push("/(tabs)/offers?tab=offers")} />
-      {popularOffers.length === 0 ? (
-        <Empty icon="flame-outline" title="Aucune annonce" text="Essaie une autre catégorie." />
-      ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10, paddingBottom: 6 }}>
-          {popularOffers.map((o, i) => (
-            <Animated.View key={o.id} entering={FadeInRight.delay(260 + i * 60).springify()}>
-              <PopularOffer o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={applications.filter((x) => x.offer_id === o.id).length} />
-            </Animated.View>
-          ))}
-        </ScrollView>
-      )}
+      {!brandSpace && adsSection}
 
       {/* Créateurs populaires */}
       <SectionHead title="Créateurs populaires" onAll={seeAll} />
@@ -447,6 +452,8 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
           ))}
         </ScrollView>
       )}
+
+      {brandSpace && adsSection}
     </ScrollView>
   );
 }
