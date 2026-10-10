@@ -75,6 +75,7 @@ type DB = {
   guest: boolean; // visiteur sans compte (accès en lecture)
   archived: string[]; // conversations archivées par l'utilisateur courant
   follows: string[]; // créateurs suivis par l'utilisateur courant
+  offerFavs: string[]; // "userId:offerId" — annonces enregistrées
   linked: Record<string, string>; // espace créateur <-> espace marque d'une même personne
   inviteRequired: boolean;
   inviteUnlocked: boolean;
@@ -110,6 +111,7 @@ type Actions = {
   continueAsGuest: () => void;
   toggleArchive: (conversationId: string) => boolean;
   toggleFollow: (userId: string) => boolean;
+  toggleOfferFav: (offerId: string) => void;
   switchSpace: () => Result;
   createSpace: (p: { company_name: string; sector: string; company_description?: string } | { category: string; bio?: string }) => Result;
   startConversation: (otherId: string) => Result;
@@ -206,6 +208,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
     guest: false,
     archived: [],
     follows: [],
+    offerFavs: [],
     linked: { [seed.CREATOR_ID]: seed.BRAND_ID, [seed.BRAND_ID]: seed.CREATOR_ID },
     inviteRequired: false,
     inviteUnlocked: false,
@@ -269,6 +272,12 @@ export const useDB = create<DB & Actions>()((set, get) => {
       }));
       return { ok: true, id };
     },
+    toggleOfferFav: (offerId) =>
+      set((s) => {
+        if (!s.userId) return {};
+        const k = `${s.userId}:${offerId}`;
+        return { offerFavs: s.offerFavs.includes(k) ? s.offerFavs.filter((x) => x !== k) : [...s.offerFavs, k] };
+      }),
     toggleFollow: (id) => {
       const on = !get().follows.includes(id);
       set((s) => ({ follows: on ? [...s.follows, id] : s.follows.filter((x) => x !== id) }));

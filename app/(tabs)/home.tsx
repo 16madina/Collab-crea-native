@@ -18,6 +18,7 @@ import { colors, fonts, radius } from "../../src/theme";
 import type { Offer, Profile, SocialPlatform } from "../../src/types";
 import { Logo, Press } from "../../src/ui";
 import { SpaceSwitcher } from "../../src/components/SpaceSwitcher";
+import { AD_W, AdCard } from "../../src/components/offers/OfferCards";
 
 const W = Dimensions.get("window").width;
 const FEAT_W = Math.round(W * 0.8);
@@ -99,56 +100,6 @@ function FeaturedCard({ p }: { p: Profile }) {
             ))}
         </View>
         <GoldButton label="Voir le profil" onPress={() => router.push(`/profile/${p.user_id}`)} style={{ marginTop: 12, minWidth: 170 }} />
-      </View>
-    </Press>
-  );
-}
-
-const AD_W = Math.round(W * 0.7);
-const AD_H = Math.round(AD_W * 1.25);
-const AD_STATUS: Record<string, { label: string; bg: string; fg: string }> = {
-  new: { label: "Nouveau", bg: "rgba(11,11,11,0.7)", fg: "#F8F6F2" },
-  active: { label: "En cours", bg: "rgba(18,92,62,0.85)", fg: "#E9FFF4" },
-  pending: { label: "En attente", bg: "rgba(30,64,160,0.85)", fg: "#EEF2FF" },
-};
-const adStatus = (o: Offer) => (o.status === "draft" ? "pending" : Date.now() - new Date(o.created_at).getTime() < 7 * 864e5 ? "new" : "active");
-
-function AdCard({ o, brand, apps }: { o: Offer; brand?: Profile; apps: number }) {
-  const img = o.images?.[0];
-  const st = AD_STATUS[adStatus(o)];
-  return (
-    <Press onPress={() => router.push(`/offer/${o.id}`)} style={[styles.ad, luxShadow]} scaleTo={0.98}>
-      {img != null ? (
-        <Image source={typeof img === "string" ? { uri: img } : img} style={StyleSheet.absoluteFill} contentFit="cover" />
-      ) : (
-        <View style={styles.adFallback}>
-          <GlossFill />
-          <MaterialCommunityIcons name="bullhorn-variant-outline" size={54} color="rgba(217,172,101,0.35)" />
-        </View>
-      )}
-      <LinearGradient colors={["rgba(5,5,5,0.35)", "rgba(5,5,5,0)", "rgba(5,5,5,0.55)", "#050505"]} locations={[0, 0.25, 0.5, 0.85]} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={["rgba(255,228,172,0.14)", "rgba(255,228,172,0)"]} start={{ x: 0, y: 0 }} end={{ x: 0.6, y: 0.4 }} style={StyleSheet.absoluteFill} />
-      <View style={styles.adLogo}>
-        <Text style={styles.adLogoText}>{initials(nameOf(brand))}</Text>
-        <Image source={avatarOf(brand)} style={StyleSheet.absoluteFill} contentFit="cover" />
-      </View>
-      <View style={[styles.adBadge, { backgroundColor: st.bg }]}>
-        <Text style={[styles.adBadgeText, { color: st.fg }]}>{st.label}</Text>
-      </View>
-      <View style={styles.adBody}>
-        <Text style={styles.adTitle} numberOfLines={2}>{o.title}</Text>
-        <View style={styles.adCat}>
-          <Text style={styles.adCatText}>{o.category}</Text>
-        </View>
-        <View style={styles.adLine}>
-          <MaterialCommunityIcons name="currency-usd" size={13} color="#0B0B0B" style={styles.adCoin} />
-          <Text style={styles.adBudget} numberOfLines={1}>{budgetLabel(o)}</Text>
-        </View>
-        <View style={styles.adLine}>
-          <Ionicons name="person-outline" size={12} color={colors.inkSoft} />
-          <Text style={styles.adApps}>{apps} candidature{apps > 1 ? "s" : ""}</Text>
-        </View>
-        <GoldButton label="Voir l'annonce" onPress={() => router.push(`/offer/${o.id}`)} style={{ marginTop: 10, alignSelf: "stretch" }} />
       </View>
     </Press>
   );
@@ -498,20 +449,6 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  ad: { width: AD_W, height: AD_H, borderRadius: 20, overflow: "hidden", borderWidth: StyleSheet.hairlineWidth * 2, borderColor: "rgba(217,172,101,0.55)", backgroundColor: "#171717" },
-  adFallback: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "flex-start", paddingTop: "28%", backgroundColor: "#171717" },
-  adLogo: { position: "absolute", top: 12, left: 12, width: 54, height: 54, borderRadius: 27, overflow: "hidden", backgroundColor: "#050505", borderWidth: 1, borderColor: "rgba(217,172,101,0.6)", alignItems: "center", justifyContent: "center" },
-  adLogoText: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 16 },
-  adBadge: { position: "absolute", top: 14, right: 12, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: "rgba(248,246,242,0.18)" },
-  adBadgeText: { fontSize: 10, fontWeight: "700" },
-  adBody: { position: "absolute", left: 12, right: 12, bottom: 12, gap: 5 },
-  adTitle: { color: "#F8F6F2", fontSize: 16, lineHeight: 20, fontWeight: "800", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 6 },
-  adCat: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, backgroundColor: "rgba(23,23,23,0.85)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  adCatText: { color: "#F8F6F2", fontSize: 10, fontWeight: "600" },
-  adLine: { flexDirection: "row", alignItems: "center", gap: 6 },
-  adCoin: { width: 16, height: 16, borderRadius: 8, backgroundColor: "#D9AC65", textAlign: "center", lineHeight: 16, overflow: "hidden" },
-  adBudget: { color: "#D9AC65", fontSize: 13, fontWeight: "800", flexShrink: 1 },
-  adApps: { color: colors.inkSoft, fontSize: 11 },
   adHead: { flexDirection: "row", alignItems: "flex-start", gap: 10, paddingHorizontal: 16, marginTop: 14, marginBottom: 12 },
   adHeadTitle: { fontFamily: fonts.serif, color: "#F8F6F2", fontSize: 20, lineHeight: 25 },
   adHeadSub: { color: colors.inkSoft, fontSize: 11, marginTop: 2 },

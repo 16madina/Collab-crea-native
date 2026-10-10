@@ -54,6 +54,7 @@ export type Offer = {
   budget_min: number;
   budget_max: number;
   deadline?: string; // ISO
+  logo_url?: string | number; // petite image ronde (logo) affichée sur la carte ; images[0] = image de fond
   location?: string; // pays cibles joints par ", "
   delivery_mode: "private" | "network";
   presence_mode: "remote" | "on_site";

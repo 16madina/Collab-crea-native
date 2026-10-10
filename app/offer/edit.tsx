@@ -13,12 +13,16 @@ import { colors, radius, type } from "../../src/theme";
 import type { Offer, OfferStatus, Slot } from "../../src/types";
 import { Button, Press } from "../../src/ui";
 
-const SAMPLE_PHOTOS = [
-  "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=70",
-  "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=600&q=70",
-  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=70",
-  "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=600&q=70",
-  "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=600&q=70",
+// Aperçu : images de démo locales (l'envoi réel depuis la galerie arrivera avec le back-end).
+const SAMPLE_PHOTOS: number[] = [
+  require("../../assets/brand/c1.jpg"),
+  require("../../assets/brand/c2.jpg"),
+  require("../../assets/brand/c3.jpg"),
+  require("../../assets/brand/hero.jpg"),
+  require("../../assets/brand/cover.jpg"),
+  require("../../assets/profile/p0.jpg"),
+  require("../../assets/profile/p2.jpg"),
+  require("../../assets/profile/p4.jpg"),
 ];
 
 type BudgetType = "range" | "fixed" | "negotiable";
@@ -62,7 +66,15 @@ export default function EditOffer() {
   const [address, setAddress] = useState(existing?.creative_brief.address ?? "");
   const [hashtags, setHashtags] = useState(existing?.creative_brief.hashtags ?? "");
   const [mentions, setMentions] = useState(existing?.creative_brief.mentions ?? "");
-  const [images, setImages] = useState<(string | number)[]>(existing?.images ?? []);
+  const [cover, setCover] = useState<string | number | undefined>(existing?.images?.[0]);
+  const [extras, setExtras] = useState<(string | number)[]>(existing?.images?.slice(1) ?? []);
+  const [logo, setLogo] = useState<string | number | undefined>(existing?.logo_url);
+  const [photoTarget, setPhotoTarget] = useState<"logo" | "cover" | "extra">("extra");
+  const images = cover != null ? [cover, ...extras] : extras;
+  const openPicker = (t: "logo" | "cover" | "extra") => {
+    setPhotoTarget(t);
+    setPhotoOpen(true);
+  };
   const [countryOpen, setCountryOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [cq, setCq] = useState("");
@@ -77,6 +89,8 @@ export default function EditOffer() {
     const min = budgetType === "negotiable" ? 0 : minNum;
     const max = budgetType === "negotiable" ? 0 : budgetType === "fixed" ? min : Number(bMax.replace(/\s/g, "")) || 0;
     if (budgetType !== "negotiable" && !bMin) return toast("Indiquez un montant", "error");
+    if (status !== "draft" && logo == null) return toast("Ajoutez le logo de l'annonce", "error");
+    if (status !== "draft" && cover == null) return toast("Ajoutez l'image de fond de l'annonce", "error");
     const r = saveOffer({
       id: existing?.id,
       title: title.trim(),
@@ -98,6 +112,7 @@ export default function EditOffer() {
       on_site_slots: slots,
       creative_brief: { phone: phone.trim() || undefined, address: address.trim() || undefined, hashtags: hashtags.trim() || undefined, mentions: mentions.trim() || undefined },
       images,
+      logo_url: logo,
       status,
     });
     if (!r.ok) return toast(r.error, "error");
@@ -233,18 +248,34 @@ export default function EditOffer() {
       </Card>
 
       <Card>
-        <Label>Photos du produit ({images.length}/3)</Label>
+        <Label>Visuels de l'annonce *</Label>
+        <Text style={type.tiny}>Le logo s'affiche dans le cercle, l'image de fond couvre toute la carte.</Text>
+        <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+          <View style={{ alignItems: "center", gap: 6 }}>
+            <Press onPress={() => openPicker("logo")} style={[styles.logoPick, logo == null && styles.addPhoto]}>
+              {logo != null ? <Image source={logo} style={StyleSheet.absoluteFill} contentFit="cover" /> : <Ionicons name="image-outline" size={24} color={colors.primary} />}
+            </Press>
+            <Text style={type.tiny}>Logo</Text>
+          </View>
+          <View style={{ flex: 1, gap: 6, alignItems: "center" }}>
+            <Press onPress={() => openPicker("cover")} style={[styles.coverPick, cover == null && styles.addPhoto]}>
+              {cover != null ? <Image source={cover} style={StyleSheet.absoluteFill} contentFit="cover" /> : <Ionicons name="camera-outline" size={26} color={colors.primary} />}
+            </Press>
+            <Text style={type.tiny}>Image de fond</Text>
+          </View>
+        </View>
+        <Label>Photos supplémentaires ({extras.length}/2)</Label>
         <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-          {images.map((u) => (
-            <Animated.View key={u} entering={FadeIn} exiting={FadeOut}>
+          {extras.map((u) => (
+            <Animated.View key={String(u)} entering={FadeIn} exiting={FadeOut}>
               <Image source={u} style={styles.photo} />
-              <Press onPress={() => setImages((l) => l.filter((x) => x !== u))} style={styles.photoDel}>
+              <Press onPress={() => setExtras((l) => l.filter((x) => x !== u))} style={styles.photoDel}>
                 <Ionicons name="close" size={14} color="#fff" />
               </Press>
             </Animated.View>
           ))}
-          {images.length < 3 ? (
-            <Press onPress={() => setPhotoOpen(true)} style={[styles.photo, styles.addPhoto]}>
+          {extras.length < 2 ? (
+            <Press onPress={() => openPicker("extra")} style={[styles.photo, styles.addPhoto]}>
               <Ionicons name="camera-outline" size={26} color={colors.primary} />
               <Text style={type.tiny}>Ajouter</Text>
             </Press>
@@ -267,17 +298,19 @@ export default function EditOffer() {
         </View>
       </Sheet>
 
-      <Sheet visible={photoOpen} onClose={() => setPhotoOpen(false)} title="Choisir une photo" subtitle="Aperçu — l'envoi réel arrivera avec le back-end">
+      <Sheet visible={photoOpen} onClose={() => setPhotoOpen(false)} title={photoTarget === "logo" ? "Choisir le logo" : photoTarget === "cover" ? "Choisir l'image de fond" : "Choisir une photo"} subtitle="Aperçu — l'envoi réel arrivera avec le back-end">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-          {SAMPLE_PHOTOS.filter((u) => !images.includes(u)).map((u) => (
+          {SAMPLE_PHOTOS.filter((u) => photoTarget !== "extra" || !images.includes(u)).map((u) => (
             <Press
               key={u}
               onPress={() => {
-                setImages((l) => (l.length >= 3 ? l : [...l, u]));
+                if (photoTarget === "logo") setLogo(u);
+                else if (photoTarget === "cover") setCover(u);
+                else setExtras((l) => (l.length >= 2 ? l : [...l, u]));
                 setPhotoOpen(false);
               }}
             >
-              <Image source={u} style={styles.photo} />
+              <Image source={u} style={[styles.photo, photoTarget === "logo" && { borderRadius: 46 }]} />
             </Press>
           ))}
         </View>
@@ -294,6 +327,8 @@ const styles = StyleSheet.create({
   del: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FDE7E7", alignItems: "center", justifyContent: "center" },
   picker: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: colors.surface },
   photo: { width: 92, height: 92, borderRadius: 16 },
+  logoPick: { width: 92, height: 92, borderRadius: 46, overflow: "hidden", borderWidth: 1, borderColor: colors.primary, alignItems: "center", justifyContent: "center" },
+  coverPick: { alignSelf: "stretch", height: 92, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: colors.primary, alignItems: "center", justifyContent: "center" },
   addPhoto: { borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.primary, alignItems: "center", justifyContent: "center", gap: 4, backgroundColor: colors.primarySoft },
   photoDel: { position: "absolute", top: 6, right: 6, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
 });

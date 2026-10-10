@@ -1,11 +1,14 @@
 import { GuestGate } from "../../src/components/GuestGate";
 import { CreatorsGrid } from "../../src/components/explore/CreatorsGrid";
-import { GoldFill, goldBorder, goldGlow } from "../../src/lux";
+import { GlossFill, GoldFill, GoldPill, goldBorder, goldGlow } from "../../src/lux";
+import { AdCard, appBadge, OfferRow } from "../../src/components/offers/OfferCards";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Dimensions, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+
+const W = Dimensions.get("window").width;
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppStatusBadge, SearchBar } from "../../src/components/collab/common";
@@ -15,7 +18,7 @@ import { colors, radius, shadow, type } from "../../src/theme";
 import type { Offer, OfferStatus } from "../../src/types";
 import { Button, IconButton, Meta, OFFER_FALLBACK, Press } from "../../src/ui";
 
-const CATS = ["Toutes", "Beauté", "Tech", "Cuisine", "Fitness", "Mode", "Lifestyle", "Musique", "Humour", "Business", "Éducation"];
+const CATS = ["Toutes", "Beauté", "Mode", "Lifestyle", "Tech", "Voyage", "Alimentation", "Cuisine", "Fitness", "Musique", "Humour", "Business", "Éducation", "Sport"];
 const TYPES = ["Tous", "Reel", "TikTok", "Vidéo YouTube", "Story", "Podcast", "Post"];
 
 function HRow({ children }: { children: React.ReactNode }) {
@@ -83,104 +86,139 @@ function CreatorOffers() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, applications, userId, q, status, cat, country, ctype, profiles]);
 
-  const nFilters = [cat !== "Toutes", country !== "Tous", ctype !== "Tous"].filter(Boolean).length;
+  const [layout, setLayout] = useState<"horizontal" | "vertical">("horizontal");
+  const [sort, setSort] = useState<"recent" | "budget" | "apps">("recent");
+  const [sortOpen, setSortOpen] = useState(false);
+  const appsOf = (id: string) => applications.filter((a) => a.offer_id === id).length;
+  const sorted = useMemo(() => {
+    const l = [...list];
+    if (sort === "budget") l.sort((a, b) => b.budget_max - a.budget_max);
+    else if (sort === "apps") l.sort((a, b) => appsOf(b.id) - appsOf(a.id));
+    else l.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return l;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list, sort, applications]);
+  const nFilters = [country !== "Tous", ctype !== "Tous", status !== "all"].filter(Boolean).length;
+  const SORTS = { recent: "Plus récentes", budget: "Budget", apps: "Candidatures" } as const;
+  const colW = Math.floor((W - 32 - 10) / 2);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: 4, paddingBottom: 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-      <Animated.View entering={FadeInDown.springify()} style={{ paddingHorizontal: 20 }}>
-        <Text style={type.h1}>Offres</Text>
-        <Text style={type.small}>Trouvez la campagne parfaite pour votre audience</Text>
-      </Animated.View>
-      <Animated.View entering={FadeInDown.delay(60).springify()} style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20 }}>
-        <SearchBar value={q} onChange={setQ} placeholder="Titre, marque, type de contenu…" style={{ flex: 1 }} />
-        <Press onPress={() => setShowFilters((v) => !v)} style={[styles.filterBtn, shadow.soft, showFilters && { backgroundColor: colors.ink }]}>
-          <Ionicons name="options-outline" size={22} color={showFilters ? "#fff" : colors.ink} />
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: 12, paddingBottom: 140, gap: 12 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <Animated.View entering={FadeInDown.springify()} style={{ flexDirection: "row", gap: 10, paddingHorizontal: 16 }}>
+        <View style={styles.lxSearch}>
+          <GlossFill />
+          <Ionicons name="search-outline" size={20} color={colors.inkSoft} />
+          <TextInput value={q} onChangeText={setQ} placeholder="Titre, marque, type de contenu…" placeholderTextColor={colors.muted} style={styles.lxInput} />
+        </View>
+        <Press onPress={() => setShowFilters((v) => !v)} style={[styles.lxFilter, showFilters && goldGlow]} scaleTo={0.9}>
+          {showFilters ? <GoldFill style={{ borderRadius: 26 }} /> : <GlossFill />}
+          <Ionicons name="options-outline" size={22} color={showFilters ? colors.onPrimary : colors.ink} />
           {nFilters ? (
             <View style={styles.count}>
-              <Text style={{ color: "#fff", fontSize: 9, fontWeight: "800" }}>{nFilters}</Text>
+              <Text style={{ color: colors.onPrimary, fontSize: 9, fontWeight: "800" }}>{nFilters}</Text>
             </View>
           ) : null}
         </Press>
       </Animated.View>
-      <View style={{ paddingHorizontal: 20 }}>
-        <Segmented
-          value={status}
-          onChange={setStatus}
-          options={[
-            { value: "all", label: "Toutes" },
-            { value: "new", label: "Nouvelles" },
-            { value: "applied", label: "Postulées" },
-          ]}
-        />
-      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
+        {CATS.map((c) => (
+          <GoldPill key={c} label={c} on={cat === c} onPress={() => setCat(c)} />
+        ))}
+      </ScrollView>
+
       {showFilters ? (
-        <Animated.View entering={FadeIn} exiting={FadeOut} style={{ gap: 10 }}>
-          <Text style={[type.tiny, styles.fLabel]}>CATÉGORIE</Text>
-          <HRow>
-            {CATS.map((c) => (
-              <Chip key={c} label={c} on={cat === c} onPress={() => setCat(c)} />
+        <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.lxPanel}>
+          <GlossFill />
+          <Text style={styles.lxLabel}>AFFICHAGE</Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <GoldPill label="Horizontal" icon="list-outline" on={layout === "horizontal"} onPress={() => setLayout("horizontal")} />
+            <GoldPill label="Vertical" icon="grid-outline" on={layout === "vertical"} onPress={() => setLayout("vertical")} />
+          </View>
+          <Text style={styles.lxLabel}>STATUT</Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {(
+              [
+                ["all", "Toutes"],
+                ["new", "Nouvelles"],
+                ["applied", "Postulées"],
+              ] as const
+            ).map(([k, l]) => (
+              <GoldPill key={k} label={l} on={status === k} onPress={() => setStatus(k)} />
             ))}
-          </HRow>
-          <Text style={[type.tiny, styles.fLabel]}>PAYS</Text>
-          <HRow>
+          </View>
+          <Text style={styles.lxLabel}>PAYS</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {countries.map((c) => (
-              <Chip key={c} label={c} on={country === c} onPress={() => setCountry(c)} />
+              <GoldPill key={c} label={c} on={country === c} onPress={() => setCountry(c)} />
             ))}
-          </HRow>
-          <Text style={[type.tiny, styles.fLabel]}>TYPE DE CONTENU</Text>
-          <HRow>
+          </ScrollView>
+          <Text style={styles.lxLabel}>TYPE DE CONTENU</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {TYPES.map((c) => (
-              <Chip key={c} label={c} on={ctype === c} onPress={() => setCtype(c)} />
+              <GoldPill key={c} label={c} on={ctype === c} onPress={() => setCtype(c)} />
             ))}
-          </HRow>
-          {nFilters ? (
+          </ScrollView>
+          {nFilters || cat !== "Toutes" ? (
             <Press
               onPress={() => {
                 setCat("Toutes");
                 setCountry("Tous");
                 setCtype("Tous");
+                setStatus("all");
               }}
-              style={{ alignSelf: "flex-start", marginLeft: 20 }}
+              style={{ alignSelf: "flex-start" }}
             >
-              <Text style={{ color: colors.primary, fontWeight: "700" }}>Réinitialiser les filtres</Text>
+              <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 12 }}>Réinitialiser les filtres</Text>
             </Press>
           ) : null}
         </Animated.View>
       ) : null}
 
-      <Text style={[type.small, { paddingHorizontal: 20 }]}>
-        {list.length} offre{list.length > 1 ? "s" : ""} disponible{list.length > 1 ? "s" : ""}
-      </Text>
-      <View style={{ paddingHorizontal: 20, gap: 14 }}>
-        {list.length === 0 ? (
-          <Empty icon="search-outline" title="Aucune offre trouvée" text="Essayez d'élargir vos filtres ou votre recherche." />
-        ) : (
-          list.map((o, i) => (
-            <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 60).springify()} layout={LinearTransition.springify()}>
-              <Press onPress={() => router.push(`/offer/${o.id}`)} style={[styles.card, shadow.soft]} scaleTo={0.98}>
-                <Image source={o.images[0] ?? OFFER_FALLBACK} style={styles.cardImg} contentFit="cover" transition={250} />
-                <View style={{ position: "absolute", top: 12, right: 12 }}>
-                  <AppStatusBadge status={appOf(o.id)?.status} />
-                </View>
-                <View style={{ padding: 14, gap: 6 }}>
-                  <Text style={[type.small, { color: colors.primary, fontWeight: "700" }]}>
-                    {brandName(o.brand_id)} · {o.category}
-                  </Text>
-                  <Text style={type.h3} numberOfLines={2}>
-                    {o.title}
-                  </Text>
-                  <Meta icon="camera-outline" text={o.content_types.join(" · ")} />
-                  <Meta icon="location-outline" text={o.presence_mode === "on_site" ? `📍 Sur place · ${o.on_site_city ?? ""}` : o.location || "Tous les pays africains"} />
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                    <Text style={{ fontSize: 15, fontWeight: "800", color: colors.ink }}>{budgetLabel(o)}</Text>
-                    {o.deadline ? <Text style={type.tiny}>Jusqu'au {fmtDate(o.deadline)}</Text> : null}
-                  </View>
-                </View>
-              </Press>
-            </Animated.View>
-          ))
-        )}
+      <View style={styles.lxCountRow}>
+        <Text style={styles.lxCount}>
+          {sorted.length} offre{sorted.length > 1 ? "s" : ""} disponible{sorted.length > 1 ? "s" : ""}
+        </Text>
+        <Press onPress={() => setSortOpen((v) => !v)} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Text style={styles.lxSort}>{sort === "recent" ? "Trier par" : SORTS[sort]}</Text>
+          <Ionicons name={sortOpen ? "chevron-up" : "chevron-down"} size={15} color={colors.inkSoft} />
+        </Press>
       </View>
+      {sortOpen ? (
+        <Animated.View entering={FadeIn} exiting={FadeOut} style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16 }}>
+          {(Object.keys(SORTS) as (keyof typeof SORTS)[]).map((k) => (
+            <GoldPill
+              key={k}
+              label={SORTS[k]}
+              on={sort === k}
+              onPress={() => {
+                setSort(k);
+                setSortOpen(false);
+              }}
+            />
+          ))}
+        </Animated.View>
+      ) : null}
+
+      {sorted.length === 0 ? (
+        <Empty icon="search-outline" title="Aucune offre trouvée" text="Essayez d'élargir vos filtres ou votre recherche." />
+      ) : layout === "horizontal" ? (
+        <View style={{ paddingHorizontal: 16, gap: 10 }}>
+          {sorted.map((o, i) => (
+            <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 50).springify()} layout={LinearTransition.springify()}>
+              <OfferRow o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={appsOf(o.id)} badge={appBadge(appOf(o.id)?.status)} />
+            </Animated.View>
+          ))}
+        </View>
+      ) : (
+        <View style={{ paddingHorizontal: 16, gap: 10, flexDirection: "row", flexWrap: "wrap" }}>
+          {sorted.map((o, i) => (
+            <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 50).springify()} layout={LinearTransition.springify()}>
+              <AdCard compact o={o} width={colW} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={appsOf(o.id)} badge={appBadge(appOf(o.id)?.status)} />
+            </Animated.View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -312,10 +350,20 @@ function BrandOffers() {
 
 function OffersInner() {
   const me = useMe();
-  return me?.role === "brand" ? <BrandOffers /> : <CreatorOffers />;
+  // Explorer › Offres : la liste publique des annonces pour tous les espaces
+  // (la gestion des campagnes de la marque vit dans son profil › Mes campagnes).
+  return me ? <CreatorOffers /> : null;
 }
 
 const styles = StyleSheet.create({
+  lxSearch: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, height: 50, borderRadius: radius.pill, paddingHorizontal: 16, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
+  lxInput: { flex: 1, minWidth: 0, fontSize: 13, color: colors.ink, zIndex: 1 },
+  lxFilter: { width: 50, height: 50, borderRadius: 25, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, alignItems: "center", justifyContent: "center" },
+  lxPanel: { marginHorizontal: 16, padding: 14, gap: 8, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
+  lxLabel: { color: colors.inkSoft, fontSize: 10, fontWeight: "700", letterSpacing: 1, marginTop: 2 },
+  lxCountRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, marginTop: 2 },
+  lxCount: { color: colors.ink, fontSize: 16, fontWeight: "800" },
+  lxSort: { color: colors.inkSoft, fontSize: 12, fontWeight: "600" },
   filterBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
   count: { position: "absolute", top: 6, right: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
   fLabel: { paddingHorizontal: 20, letterSpacing: 1 },
