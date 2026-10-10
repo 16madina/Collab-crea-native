@@ -16,6 +16,8 @@ import { useDB, useMe } from "../../src/store";
 import { colors, fonts, radius } from "../../src/theme";
 import type { Profile, SocialPlatform } from "../../src/types";
 import { Logo, Press } from "../../src/ui";
+import { BrandHome } from "../../src/components/home/BrandHome";
+import { SpaceSwitcher } from "../../src/components/SpaceSwitcher";
 
 const W = Dimensions.get("window").width;
 const FEAT_W = Math.round(W * 0.8);
@@ -154,7 +156,7 @@ function SectionHead({ title, onAll }: { title: string; onAll: () => void }) {
   );
 }
 
-export default function Home() {
+function CreatorHome() {
   const insets = useSafeAreaInsets();
   const me = useMe();
   const profiles = useDB((s) => s.profiles);
@@ -195,8 +197,11 @@ export default function Home() {
 
       {/* Barre du haut */}
       <Animated.View entering={FadeIn.duration(500)} style={styles.topBar}>
-        <Logo size={40} />
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ gap: 10 }}>
+          <Logo size={40} />
+          <SpaceSwitcher />
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start" }}>
           <Press onPress={() => router.push(me ? "/notifications" : "/auth/signup")} style={styles.iconBtn} scaleTo={0.9}>
             <Ionicons name="notifications-outline" size={23} color={colors.ink} />
             {unread && <View style={styles.bellDot} />}
@@ -355,3 +360,8 @@ const styles = StyleSheet.create({
   newName: { color: colors.ink, fontSize: 11, fontWeight: "700", flexShrink: 1 },
   newFollowers: { color: colors.inkSoft, fontSize: 11 },
 });
+
+export default function Home() {
+  const role = useDB((s) => s.profiles.find((p) => p.user_id === s.userId)?.role);
+  return role === "brand" ? <BrandHome /> : <CreatorHome />;
+}

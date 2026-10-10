@@ -75,6 +75,7 @@ type DB = {
   guest: boolean; // visiteur sans compte (accès en lecture)
   archived: string[]; // conversations archivées par l'utilisateur courant
   follows: string[]; // créateurs suivis par l'utilisateur courant
+  linked: Record<string, string>; // espace créateur <-> espace marque d'une même personne
   inviteRequired: boolean;
   inviteUnlocked: boolean;
 
@@ -109,6 +110,8 @@ type Actions = {
   continueAsGuest: () => void;
   toggleArchive: (conversationId: string) => boolean;
   toggleFollow: (userId: string) => boolean;
+  switchSpace: () => Result;
+  createSpace: (p: { company_name: string; sector: string; company_description?: string } | { category: string; bio?: string }) => Result;
   startConversation: (otherId: string) => Result;
   claimInvite: (code: string) => Result;
   // profil
@@ -203,6 +206,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
     guest: false,
     archived: [],
     follows: [],
+    linked: { [seed.CREATOR_ID]: seed.BRAND_ID, [seed.BRAND_ID]: seed.CREATOR_ID },
     inviteRequired: false,
     inviteUnlocked: false,
 
@@ -232,6 +236,39 @@ export const useDB = create<DB & Actions>()((set, get) => {
     },
     signOut: () => set({ userId: null, guest: false, inviteUnlocked: false }),
     continueAsGuest: () => set({ guest: true }),
+    switchSpace: () => {
+      const s = get();
+      const other = s.userId ? s.linked[s.userId] : undefined;
+      if (!other) return { ok: false, error: "no_space" };
+      set({ userId: other, archived: [] });
+      return { ok: true, id: other };
+    },
+    createSpace: (data) => {
+      const s = get();
+      const me = s.profiles.find((p) => p.user_id === s.userId);
+      if (!me) return { ok: false, error: "Connecte-toi d'abord" };
+      const id = uid();
+      const brand = "company_name" in data;
+      if (brand && data.company_name.trim().length < 2) return { ok: false, error: "Nom de l'entreprise invalide" };
+      const profile: Profile = {
+        ...(brand
+          ? { role: "brand" as const, full_name: me.full_name, company_name: data.company_name.trim(), sector: data.sector, company_description: data.company_description, avatar_url: me.avatar_url }
+          : { role: "creator" as const, full_name: me.full_name, category: data.category, bio: data.bio, avatar_url: me.avatar_url }),
+        user_id: id,
+        country: me.country,
+        residence_country: me.residence_country,
+        followers: {},
+        email_verified: me.email_verified,
+        identity_verified: me.identity_verified,
+      };
+      set((st) => ({
+        profiles: [...st.profiles, profile],
+        wallets: [...st.wallets, { user_id: id, balance: 0, pending_balance: 0 }],
+        linked: { ...st.linked, [me.user_id]: id, [id]: me.user_id },
+        userId: id,
+      }));
+      return { ok: true, id };
+    },
     toggleFollow: (id) => {
       const on = !get().follows.includes(id);
       set((s) => ({ follows: on ? [...s.follows, id] : s.follows.filter((x) => x !== id) }));

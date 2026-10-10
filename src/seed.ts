@@ -86,7 +86,7 @@ const profiles: Profile[] = [
   creator("u_awa", "Awa Keita", "photo-1488426862026-3ee34a7d66df", "Beauté", "Mali", { tiktok: "410K", instagram: "120K" }),
   creator("u_chidi", "Chidi Okafor", "photo-1539701938214-0d9736e1c16b", "Tech", "Nigeria", { youtube: "530K" }),
   creator("u_esther", "Esther Mbarga", "photo-1534751516642-a1af1ef26a56", "Cuisine", "Cameroun", { instagram: "75K", youtube: "33K" }),
-  brand(BRAND_ID, "Glow&Care", "photo-1596462502278-27bfdc403348", "Beauté & Cosmétiques", "Côte d'Ivoire"),
+  brand(BRAND_ID, "Glow&Care", "photo-1596462502278-27bfdc403348", "Beauté & Cosmétiques", "Côte d'Ivoire", { banner_url: require("../assets/brand/cover.jpg"), company_description: "La beauté pour toutes. Nous collaborons avec des créatrices talentueuses pour des campagnes authentiques et inspirantes.", website: "https://glowandcare.ci" }),
   brand("u_techwave", "TechWave", "photo-1518770660439-4636190af475", "Tech & Électronique", "Sénégal"),
   brand("u_cocoa", "Cocoa Bio", "photo-1490645935967-10de6ba17061", "Food & Boissons", "Côte d'Ivoire"),
   brand("u_wax", "Wax Studio", "photo-1509631179647-0177331693ae", "Mode & Accessoires", "Sénégal"),
@@ -130,7 +130,7 @@ const offers: Offer[] = [
     expectations: "Lumière naturelle, ton doux et sincère, montrer la texture.",
     restrictions: "Pas de mention de marques concurrentes.",
     creative_brief: { hashtags: "#GlowAndCare #KaritéGlow", mentions: "@glowandcare" },
-    images: [u("photo-1596462502278-27bfdc403348")],
+    images: [require("../assets/brand/c1.jpg")],
     location: "Côte d'Ivoire",
   }),
   offer({
@@ -179,8 +179,8 @@ const offers: Offer[] = [
     location: "Sénégal",
     deadline: d(4),
   }),
-  offer({ id: "o5", brand_id: BRAND_ID, title: "Test produit : sérum éclat", category: "Beauté", budget_min: 50000, budget_max: 80000, status: "draft", images: [u("photo-1571781926291-c477ebfd024b")] }),
-  offer({ id: "o6", brand_id: BRAND_ID, title: "Ambassadrice été 2026", category: "Lifestyle", budget_min: 300000, budget_max: 500000, status: "expired", deadline: d(-5) }),
+  offer({ id: "o5", brand_id: BRAND_ID, title: "Test produit : sérum éclat", category: "Beauté", budget_min: 50000, budget_max: 80000, status: "draft", images: [require("../assets/brand/c2.jpg")] }),
+  offer({ id: "o6", brand_id: BRAND_ID, title: "Ambassadrice été 2026", category: "Lifestyle", budget_min: 300000, budget_max: 500000, status: "expired", deadline: d(-5), images: [require("../assets/brand/c3.jpg")] }),
 ];
 
 const conversations: Conversation[] = [

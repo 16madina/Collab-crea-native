@@ -62,7 +62,7 @@ export default function EditOffer() {
   const [address, setAddress] = useState(existing?.creative_brief.address ?? "");
   const [hashtags, setHashtags] = useState(existing?.creative_brief.hashtags ?? "");
   const [mentions, setMentions] = useState(existing?.creative_brief.mentions ?? "");
-  const [images, setImages] = useState<string[]>(existing?.images ?? []);
+  const [images, setImages] = useState<(string | number)[]>(existing?.images ?? []);
   const [countryOpen, setCountryOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [cq, setCq] = useState("");

@@ -63,7 +63,7 @@ export type Offer = {
   on_site_store_name?: string;
   on_site_slots: Slot[];
   creative_brief: { phone?: string; address?: string; hashtags?: string; mentions?: string };
-  images: string[];
+  images: (string | number)[];
   status: OfferStatus;
   created_at: string;
 };

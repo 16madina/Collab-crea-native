@@ -1,3 +1,4 @@
+import { BrandProfileLux } from "../../src/components/profile/BrandProfileLux";
 import { CreatorProfileLux } from "../../src/components/profile/CreatorProfileLux";
 import { GuestGate } from "../../src/components/GuestGate";
 import { Ionicons } from "@expo/vector-icons";
@@ -47,7 +48,7 @@ function ProfileTabInner() {
   return me.role === "creator" ? (
     <CreatorProfileLux me={me} onLogout={logout} />
   ) : me.role === "brand" ? (
-    <BrandProfile me={me} unread={unread} onLogout={logout} />
+    <BrandProfileLux me={me} onLogout={logout} />
   ) : (
     <AdminProfile me={me} unread={unread} onLogout={logout} />
   );

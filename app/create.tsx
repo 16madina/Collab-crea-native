@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "../src/kit";
 import { GlossFill, GoldFill, GoldText, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../src/lux";
 import { useMe } from "../src/store";
+import { useSpaceSwitch } from "../src/components/SpaceSwitcher";
 import { colors, fonts, radius } from "../src/theme";
 import { Press } from "../src/ui";
 
@@ -22,10 +23,12 @@ const CARD_W = Math.floor((W - 16 - 32 - 12 - 4) / 2);
 
 const ACTIONS: Record<Role, Action[]> = {
   brand: [
-    { icon: "megaphone-outline", title: "Créer une offre", sub: "Publier une campagne et trouver des créateurs.", to: "/offer/edit", image: require("../assets/menu/offer.jpg") },
-    { icon: "search", title: "Rechercher des créateurs", sub: "Trouver les talents idéaux pour ta marque.", to: "/(tabs)/offers?tab=creators", image: require("../assets/menu/search.jpg") },
-    { icon: "paper-plane-outline", title: "Inviter un créateur", sub: "Proposer une collaboration directe.", to: "/marketplace", image: require("../assets/menu/invite.jpg") },
-    { icon: "stats-chart", title: "Mes campagnes", sub: "Gérer tes offres, candidatures et résultats.", to: "/(tabs)/offers?tab=offers", image: require("../assets/menu/campaigns.jpg") },
+    { icon: "megaphone-outline", title: "Créer une campagne", sub: "Publier une offre de collaboration", to: "/offer/edit" },
+    { icon: "search", title: "Rechercher des créateurs", sub: "Trouver les talents pour votre marque", to: "/(tabs)/offers?tab=creators" },
+    { icon: "paper-plane-outline", title: "Inviter un créateur", sub: "Proposer une collaboration directe", to: "/marketplace" },
+    { icon: "document-text-outline", title: "Mes campagnes", sub: "Gérer vos offres et candidatures", to: "/(tabs)/profile" },
+    { icon: "star-outline", title: "Favoris", sub: "Vos créateurs enregistrés", to: "/(tabs)/profile?tab=favorites" },
+    { icon: "stats-chart", title: "Statistiques", sub: "Suivre les performances", to: "/(tabs)/profile?tab=stats" },
   ],
   creator: [
     { icon: "compass-outline", title: "Explorer les offres", sub: "Trouver les campagnes faites pour toi.", to: "/(tabs)/offers?tab=offers", image: require("../assets/menu/search.jpg") },
@@ -57,12 +60,38 @@ function ActionCard({ a, onPress, index }: { a: Action; onPress: () => void; ind
   );
 }
 
+function ActionRow({ a, onPress, index, first }: { a: Action; onPress: () => void; index: number; first: boolean }) {
+  return (
+    <Animated.View entering={FadeInDown.delay(100 + index * 55).springify()}>
+      <Press onPress={onPress} style={[styles.row, first && goldGlow, !first && { borderColor: goldBorder }]} scaleTo={0.97}>
+        {first ? <GoldFill style={{ borderRadius: radius.lg }} /> : <GlossFill style={{ borderRadius: radius.lg }} />}
+        <View style={[styles.rowIcon, first && { borderColor: "rgba(11,11,11,0.35)" }]}>
+          <Ionicons name={a.icon} size={22} color={first ? colors.onPrimary : colors.primary} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.rowTitle, first && { color: colors.onPrimary }]}>{a.title}</Text>
+          <Text style={[styles.rowSub, first && { color: "rgba(11,11,11,0.75)" }]}>{a.sub}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={first ? colors.onPrimary : colors.primary} />
+      </Press>
+    </Animated.View>
+  );
+}
+
 export default function CreateMenu() {
   const insets = useSafeAreaInsets();
   const me = useMe();
   const myRole: Role = me?.role === "brand" ? "brand" : "creator";
   const [role, setRole] = useState<Role>(myRole);
   const close = () => router.back();
+  const sw = useSpaceSwitch();
+  const pickRole = (k: Role) => {
+    setRole(k);
+    if (me && k !== myRole) {
+      router.back();
+      setTimeout(sw.go, 120);
+    }
+  };
   const go = (a: Action) => {
     if (role !== myRole) {
       toast(role === "brand" ? "Réservé aux comptes Marque" : "Réservé aux comptes Créateur", "info");
@@ -108,7 +137,7 @@ export default function CreateMenu() {
           ).map(([k, l, ic]) => {
             const on = role === k;
             return (
-              <Press key={k} onPress={() => setRole(k)} style={[styles.toggleItem, on && goldGlow]} scaleTo={0.97}>
+              <Press key={k} onPress={() => pickRole(k)} style={[styles.toggleItem, on && goldGlow]} scaleTo={0.97}>
                 {on && <GoldFill style={{ borderRadius: radius.pill }} />}
                 <Ionicons name={ic} size={22} color={on ? colors.onPrimary : colors.ink} />
                 <Text style={[styles.toggleText, on && { color: colors.onPrimary, fontWeight: "800" }]}>{l}</Text>
@@ -117,11 +146,19 @@ export default function CreateMenu() {
           })}
         </View>
 
-        <View key={role} style={styles.grid}>
-          {ACTIONS[role].map((a, i) => (
-            <ActionCard key={a.title} a={a} index={i} onPress={() => go(a)} />
-          ))}
-        </View>
+        {role === "brand" ? (
+          <View key={role} style={{ gap: 9, marginTop: 16 }}>
+            {ACTIONS.brand.map((a, i) => (
+              <ActionRow key={a.title} a={a} index={i} first={i === 0} onPress={() => go(a)} />
+            ))}
+          </View>
+        ) : (
+          <View key={role} style={styles.grid}>
+            {ACTIONS[role].map((a, i) => (
+              <ActionCard key={a.title} a={a} index={i} onPress={() => go(a)} />
+            ))}
+          </View>
+        )}
         {role !== myRole && (
           <Animated.Text entering={FadeIn} style={styles.note}>
             {me ? `Ces actions sont réservées aux comptes ${role === "brand" ? "Marque" : "Créateur"}.` : "Crée ton compte pour utiliser ces actions."}
@@ -170,5 +207,9 @@ const styles = StyleSheet.create({
   cardIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
   cardTitle: { fontFamily: fonts.serif, color: colors.ink, fontSize: 16, lineHeight: 19 },
   cardSub: { flex: 1, color: colors.inkSoft, fontSize: 11, lineHeight: 14, marginTop: 3 },
+  row: { flexDirection: "row", alignItems: "center", gap: 12, height: 66, paddingHorizontal: 14, borderRadius: radius.lg, borderWidth: 1, borderColor: "transparent" },
+  rowIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: goldBorderStrong, alignItems: "center", justifyContent: "center" },
+  rowTitle: { color: colors.ink, fontSize: 14, fontWeight: "800" },
+  rowSub: { color: colors.inkSoft, fontSize: 11, marginTop: 2 },
   note: { color: colors.muted, fontSize: 11, textAlign: "center", marginTop: 12 },
 });
