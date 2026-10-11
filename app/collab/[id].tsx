@@ -151,10 +151,14 @@ export default function CollabDetail() {
   };
   const verifyAi = () => {
     setAi({ state: "busy" });
+    // Vérification réelle (sans IA pour l'instant) : le lien doit pointer vers une publication d'un réseau social reconnu.
+    // L'analyse IA du contenu arrivera avec sa clé d'API ; en attendant, la marque ouvre le lien et confirme elle-même.
     setTimeout(() => {
-      const ok = /^https?:\/\/(www\.)?(instagram|tiktok|youtube|youtu\.be|facebook|snapchat|x|twitter)\./i.test(collab.publication_url ?? "") || Math.random() > 0.3;
-      setAi({ state: "done", valid: ok, confidence: ok ? 82 + Math.round(Math.random() * 16) : 35 + Math.round(Math.random() * 25) });
-    }, 1500);
+      const u = (collab.publication_url ?? "").trim();
+      const ok =
+        /^https:\/\/(www\.|m\.|vm\.|vt\.)?(instagram\.com\/(p|reel|tv|stories)\/|tiktok\.com\/|youtube\.com\/(watch|shorts)|youtu\.be\/|facebook\.com\/|fb\.watch\/|snapchat\.com\/|(x|twitter)\.com\/[^/]+\/status\/)/i.test(u);
+      setAi({ state: "done", valid: ok, confidence: ok ? 100 : 0 });
+    }, 400);
   };
   const confirmPublication = () => {
     const r = approvePublication(collab.id);
@@ -281,17 +285,19 @@ export default function CollabDetail() {
               {collab.publication_url}
             </Text>
           </Press>
-          {ai.state === "idle" ? <Button label="Vérifier le lien par IA" variant="dark" icon="sparkles" onPress={verifyAi} /> : null}
+          {ai.state === "idle" ? <Button label="Vérifier le lien" variant="dark" icon="shield-checkmark-outline" onPress={verifyAi} /> : null}
           {ai.state === "busy" ? (
             <View style={styles.aiBusy}>
               <ActivityIndicator color={colors.primary} />
-              <Text style={type.small}>Analyse de la publication en cours…</Text>
+              <Text style={type.small}>Vérification du lien…</Text>
             </View>
           ) : null}
           {ai.state === "done" ? (
             <Animated.View entering={FadeIn} style={{ gap: 10 }}>
               <Banner tone={ai.valid ? "success" : "danger"}>
-                {ai.valid ? `Publication valide — confiance ${ai.confidence} %` : `Publication non confirmée — confiance ${ai.confidence} %. Vérifiez manuellement le lien.`}
+                {ai.valid
+                  ? "Lien valide : publication sur un réseau social reconnu. Ouvrez-la pour vérifier le contenu avant de confirmer."
+                  : "Ce lien ne ressemble pas à une publication Instagram, TikTok, YouTube, Facebook, Snapchat ou X. Vérifiez-le avant de confirmer."}
               </Banner>
               <Button label="Confirmer la publication et payer" icon="checkmark-circle" onPress={confirmPublication} />
               {!ai.valid ? <Button label="Relancer l'analyse" variant="outline" icon="refresh" onPress={verifyAi} /> : null}

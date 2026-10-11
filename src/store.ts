@@ -193,6 +193,10 @@ type Actions = {
   ) => AsyncResult;
   signOut: () => void;
   resetPassword: (email: string) => AsyncResult;
+  updatePassword: (password: string) => AsyncResult;
+  changeEmail: (email: string) => AsyncResult;
+  resendVerification: () => AsyncResult;
+  deleteAccount: () => AsyncResult;
   socialSignIn: (provider: "google" | "apple", role?: Role) => Promise<{ ok: boolean; error?: string; cancelled?: boolean; isNew?: boolean }>;
   adminRefund: (collabId: string, reason: string) => void;
   continueAsGuest: () => void;
@@ -517,7 +521,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: meta },
+        options: { data: meta, emailRedirectTo: AUTH_REDIRECT },
       });
       if (error) return { ok: false, error: errMsg(error) };
       if (!data.session || !data.user)
@@ -544,9 +548,56 @@ export const useDB = create<DB & Actions>()((set, get) => {
       }
       return { ok: true, isNew: r.isNew };
     },
+    updatePassword: async (password) => {
+      if (!live()) return { ok: true };
+      const { error } = await supabase.auth.updateUser({ password });
+      return error ? { ok: false, error: errMsg(error) } : { ok: true };
+    },
+    changeEmail: async (email) => {
+      if (!live()) return { ok: true };
+      const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo: AUTH_REDIRECT });
+      return error ? { ok: false, error: errMsg(error) } : { ok: true };
+    },
+    resendVerification: async () => {
+      if (!live()) return { ok: true };
+      const { data } = await supabase.auth.getUser();
+      if (!data.user?.email) return { ok: false, error: "Aucun email" };
+      const { error } = await supabase.auth.resend({ type: "signup", email: data.user.email, options: { emailRedirectTo: AUTH_REDIRECT } });
+      return error ? { ok: false, error: errMsg(error) } : { ok: true };
+    },
+    deleteAccount: async () => {
+      if (!live()) {
+        get().signOut();
+        return { ok: true };
+      }
+      const uid = get().userId;
+      if (!uid) return { ok: false, error: "Non connecté" };
+      // Fichiers personnels (photos, portfolio, pièces d'identité…) supprimés via l'API Storage.
+      const buckets = ["avatars", "portfolio", "offer-images", "identity-documents", "selfies", "social-screenshots"];
+      await Promise.all(
+        buckets.map(async (b) => {
+          const walk = async (prefix: string): Promise<string[]> => {
+            const { data } = await supabase.storage.from(b).list(prefix, { limit: 1000 });
+            const out: string[] = [];
+            for (const f of data ?? []) {
+              const p = `${prefix}/${f.name}`;
+              if (f.id) out.push(p);
+              else out.push(...(await walk(p)));
+            }
+            return out;
+          };
+          const files = await walk(uid).catch(() => [] as string[]);
+          if (files.length) await supabase.storage.from(b).remove(files);
+        }),
+      );
+      const { error } = await supabase.rpc("delete_my_account");
+      if (error) return { ok: false, error: errMsg(error) };
+      get().signOut();
+      return { ok: true };
+    },
     resetPassword: async (email) => {
       if (!live()) return { ok: true };
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: AUTH_REDIRECT });
       return error ? { ok: false, error: errMsg(error) } : { ok: true };
     },
     signOut: () => {
@@ -1680,10 +1731,12 @@ export const profileOf = (id: string) =>
   useDB.getState().profiles.find((p) => p.user_id === id);
 
 // ---------- session Supabase ----------
+// Lien des emails Supabase (confirmation, mot de passe oublié, changement d'email) : rouvre l'app.
+const AUTH_REDIRECT = "collabcrea://auth-callback";
 const NIL = "00000000-0000-0000-0000-000000000000";
 
 /** Ouvre la session en ligne et charge les données de l'utilisateur. */
-async function connect(userId: string) {
+export async function connect(userId: string) {
   useDB.setState({ mode: "live", userId, guest: false });
   await startSync(useDB as never, userId, {
     onError: (m) => toast(m, "error"),

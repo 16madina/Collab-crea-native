@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { AuthShell } from "../../src/components/account/AuthShell";
 import { PasswordField } from "../../src/components/account/PasswordField";
 import { toast } from "../../src/kit";
+import { useDB } from "../../src/store";
 import { Button } from "../../src/ui";
 
 export default function Reset() {
@@ -17,8 +18,14 @@ export default function Reset() {
     if (confirm !== pw) e.confirm = "Les mots de passe ne correspondent pas";
     setErr(e);
     if (Object.keys(e).length) return;
-    toast("Mot de passe mis à jour !");
-    router.replace("/auth/login");
+    void useDB
+      .getState()
+      .updatePassword(pw)
+      .then((r) => {
+        if (!r.ok) return toast(r.error, "error");
+        toast("Mot de passe mis à jour !");
+        router.replace(useDB.getState().userId ? "/(tabs)/home" : "/auth/login");
+      });
   };
 
   return (

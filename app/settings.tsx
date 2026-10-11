@@ -40,23 +40,41 @@ export default function Settings() {
   const changeEmail = () => {
     if (!isEmail(newEmail)) return setEmailErr("Email invalide");
     setEmailErr(undefined);
-    setSheet(null);
-    setNewEmail("");
-    toast("Un lien de confirmation a été envoyé à la nouvelle adresse");
+    void useDB
+      .getState()
+      .changeEmail(newEmail.trim().toLowerCase())
+      .then((r) => {
+        if (!r.ok) return setEmailErr(r.error);
+        setSheet(null);
+        setNewEmail("");
+        toast("Un lien de confirmation a été envoyé à la nouvelle adresse");
+      });
   };
 
   const del = () => {
     if (confirm !== "SUPPRIMER") return toast("Tapez SUPPRIMER pour confirmer", "error");
-    setSheet(null);
-    signOut();
-    toast("Votre compte a été supprimé");
-    router.replace("/");
+    void useDB
+      .getState()
+      .deleteAccount()
+      .then((r) => {
+        if (!r.ok) return toast(r.error, "error");
+        setSheet(null);
+        toast("Votre compte a été supprimé");
+        router.replace("/");
+      });
   };
 
   const sections = [
     <Group key="compte" title="Compte">
       <SettingRow icon="mail-outline" label="Changer d'email" sub="Un lien de confirmation sera envoyé" onPress={() => setSheet("email")} />
-      <SettingRow icon="paper-plane-outline" label="Renvoyer l'email de vérification" sub={me.email_verified ? "Email déjà vérifié" : "Email non vérifié"} onPress={() => toast(me.email_verified ? "Votre email est déjà vérifié" : "Email de vérification renvoyé", me.email_verified ? "info" : "success")} />
+      <SettingRow icon="paper-plane-outline" label="Renvoyer l'email de vérification" sub={me.email_verified ? "Email déjà vérifié" : "Email non vérifié"} onPress={() =>
+          me.email_verified
+            ? toast("Votre email est déjà vérifié", "info")
+            : void useDB
+                .getState()
+                .resendVerification()
+                .then((r) => (r.ok ? toast("Email de vérification renvoyé") : toast(r.error, "error")))
+        } />
       <SettingRow icon="key-outline" label="Changer le mot de passe" onPress={() => router.push("/auth/reset")} />
       <SettingRow icon="log-out-outline" label="Déconnexion" onPress={logout} last />
     </Group>,
