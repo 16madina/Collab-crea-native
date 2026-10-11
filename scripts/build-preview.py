@@ -10,7 +10,7 @@ Usage : npx expo export --platform web --output-dir /tmp/ccweb
 import base64, glob, os, re, sys
 
 src, out = sys.argv[1], sys.argv[2]
-js = open(glob.glob(os.path.join(src, "_expo/static/js/web/*.js"))[0]).read()
+js = open(glob.glob(os.path.join(src, "_expo/static/js/web/entry-*.js"))[0]).read()
 MIME = {"ttf": "font/ttf", "jpg": "image/jpeg", "png": "image/png"}
 for p in set(re.findall(r'"(/assets/[^"]+\.(?:ttf|jpg|png))"', js)):
     ext = p.rsplit(".", 1)[1]
