@@ -191,7 +191,7 @@ export default function Onboarding() {
   const finish = () => router.push(`/auth/signup?role=${chosen}`);
   const pick = (r: Role) => {
     setChosen(r);
-    router.push(`/auth/signup?role=${r}`);
+    router.push(`/auth/welcome?role=${r}`);
   };
   const demo = (r: Role) => {
     demoSignIn(r);

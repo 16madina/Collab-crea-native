@@ -193,6 +193,7 @@ type Actions = {
   ) => AsyncResult;
   signOut: () => void;
   resetPassword: (email: string) => AsyncResult;
+  socialSignIn: (provider: "google" | "apple", role?: Role) => Promise<{ ok: boolean; error?: string; cancelled?: boolean; isNew?: boolean }>;
   adminRefund: (collabId: string, reason: string) => void;
   continueAsGuest: () => void;
   toggleArchive: (conversationId: string) => boolean;
@@ -523,6 +524,25 @@ export const useDB = create<DB & Actions>()((set, get) => {
         return { ok: true, needsConfirmation: true };
       await connect(data.user.id);
       return { ok: true, id: data.user.id };
+    },
+    socialSignIn: async (provider, role) => {
+      if (!live()) return { ok: false, error: "Connexion Google / Apple disponible dans l'app mobile" };
+      const m = await import("./backend/social");
+      const r = provider === "apple" ? await m.signInWithApple() : await m.signInWithGoogle();
+      if (!r.ok) return r;
+      // Nouveau compte : le serveur l'a créé en « créateur » ; on ajoute l'espace marque si besoin.
+      if (r.isNew && role === "brand") {
+        await supabase.from("user_roles").insert({ user_id: r.userId, role: "brand" });
+        set({ activeRole: "brand" });
+      }
+      if (r.isNew && r.name) await supabase.from("profiles").update({ full_name: r.name }).eq("user_id", r.userId);
+      await connect(r.userId);
+      const me = get().profiles.find((p) => p.user_id === r.userId);
+      if (me?.is_banned) {
+        get().signOut();
+        return { ok: false, error: "Compte suspendu" };
+      }
+      return { ok: true, isNew: r.isNew };
     },
     resetPassword: async (email) => {
       if (!live()) return { ok: true };
