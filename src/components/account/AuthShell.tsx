@@ -21,11 +21,11 @@ export function AuthShell({ title, subtitle, children, onBack, top, eyebrow }: {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <IconButton name="chevron-back" onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace("/")))} />
         </View>
-        <Animated.View entering={FadeInDown.springify()} style={{ alignItems: "center", marginTop: -36 }}>
+        <Animated.View entering={FadeInDown.duration(320)} style={{ alignItems: "center", marginTop: -36 }}>
           <Image source={BADGE} style={{ width: 120, height: 120 }} contentFit="contain" accessibilityLabel="Collab Créa" />
         </Animated.View>
         {top}
-        <Animated.View entering={FadeInDown.springify()} style={{ gap: 6, marginTop: 6 }}>
+        <Animated.View entering={FadeInDown.duration(320)} style={{ gap: 6, marginTop: 6 }}>
           {eyebrow ? <Text style={{ color: colors.primary, fontWeight: "800", letterSpacing: 2, fontSize: 11 }}>{eyebrow}</Text> : null}
           <Text style={type.h1}>{title}</Text>
           {subtitle ? <Text style={type.body}>{subtitle}</Text> : null}

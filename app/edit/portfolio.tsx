@@ -84,7 +84,7 @@ export default function EditPortfolio() {
       ) : (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
           {list.map((p, i) => (
-            <Animated.View key={p.id} entering={FadeInDown.delay(i * 40).springify()} exiting={FadeOut} layout={LinearTransition.springify()}>
+            <Animated.View key={p.id} entering={FadeInDown.delay(i * 40).duration(320)} exiting={FadeOut} layout={LinearTransition.duration(320)}>
               <Press onPress={() => setViewer(i)} onLongPress={() => del(p)} style={{ width: TILE, height: TILE * 1.25, borderRadius: radius.lg, overflow: "hidden", backgroundColor: colors.line }} scaleTo={0.97}>
                 <Image source={p.media_url} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
                 <View style={styles.tileFoot}>

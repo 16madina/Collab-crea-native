@@ -70,7 +70,7 @@ function Form({ me }: { me: Profile }) {
 
   return (
     <Screen title="Modifier le profil" footer={<Button label="Enregistrer" icon="checkmark" style={{ flex: 1 }} onPress={save} />}>
-      <Animated.View entering={FadeInDown.springify()} style={{ gap: 14 }}>
+      <Animated.View entering={FadeInDown.duration(320)} style={{ gap: 14 }}>
         <Card>
           <Field label={brand ? "Nom du responsable" : "Nom complet"} value={name} onChangeText={setName} maxLength={100} error={err.name} />
           <Field label="Bio" value={bio} onChangeText={setBio} multiline maxLength={500} placeholder="Parlez de vous, de votre univers…" error={err.bio} />
@@ -81,7 +81,7 @@ function Form({ me }: { me: Profile }) {
         </Card>
       </Animated.View>
       {brand && (
-        <Animated.View entering={FadeInDown.delay(100).springify()} style={{ gap: 14 }}>
+        <Animated.View entering={FadeInDown.delay(100).duration(320)} style={{ gap: 14 }}>
           <Card>
             <Text style={type.h3}>Entreprise</Text>
             <Field label="Nom de l'entreprise" value={company} onChangeText={setCompany} maxLength={100} error={err.company} />

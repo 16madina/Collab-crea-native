@@ -110,7 +110,7 @@ function Editor({ me }: { me: Profile }) {
         <Empty icon="pricetags-outline" title="Aucun tarif" text="Ajoutez vos services (Story, Reel, Vidéo…) ou créez un pack." />
       ) : (
         items.map((it, i) => (
-          <Animated.View key={`${it.type}-${i}`} entering={FadeInDown.delay(i * 30).springify()} exiting={FadeOut} layout={LinearTransition.springify()}>
+          <Animated.View key={`${it.type}-${i}`} entering={FadeInDown.delay(i * 30).duration(320)} exiting={FadeOut} layout={LinearTransition.duration(320)}>
             <Card style={{ flexDirection: "row", alignItems: "center" }}>
               <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center" }}>
                 <Ionicons name={it.type.startsWith("Pack") ? "cube-outline" : "pricetag-outline"} size={18} color={colors.primary} />

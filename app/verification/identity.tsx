@@ -62,7 +62,7 @@ function Identity({ me }: { me: Profile }) {
   if (me.identity_verified)
     return (
       <Screen title="Vérification d'identité">
-        <Animated.View entering={ZoomIn.springify()} style={{ alignItems: "center", gap: 12, marginTop: 20 }}>
+        <Animated.View entering={ZoomIn.duration(320)} style={{ alignItems: "center", gap: 12, marginTop: 20 }}>
           <View style={[styles.bigIcon, { backgroundColor: "#DDF5E8" }]}>
             <Ionicons name="shield-checkmark" size={52} color={colors.success} />
           </View>
@@ -77,7 +77,7 @@ function Identity({ me }: { me: Profile }) {
   if (me.identity_submitted_at)
     return (
       <Screen title="Vérification d'identité">
-        <Animated.View entering={ZoomIn.springify()} style={{ alignItems: "center", gap: 12, marginTop: 20 }}>
+        <Animated.View entering={ZoomIn.duration(320)} style={{ alignItems: "center", gap: 12, marginTop: 20 }}>
           <View style={[styles.bigIcon, { backgroundColor: "#FFF3D6" }]}>
             <Ionicons name="hourglass-outline" size={48} color="#B7791F" />
           </View>
@@ -141,7 +141,7 @@ function Identity({ me }: { me: Profile }) {
   return (
     <Screen title="Vérification d'identité" subtitle="Sécurisez votre compte" footer={<Button label={sending ? "Envoi…" : "Envoyer ma demande"} icon="send-outline" style={{ flex: 1 }} onPress={sending ? undefined : submit} />}>
       <EmailCard me={me} />
-      <Animated.View entering={FadeInDown.springify()}>
+      <Animated.View entering={FadeInDown.duration(320)}>
         <Card style={{ backgroundColor: colors.night }}>
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>Pourquoi vérifier ?</Text>
           {[
@@ -281,11 +281,11 @@ function FaceScan({ state, onStart, onDone, onRestart }: { state: "idle" | "runn
         </Svg>
         <Animated.View style={[styles.face, pulseStyle, state === "done" && { backgroundColor: "#DDF5E8" }]}>
           {state === "done" ? (
-            <Animated.View entering={ZoomIn.springify()}>
+            <Animated.View entering={ZoomIn.duration(320)}>
               <Ionicons name="checkmark" size={80} color={colors.success} />
             </Animated.View>
           ) : state === "running" ? (
-            <Animated.View key={step} entering={ZoomIn.springify()} style={{ alignItems: "center" }}>
+            <Animated.View key={step} entering={ZoomIn.duration(320)} style={{ alignItems: "center" }}>
               <Ionicons name={cur.icon} size={54} color={colors.primary} />
               <Text style={{ fontSize: 30, fontWeight: "800", color: colors.ink }}>{count}</Text>
             </Animated.View>
@@ -295,7 +295,7 @@ function FaceScan({ state, onStart, onDone, onRestart }: { state: "idle" | "runn
         </Animated.View>
       </View>
       {state === "running" ? (
-        <Animated.View key={`t${step}`} entering={FadeInDown.springify()} style={{ alignItems: "center", gap: 4, marginTop: 14 }}>
+        <Animated.View key={`t${step}`} entering={FadeInDown.duration(320)} style={{ alignItems: "center", gap: 4, marginTop: 14 }}>
           <Text style={type.tiny}>Étape {step + 1} sur 4</Text>
           <Text style={[type.h2, { textAlign: "center" }]}>{cur.t}</Text>
         </Animated.View>

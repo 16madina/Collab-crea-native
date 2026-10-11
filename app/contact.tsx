@@ -19,7 +19,7 @@ const FAQ = [
 function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
   const chevron = useAnimatedStyle(() => ({ transform: [{ rotate: withTiming(open ? "180deg" : "0deg") }] }));
   return (
-    <Animated.View layout={LinearTransition.springify()} style={{ borderBottomWidth: 1, borderBottomColor: colors.line }}>
+    <Animated.View layout={LinearTransition.duration(320)} style={{ borderBottomWidth: 1, borderBottomColor: colors.line }}>
       <Press onPress={onToggle} scaleTo={0.99} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 14 }}>
         <Text style={[type.h3, { flex: 1, fontSize: 13 }]}>{q}</Text>
         <Animated.View style={chevron}>
@@ -66,7 +66,7 @@ export default function Contact() {
 
   return (
     <Screen title="Contact" subtitle="Nous sommes là pour vous aider">
-      <Animated.View entering={FadeInDown.springify()}>
+      <Animated.View entering={FadeInDown.duration(320)}>
         <Card style={{ backgroundColor: colors.night, gap: 14 }}>
           <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Nos coordonnées</Text>
           {(
@@ -86,7 +86,7 @@ export default function Contact() {
         </Card>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(80).springify()}>
+      <Animated.View entering={FadeInDown.delay(80).duration(320)}>
         <Card>
           <Text style={type.h2}>Écrivez-nous</Text>
           <Field label="Nom" value={name} onChangeText={setName} error={err.name} />
@@ -97,7 +97,7 @@ export default function Contact() {
         </Card>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(160).springify()}>
+      <Animated.View entering={FadeInDown.delay(160).duration(320)}>
         <Card style={{ gap: 0 }}>
           <Text style={[type.h2, { marginBottom: 4 }]}>Questions fréquentes</Text>
           {FAQ.map(([q, a], i) => (

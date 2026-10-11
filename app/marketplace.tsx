@@ -64,11 +64,11 @@ export default function Marketplace() {
             const fav = isFav(c.user_id);
             const nets = Object.entries(c.followers) as [SocialPlatform, string][];
             return (
-              <Animated.View key={c.user_id} entering={FadeInDown.delay(Math.min(i, 8) * 50).springify()} layout={LinearTransition.springify()} style={styles.cell}>
+              <Animated.View key={c.user_id} entering={FadeInDown.delay(Math.min(i, 8) * 50).duration(320)} layout={LinearTransition.duration(320)} style={styles.cell}>
                 <Press onPress={() => router.push(`/profile/${c.user_id}`)} style={[styles.card, shadow.soft]} scaleTo={0.97}>
                   <Image source={c.avatar_url} style={styles.photo} contentFit="cover" transition={250} />
                   <Press onPress={() => toggleFavorite(c.user_id)} style={styles.heart} scaleTo={0.8}>
-                    <Animated.View key={String(fav)} entering={ZoomIn.springify()}>
+                    <Animated.View key={String(fav)} entering={ZoomIn.duration(320)}>
                       <Ionicons name={fav ? "heart" : "heart-outline"} size={18} color={fav ? colors.primary : colors.ink} />
                     </Animated.View>
                   </Press>

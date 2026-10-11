@@ -107,7 +107,7 @@ function Messages() {
         />
       ) : (
         rows.map(({ c, other, last, unread }, i) => (
-          <Animated.View key={c.id} entering={FadeInDown.delay(Math.min(i, 8) * 50).springify()} layout={LinearTransition.springify()}>
+          <Animated.View key={c.id} entering={FadeInDown.delay(Math.min(i, 8) * 50).duration(320)} layout={LinearTransition.duration(320)}>
             <Press
               onPress={() => router.push(`/chat/${c.id}`)}
               onLongPress={() => toast(toggleArchive(c.id) ? "Conversation archivée" : "Conversation désarchivée", "info")}
@@ -193,7 +193,7 @@ function Collaborations() {
           const other = profiles.find((p) => p.user_id === (isBrand ? c.creator_id : c.brand_id));
           const tl = c.status === "in_progress" ? timeLeft(c.deadline) : null;
           return (
-            <Animated.View key={c.id} entering={FadeInDown.delay(Math.min(i, 8) * 50).springify()} layout={LinearTransition.springify()}>
+            <Animated.View key={c.id} entering={FadeInDown.delay(Math.min(i, 8) * 50).duration(320)} layout={LinearTransition.duration(320)}>
               <Press onPress={() => router.push(`/collab/${c.id}`)} style={[styles.collab, shadow.soft]} scaleTo={0.98}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <Avatar uri={avatarOf(other)} size={40} />

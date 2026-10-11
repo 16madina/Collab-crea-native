@@ -178,7 +178,7 @@ export default function WalletScreen() {
 
   return (
     <Screen title="Mon portefeuille" subtitle="Gains et retraits">
-      <Animated.View entering={FadeInDown.springify()} style={[styles.balance, shadow.soft]}>
+      <Animated.View entering={FadeInDown.duration(320)} style={[styles.balance, shadow.soft]}>
         <LinearGradient colors={["#1E1E1E", "#121212"]} style={StyleSheet.absoluteFill} />
         <View style={styles.glow} />
         <Text style={{ color: "rgba(255,255,255,0.7)", fontWeight: "600" }}>Solde disponible</Text>
@@ -197,7 +197,7 @@ export default function WalletScreen() {
       </Animated.View>
 
       {pendingW.length ? (
-        <Animated.View entering={FadeInDown.delay(60).springify()} style={{ gap: 10 }}>
+        <Animated.View entering={FadeInDown.delay(60).duration(320)} style={{ gap: 10 }}>
           <Text style={type.h2}>Retraits en cours</Text>
           <View style={[styles.card, shadow.soft]}>
             {pendingW.map((w) => (
@@ -207,7 +207,7 @@ export default function WalletScreen() {
         </Animated.View>
       ) : null}
       {doneW.length ? (
-        <Animated.View entering={FadeInDown.delay(100).springify()} style={{ gap: 10 }}>
+        <Animated.View entering={FadeInDown.delay(100).duration(320)} style={{ gap: 10 }}>
           <Text style={type.h2}>Retraits traités</Text>
           <View style={[styles.card, shadow.soft]}>
             {doneW.map((w) => (
@@ -217,7 +217,7 @@ export default function WalletScreen() {
         </Animated.View>
       ) : null}
 
-      <Animated.View entering={FadeInDown.delay(140).springify()} style={{ gap: 10 }}>
+      <Animated.View entering={FadeInDown.delay(140).duration(320)} style={{ gap: 10 }}>
         <Text style={type.h2}>Historique</Text>
         <Segmented
           value={period}

@@ -52,7 +52,7 @@ function Timeline({ status, network }: { status: CollabStatus; network: boolean 
           <View key={s} style={{ flex: 1, alignItems: "center", gap: 6 }}>
             <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
               <View style={[styles.tlLine, { opacity: i === 0 ? 0 : 1 }, (done || on) && { backgroundColor: colors.primary }]} />
-              <Animated.View entering={ZoomIn.delay(i * 80).springify()} style={[styles.tlDot, done && { backgroundColor: colors.primary, borderColor: colors.primary }, on && { borderColor: colors.primary }]}>
+              <Animated.View entering={ZoomIn.delay(i * 80).duration(320)} style={[styles.tlDot, done && { backgroundColor: colors.primary, borderColor: colors.primary }, on && { borderColor: colors.primary }]}>
                 {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : <Text style={{ fontSize: 10, fontWeight: "800", color: on ? colors.primary : colors.muted }}>{i + 1}</Text>}
               </Animated.View>
               <View style={[styles.tlLine, { opacity: i === steps.length - 1 ? 0 : 1 }, done && { backgroundColor: colors.primary }]} />
@@ -344,7 +344,7 @@ export default function CollabDetail() {
 
   return (
     <Screen title={offer?.title ?? "Collaboration"} subtitle={COLLAB_LABEL[s]}>
-      <Animated.View entering={FadeInDown.springify()}>
+      <Animated.View entering={FadeInDown.duration(320)}>
         <View style={[styles.hero, shadow.soft]}>
           <LinearGradient colors={["#1E1E1E", "#121212"]} style={StyleSheet.absoluteFill} />
           <Press onPress={() => other && router.push(`/profile/${other.user_id}`)} style={{ flexDirection: "row", alignItems: "center", gap: 10 }} scaleTo={0.98}>
@@ -369,15 +369,15 @@ export default function CollabDetail() {
         </View>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(60).springify()}>
+      <Animated.View entering={FadeInDown.delay(60).duration(320)}>
         <Timeline status={s} network={network} />
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(120).springify()} style={{ gap: 12 }}>
+      <Animated.View entering={FadeInDown.delay(120).duration(320)} style={{ gap: 12 }}>
         {actionCard()}
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(180).springify()} style={{ gap: 12 }}>
+      <Animated.View entering={FadeInDown.delay(180).duration(320)} style={{ gap: 12 }}>
         <Card>
           <Text style={type.h3}>Détails</Text>
           <Row label="Échéance" value={fmtDate(collab.deadline, true)} />

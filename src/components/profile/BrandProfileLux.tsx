@@ -212,7 +212,7 @@ export function BrandProfileLux({ me, onLogout }: { me: Profile; onLogout: () =>
                     const st = STATUS[statusOf(o)];
                     const n = applications.filter((a) => a.offer_id === o.id).length;
                     return (
-                      <Animated.View key={o.id} entering={FadeInDown.delay(i * 60).springify()} layout={LinearTransition}>
+                      <Animated.View key={o.id} entering={FadeInDown.delay(i * 60).duration(320)} layout={LinearTransition}>
                         <Press onPress={() => router.push(`/offer/${o.id}`)} style={[styles.row, luxShadow]} scaleTo={0.98}>
                           <GlossFill />
                           <View style={styles.thumb}>
@@ -277,7 +277,7 @@ export function BrandProfileLux({ me, onLogout }: { me: Profile; onLogout: () =>
                   ["eye-outline", formatFollowers(views), "Vues générées"],
                 ] as const
               ).map(([ic, v, l], i) => (
-                <Animated.View key={l} entering={FadeInDown.delay(i * 60).springify()} style={[styles.statTile, luxShadow]}>
+                <Animated.View key={l} entering={FadeInDown.delay(i * 60).duration(320)} style={[styles.statTile, luxShadow]}>
                   <GlossFill />
                   <Ionicons name={ic} size={20} color={colors.primary} />
                   <Text style={styles.statTileValue}>{v}</Text>

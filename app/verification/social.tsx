@@ -91,11 +91,11 @@ export default function SocialVerificationScreen() {
         <View style={{ alignItems: "center", gap: 20, marginTop: 40 }}>
           <View style={styles.loaderWrap}>
             <Animated.View style={[styles.loaderRing, spinStyle]} />
-            <Animated.View key={phase} entering={ZoomIn.springify()}>
+            <Animated.View key={phase} entering={ZoomIn.duration(320)}>
               <Ionicons name={icon} size={44} color={colors.primary} />
             </Animated.View>
           </View>
-          <Animated.Text key={`l${phase}`} entering={FadeInDown.springify()} style={type.h2}>
+          <Animated.Text key={`l${phase}`} entering={FadeInDown.duration(320)} style={type.h2}>
             {label}
           </Animated.Text>
           <View style={{ flexDirection: "row", gap: 8 }}>
@@ -113,7 +113,7 @@ export default function SocialVerificationScreen() {
     const pending = result.status === "pending_admin";
     return (
       <Screen title="Résultat">
-        <Animated.View entering={ZoomIn.springify()} style={{ alignItems: "center", gap: 12, marginTop: 20 }}>
+        <Animated.View entering={ZoomIn.duration(320)} style={{ alignItems: "center", gap: 12, marginTop: 20 }}>
           <View style={[styles.bigIcon, { backgroundColor: ok ? "#DDF5E8" : pending ? "#FFF3D6" : "#FDE7E7" }]}>
             <Ionicons name={ok ? "checkmark-circle" : pending ? "time-outline" : "close-circle"} size={56} color={ok ? colors.success : pending ? "#B7791F" : "#C53030"} />
           </View>

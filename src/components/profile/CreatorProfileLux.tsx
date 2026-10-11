@@ -128,7 +128,7 @@ function PortfolioTab({ me }: { me: Profile }) {
       ) : (
         <View style={styles.grid}>
           {items.map((p, i) => (
-            <Animated.View key={p.id} entering={FadeInDown.delay(i * 50).springify()} layout={LinearTransition}>
+            <Animated.View key={p.id} entering={FadeInDown.delay(i * 50).duration(320)} layout={LinearTransition}>
               <Press onPress={() => router.push("/edit/portfolio")} style={styles.tile} scaleTo={0.96}>
                 <Image source={p.media_url} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
                 <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.6)"]} locations={[0.55, 1]} style={StyleSheet.absoluteFill} />
@@ -178,7 +178,7 @@ function PricingTab({ me }: { me: Profile }) {
             const plat = platformOfType(it.type);
             const isStory = it.type.toLowerCase().includes("story");
             return (
-              <Animated.View key={`${it.type}-${i}`} entering={FadeInDown.delay(i * 60).springify()}>
+              <Animated.View key={`${it.type}-${i}`} entering={FadeInDown.delay(i * 60).duration(320)}>
                 <Press onPress={() => router.push("/edit/pricing")} style={[styles.priceCard, luxShadow]} scaleTo={0.97}>
                   <GlossFill />
                   <LinearGradient colors={["rgba(217,172,101,0.22)", "rgba(217,172,101,0)"]} start={{ x: 1, y: 0 }} end={{ x: 0.4, y: 0.8 }} style={StyleSheet.absoluteFill} />
@@ -256,7 +256,7 @@ function OffersTab({ me }: { me: Profile }) {
           {list.map((r, i) => {
             const brand = profiles.find((p) => p.user_id === r.offer?.brand_id);
             return (
-              <Animated.View key={r.id} entering={FadeInDown.delay(i * 60).springify()}>
+              <Animated.View key={r.id} entering={FadeInDown.delay(i * 60).duration(320)}>
                 <Press onPress={() => router.push(r.to as never)} style={[styles.offerCard, luxShadow]} scaleTo={0.98}>
                   <GlossFill />
                   <View style={styles.brandLogo}>

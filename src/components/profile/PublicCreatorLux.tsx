@@ -155,7 +155,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
             ) : (
               <View style={styles.grid}>
                 {items.map((it, i) => (
-                  <Animated.View key={it.id} entering={FadeInDown.delay(i * 50).springify()}>
+                  <Animated.View key={it.id} entering={FadeInDown.delay(i * 50).duration(320)}>
                     <View style={styles.tile}>
                       <Image source={it.media_url} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
                       <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.6)"]} locations={[0.55, 1]} style={StyleSheet.absoluteFill} />
@@ -175,7 +175,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
                 const plat = platformOfType(it.type);
                 const story = it.type.toLowerCase().includes("story");
                 return (
-                  <Animated.View key={`${it.type}-${i}`} entering={FadeInDown.delay(i * 60).springify()}>
+                  <Animated.View key={`${it.type}-${i}`} entering={FadeInDown.delay(i * 60).duration(320)}>
                     <View style={[styles.priceCard, luxShadow]}>
                       <GlossFill />
                       <LinearGradient colors={["rgba(217,172,101,0.22)", "rgba(217,172,101,0)"]} start={{ x: 1, y: 0 }} end={{ x: 0.4, y: 0.8 }} style={StyleSheet.absoluteFill} />

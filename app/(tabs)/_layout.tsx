@@ -5,7 +5,7 @@ import { BlurView } from "expo-blur";
 import { router, Tabs } from "expo-router";
 import type { BottomTabBarProps } from "expo-router/tabs";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, shadow } from "../../src/theme";
 import { Press, tap } from "../../src/ui";
@@ -31,10 +31,10 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
         ).size
       : 0;
   const dot = useAnimatedStyle(() => ({
-    transform: [{ scale: withSpring(focused ? 1 : 0, { damping: 14 }) }],
+    transform: [{ scale: withTiming(focused ? 1 : 0, { duration: 200 }) }],
   }));
   const icon = useAnimatedStyle(() => ({
-    transform: [{ translateY: withSpring(focused ? -2 : 0) }, { scale: withSpring(focused ? 1.08 : 1) }],
+    transform: [{ translateY: withTiming(focused ? -2 : 0, { duration: 200 }) }, { scale: withTiming(focused ? 1.08 : 1, { duration: 200 }) }],
   }));
   return (
     <Pressable onPress={onPress} style={styles.item} hitSlop={6}>

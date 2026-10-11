@@ -49,7 +49,7 @@ export default function Notifications() {
         mine.map((n, i) => {
           const [icon, fg, bg] = ICON[n.type];
           return (
-            <Animated.View key={n.id} entering={FadeInDown.delay(Math.min(i, 10) * 40).springify()} layout={LinearTransition.springify()}>
+            <Animated.View key={n.id} entering={FadeInDown.delay(Math.min(i, 10) * 40).duration(320)} layout={LinearTransition.duration(320)}>
               <Press onPress={() => !n.is_read && markRead(n.id)} scaleTo={0.98} style={[styles.row, shadow.soft, !n.is_read && { backgroundColor: "#FFF8F5", borderColor: colors.primarySoft }]}>
                 <View style={[styles.icon, { backgroundColor: bg }]}>
                   <Ionicons name={icon} size={20} color={fg} />

@@ -5,7 +5,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ReactNode } from "react";
 import { Platform, Pressable, PressableProps, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { budgetLabel, useDB } from "./store";
 import type { Offer } from "./types";
 import { colors, radius, shadow, type } from "./theme";
@@ -30,8 +30,8 @@ export function Press({
     <AnimatedPressable
       {...rest}
       style={[style, anim]}
-      onPressIn={() => (s.value = withSpring(scaleTo, { damping: 15, stiffness: 400 }))}
-      onPressOut={() => (s.value = withSpring(1, { damping: 12, stiffness: 300 }))}
+      onPressIn={() => (s.value = withTiming(scaleTo, { duration: 110 }))}
+      onPressOut={() => (s.value = withTiming(1, { duration: 160 }))}
       onPress={(e) => {
         tap();
         onPress?.(e);

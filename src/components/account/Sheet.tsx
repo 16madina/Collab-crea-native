@@ -35,7 +35,7 @@ export function Sheet({
           <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(20,12,8,0.45)" }]} onPress={onClose} />
         </Animated.View>
         <View style={{ flex: 1 }} pointerEvents="box-none" />
-        <Animated.View entering={SlideInDown.springify().damping(18).stiffness(160)} style={[styles.panel, { maxHeight: H, paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <Animated.View entering={SlideInDown.duration(320)} style={[styles.panel, { maxHeight: H, paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View style={styles.grabber} />
           {title ? (
             <View style={styles.head}>

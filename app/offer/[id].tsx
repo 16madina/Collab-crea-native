@@ -22,7 +22,7 @@ const REASONS = ["Offre trompeuse / Fausses informations", "Arnaque ou fraude", 
 
 function Section({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {
   return (
-    <Animated.View entering={FadeInDown.delay(delay).springify()} style={{ gap: 10 }}>
+    <Animated.View entering={FadeInDown.delay(delay).duration(320)} style={{ gap: 10 }}>
       <Text style={styles.secTitle}>{title}</Text>
       {children}
     </Animated.View>
@@ -94,7 +94,7 @@ export default function OfferDetail() {
     if (myApp && myApp.status !== "rejected")
       return (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-          <Animated.View entering={ZoomIn.springify()}>
+          <Animated.View entering={ZoomIn.duration(320)}>
             <AppStatusBadge status={myApp.status} />
           </Animated.View>
           <Button label="Voir la conversation" icon="chatbubble-ellipses" onPress={() => router.push(`/chat/${myApp.conversation_id}`)} style={{ flex: 1 }} />
@@ -114,7 +114,7 @@ export default function OfferDetail() {
         </Animated.View>
 
         <View style={styles.sheet}>
-          <Animated.View entering={FadeInDown.springify()} style={{ gap: 6, marginTop: -64 }}>
+          <Animated.View entering={FadeInDown.duration(320)} style={{ gap: 6, marginTop: -64 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
               <View style={styles.logo}>
                 <Text style={styles.logoText}>{initials(nameOf(brand))}</Text>
@@ -147,7 +147,7 @@ export default function OfferDetail() {
             </View>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.stats}>
+          <Animated.View entering={FadeInDown.delay(80).duration(320)} style={styles.stats}>
             {(
               [
                 ["cash-outline", budgetLabel(offer), "Budget"],
@@ -195,7 +195,7 @@ export default function OfferDetail() {
             ) : null}
           </Section>
 
-          <Animated.View entering={FadeInDown.delay(160).springify()} style={styles.box}>
+          <Animated.View entering={FadeInDown.delay(160).duration(320)} style={styles.box}>
             <Text style={styles.subTitle}>Types de contenu attendus</Text>
             {(offer.deliverables?.length ? offer.deliverables : offer.content_types).map((d, i) => (
               <View key={d} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>

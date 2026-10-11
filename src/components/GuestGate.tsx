@@ -11,7 +11,7 @@ export function GuestGate({ icon, title, text }: { icon: keyof typeof Ionicons.g
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + 40 }]}>
-      <Animated.View entering={FadeInDown.springify()}>
+      <Animated.View entering={FadeInDown.duration(320)}>
         <GlossCard gold style={styles.card}>
           <View style={styles.icon}>
             <Ionicons name={icon} size={30} color={colors.primary} />

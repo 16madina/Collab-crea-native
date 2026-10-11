@@ -62,7 +62,7 @@ export default function Welcome() {
         </Checkbox>
       </View>
 
-      <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.row}>
+      <Animated.View entering={FadeInDown.delay(80).duration(320)} style={styles.row}>
         <Press onPress={() => social("google")} style={[styles.social, locked && styles.off]} scaleTo={0.97}>
           {busy === "google" ? <ActivityIndicator color="#111" /> : <Ionicons name="logo-google" size={18} color={locked ? "#8a8a8a" : "#111"} />}
           <Text style={[styles.socialText, locked && styles.offText]}>Google</Text>
@@ -81,7 +81,7 @@ export default function Welcome() {
         <View style={styles.line} />
       </View>
 
-      <Animated.View entering={FadeInDown.delay(160).springify()} style={{ gap: 12 }}>
+      <Animated.View entering={FadeInDown.delay(160).duration(320)} style={{ gap: 12 }}>
         {locked ? (
           <Press onPress={needTerms} style={[styles.login, styles.off]} scaleTo={0.97}>
             <Text style={[styles.loginText, styles.offText]}>Créer un compte</Text>

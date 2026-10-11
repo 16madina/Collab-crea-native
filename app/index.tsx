@@ -17,8 +17,7 @@ import Animated, {
   FadeIn,
   FadeInDown,
   useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
+  withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GoldFill, GoldText, goldBorder, goldGlow } from "../src/lux";
 import { useDB } from "../src/store";
@@ -107,8 +106,8 @@ function Dots({ i }: { i: number }) {
 }
 function Dot({ on }: { on: boolean }) {
   const st = useAnimatedStyle(() => ({
-    width: withSpring(on ? 10 : 8),
-    opacity: withSpring(on ? 1 : 0.35),
+    width: withTiming(on ? 10 : 8, { duration: 200 }),
+    opacity: withTiming(on ? 1 : 0.35, { duration: 200 }),
   }));
   return (
     <Animated.View
@@ -256,18 +255,18 @@ export default function Onboarding() {
                   />
                 </Animated.View>
                 <View style={{ flex: 1 }} />
-                <Animated.View entering={FadeInDown.delay(300).springify()}>
+                <Animated.View entering={FadeInDown.delay(300).duration(320)}>
                   <Text style={styles.script}>Le talent crée{"\n"}des opportunités.</Text>
                 </Animated.View>
                 <Animated.Text
-                  entering={FadeInDown.delay(420).springify()}
+                  entering={FadeInDown.delay(420).duration(320)}
                   style={styles.welcomeBody}
                 >
                   La plateforme qui connecte les créateurs de contenu africains
                   avec des marques ambitieuses.
                 </Animated.Text>
                 <Animated.View
-                  entering={FadeInDown.delay(540).springify()}
+                  entering={FadeInDown.delay(540).duration(320)}
                   style={{ gap: 12, marginTop: 22 }}
                 >
                   <Press

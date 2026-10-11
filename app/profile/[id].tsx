@@ -206,7 +206,7 @@ function ProposeSheet({ visible, onClose, creator, brand }: { visible: boolean; 
           {active.map((o, i) => {
             const on = sel === o.id;
             return (
-              <Animated.View key={o.id} entering={FadeInDown.delay(i * 40).springify()}>
+              <Animated.View key={o.id} entering={FadeInDown.delay(i * 40).duration(320)}>
                 <Press onPress={() => setSel(o.id)} scaleTo={0.98} style={[styles.offerRow, on && { borderColor: colors.primary, backgroundColor: colors.primarySoft }]}>
                   {o.images[0] ? <Image source={o.images[0]} style={{ width: 48, height: 48, borderRadius: 12 }} /> : null}
                   <View style={{ flex: 1 }}>
@@ -239,7 +239,7 @@ function BrandView({ p, viewer }: { p: Profile; viewer?: Profile }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
         <Hero uri={logo} banner={p.banner_url} />
         <View style={{ alignItems: "center", marginTop: -80, paddingHorizontal: 20, gap: 4 }}>
-          <Animated.View entering={ZoomIn.springify()} style={[styles.logoWrap, shadow.soft]}>
+          <Animated.View entering={ZoomIn.duration(320)} style={[styles.logoWrap, shadow.soft]}>
             <Image source={logo} style={{ width: 104, height: 104, borderRadius: 28 }} />
           </Animated.View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 }}>
@@ -251,7 +251,7 @@ function BrandView({ p, viewer }: { p: Profile; viewer?: Profile }) {
           </Text>
         </View>
         <View style={{ paddingHorizontal: 20, gap: 14, marginTop: 20 }}>
-          <Animated.View entering={FadeInDown.delay(80).springify()}>
+          <Animated.View entering={FadeInDown.delay(80).duration(320)}>
             <Card>
               <Text style={type.h3}>À propos</Text>
               <Text style={type.body}>{p.company_description || "Aucune description."}</Text>
@@ -280,7 +280,7 @@ function BrandView({ p, viewer }: { p: Profile; viewer?: Profile }) {
             <Empty icon="briefcase-outline" title="Aucune offre active" />
           ) : (
             active.map((o, i) => (
-              <Animated.View key={o.id} entering={FadeInDown.delay(120 + i * 50).springify()}>
+              <Animated.View key={o.id} entering={FadeInDown.delay(120 + i * 50).duration(320)}>
                 <Press onPress={() => router.push(`/offer/${o.id}`)} scaleTo={0.98} style={[styles.offerCard, shadow.soft]}>
                   {o.images[0] ? <Image source={o.images[0]} style={{ height: 130 }} contentFit="cover" transition={250} /> : null}
                   <View style={{ padding: 14, gap: 4 }}>

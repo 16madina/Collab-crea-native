@@ -139,7 +139,7 @@ export default function EditOffer() {
         </>
       }
     >
-      <Animated.View entering={FadeInDown.springify()} style={{ gap: 14 }}>
+      <Animated.View entering={FadeInDown.duration(320)} style={{ gap: 14 }}>
         <Field label="Titre *" value={title} onChangeText={setTitle} placeholder="Ex : Lancement de notre nouveau sérum" />
         <Field label="Description *" value={description} onChangeText={setDescription} multiline placeholder="Décrivez votre marque, votre produit et la campagne" />
         <Label>Catégorie *</Label>
@@ -168,7 +168,7 @@ export default function EditOffer() {
           <Option on={presence === "on_site"} title="📍 Sur place" onPress={() => setPresence("on_site")} />
         </View>
         {presence === "on_site" ? (
-          <Animated.View entering={FadeIn} exiting={FadeOut} layout={LinearTransition.springify()} style={{ gap: 12 }}>
+          <Animated.View entering={FadeIn} exiting={FadeOut} layout={LinearTransition.duration(320)} style={{ gap: 12 }}>
             <Label>Qui filme ?</Label>
             <View style={styles.optRow}>
               <Option on={filming === "creator"} title="🎥 Le créateur" onPress={() => setFilming("creator")} />
@@ -180,7 +180,7 @@ export default function EditOffer() {
             <Field label="Quartier" value={hood} onChangeText={setHood} placeholder="Ex : Cocody" />
             <Label>Créneaux de disponibilité</Label>
             {slots.map((s, i) => (
-              <Animated.View key={i} entering={FadeInDown.springify()} exiting={FadeOut} layout={LinearTransition} style={styles.slot}>
+              <Animated.View key={i} entering={FadeInDown.duration(320)} exiting={FadeOut} layout={LinearTransition} style={styles.slot}>
                 <View style={{ flex: 1, gap: 8 }}>
                   <Field value={s.date} onChangeText={(v) => updateSlot(i, { date: v })} placeholder="Date AAAA-MM-JJ" />
                   <View style={{ flexDirection: "row", gap: 8 }}>

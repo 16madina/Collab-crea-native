@@ -34,7 +34,7 @@ export default function Reset() {
       subtitle="Choisissez un mot de passe sécurisé d'au moins 6 caractères."
     >
       <Animated.View
-        entering={FadeInDown.delay(100).springify()}
+        entering={FadeInDown.delay(100).duration(320)}
         style={{ gap: 14 }}
       >
         <PasswordField

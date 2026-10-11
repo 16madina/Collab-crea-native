@@ -226,7 +226,7 @@ export function VerificationBanner({ p }: { p: Profile }) {
     pending: { icon: "hourglass-outline", title: "Vérification en cours", text: "Notre équipe examine votre demande sous 24–48 h.", cta: "Voir" },
   }[s] as { icon: keyof typeof Ionicons.glyphMap; title: string; text: string; cta: string };
   return (
-    <Animated.View entering={FadeIn} layout={LinearTransition.springify()}>
+    <Animated.View entering={FadeIn} layout={LinearTransition.duration(320)}>
       <Press onPress={() => router.push("/verification/identity")} scaleTo={0.98} style={[styles.vb, shadow.soft]}>
         <View style={styles.vbIcon}>
           <Ionicons name={cfg.icon} size={20} color="#fff" />

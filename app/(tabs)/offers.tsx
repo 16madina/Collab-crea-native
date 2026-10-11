@@ -104,7 +104,7 @@ function CreatorOffers() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: 12, paddingBottom: 140, gap: 12 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-      <Animated.View entering={FadeInDown.springify()} style={{ flexDirection: "row", gap: 10, paddingHorizontal: 16 }}>
+      <Animated.View entering={FadeInDown.duration(320)} style={{ flexDirection: "row", gap: 10, paddingHorizontal: 16 }}>
         <View style={styles.lxSearch}>
           <GlossFill />
           <Ionicons name="search-outline" size={20} color={colors.inkSoft} />
@@ -205,7 +205,7 @@ function CreatorOffers() {
       ) : layout === "horizontal" ? (
         <View style={{ paddingHorizontal: 16, gap: 10 }}>
           {sorted.map((o, i) => (
-            <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 50).springify()} layout={LinearTransition.springify()}>
+            <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 50).duration(320)} layout={LinearTransition.duration(320)}>
               <OfferRow o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={appsOf(o.id)} badge={appBadge(appOf(o.id)?.status)} />
             </Animated.View>
           ))}
@@ -213,7 +213,7 @@ function CreatorOffers() {
       ) : (
         <View style={{ paddingHorizontal: 16, gap: 10, flexDirection: "row", flexWrap: "wrap" }}>
           {sorted.map((o, i) => (
-            <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 50).springify()} layout={LinearTransition.springify()}>
+            <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 50).duration(320)} layout={LinearTransition.duration(320)}>
               <AdCard compact o={o} width={colW} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={appsOf(o.id)} badge={appBadge(appOf(o.id)?.status)} />
             </Animated.View>
           ))}
@@ -252,7 +252,7 @@ function BrandOffers() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: 4, paddingBottom: 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-      <Animated.View entering={FadeInDown.springify()} style={{ paddingHorizontal: 20, flexDirection: "row", alignItems: "center" }}>
+      <Animated.View entering={FadeInDown.duration(320)} style={{ paddingHorizontal: 20, flexDirection: "row", alignItems: "center" }}>
         <View style={{ flex: 1 }}>
           <Text style={type.h1}>Mes offres</Text>
           <Text style={type.small}>
@@ -261,7 +261,7 @@ function BrandOffers() {
         </View>
         <IconButton name="add" onPress={() => router.push("/offer/edit")} />
       </Animated.View>
-      <Animated.View entering={FadeInDown.delay(60).springify()} style={{ paddingHorizontal: 20, gap: 12 }}>
+      <Animated.View entering={FadeInDown.delay(60).duration(320)} style={{ paddingHorizontal: 20, gap: 12 }}>
         <SearchBar value={q} onChange={setQ} placeholder="Rechercher une offre…" />
         <Press onPress={() => router.push("/marketplace")} style={[styles.findRow, shadow.soft]} scaleTo={0.98}>
           <Ionicons name="people" size={20} color={colors.primary} />
@@ -291,7 +291,7 @@ function BrandOffers() {
             const st = effective(o);
             const n = countFor(o.id);
             return (
-              <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 60).springify()} exiting={FadeOut} layout={LinearTransition.springify()}>
+              <Animated.View key={o.id} entering={FadeInDown.delay(Math.min(i, 6) * 60).duration(320)} exiting={FadeOut} layout={LinearTransition.duration(320)}>
                 <View style={[styles.mineCard, shadow.soft]}>
                   <Press onPress={() => router.push(`/offer/${o.id}`)} style={{ flexDirection: "row", gap: 12 }} scaleTo={0.98}>
                     <Image source={o.images[0] ?? OFFER_FALLBACK} style={{ width: 72, height: 72, borderRadius: 16 }} contentFit="cover" />

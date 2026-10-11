@@ -9,9 +9,7 @@ import Animated, {
   FadeInLeft,
   FadeInRight,
   useAnimatedStyle,
-  withSpring,
-  ZoomIn,
-} from "react-native-reanimated";
+  ZoomIn, withTiming } from "react-native-reanimated";
 import { AuthShell } from "../../src/components/account/AuthShell";
 import {
   ALL_PLATFORMS,
@@ -41,9 +39,9 @@ type Errors = Record<string, string | undefined>;
 
 function Dot({ active, done }: { active: boolean; done: boolean }) {
   const st = useAnimatedStyle(() => ({
-    width: withSpring(active ? 28 : 10, { damping: 14 }),
+    width: withTiming(active ? 28 : 10, { duration: 200 }),
     backgroundColor: active || done ? colors.primary : "#E6DAD2",
-    opacity: withSpring(done && !active ? 0.55 : 1),
+    opacity: withTiming(done && !active ? 0.55 : 1, { duration: 200 }),
   }));
   return <Animated.View style={[{ height: 10, borderRadius: 5 }, st]} />;
 }
@@ -238,7 +236,7 @@ export default function Signup() {
   };
 
   const entering = (dir === 1 ? FadeInRight : FadeInLeft)
-    .springify()
+    .duration(320)
     .damping(18);
   const titles: Record<string, [string, string]> = {
     "1": ["Faisons connaissance", "Ajoutez une photo et votre nom."],
@@ -282,7 +280,7 @@ export default function Signup() {
               >
                 {avatar ? (
                   <Animated.View
-                    entering={ZoomIn.springify()}
+                    entering={ZoomIn.duration(320)}
                     style={StyleSheet.absoluteFill}
                   >
                     <Image
@@ -425,7 +423,7 @@ export default function Signup() {
                     </Text>
                     {on ? (
                       <Animated.View
-                        entering={ZoomIn.springify()}
+                        entering={ZoomIn.duration(320)}
                         style={{ position: "absolute", top: 12, right: 12 }}
                       >
                         <Ionicons
@@ -442,7 +440,7 @@ export default function Signup() {
             {err.role ? <Text style={styles.error}>{err.role}</Text> : null}
             {role === "creator" && (
               <Animated.View
-                entering={FadeInDown.springify()}
+                entering={FadeInDown.duration(320)}
                 style={{ gap: 10 }}
               >
                 <Label>Vos réseaux sociaux</Label>
@@ -715,7 +713,7 @@ export default function Signup() {
             </Press>
           )}
           {SAMPLE_AVATARS.map((a, i) => (
-            <Animated.View key={a} entering={ZoomIn.delay(i * 40).springify()}>
+            <Animated.View key={a} entering={ZoomIn.delay(i * 40).duration(320)}>
               <Press
                 onPress={() => {
                   setAvatar(a);

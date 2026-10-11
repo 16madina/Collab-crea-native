@@ -197,7 +197,7 @@ export function ToastHost() {
   return (
     <View pointerEvents="none" style={{ position: "absolute", top: insets.top + 8, left: 16, right: 16, gap: 8, zIndex: 999 }}>
       {list.map((t) => (
-        <Animated.View key={t.id} entering={FadeInUp.springify()} exiting={FadeOutUp}>
+        <Animated.View key={t.id} entering={FadeInUp.duration(320)} exiting={FadeOutUp}>
           <Glass style={[styles.toast, shadow.soft]} tint="dark" intensity={50}>
             <Ionicons name={t.tone === "error" ? "alert-circle" : t.tone === "info" ? "information-circle" : "checkmark-circle"} size={20} color={t.tone === "error" ? "#FF8A80" : t.tone === "info" ? "#fff" : "#6EE7A8"} />
             <Text style={{ color: "#fff", fontWeight: "600", flex: 1 }}>{t.text}</Text>

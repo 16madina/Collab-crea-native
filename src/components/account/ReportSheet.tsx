@@ -71,7 +71,7 @@ export function ReportSheet({
         {REPORT_REASONS[type].map((r, i) => {
           const on = reason === r;
           return (
-            <Animated.View key={r} entering={FadeInDown.delay(i * 40).springify()}>
+            <Animated.View key={r} entering={FadeInDown.delay(i * 40).duration(320)}>
               <Press
                 onPress={() => setReason(r)}
                 scaleTo={0.98}

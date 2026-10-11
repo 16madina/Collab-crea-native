@@ -41,7 +41,7 @@ export default function Login() {
       subtitle="Heureux de vous revoir. Connectez-vous pour retrouver vos collaborations."
     >
       <Animated.View
-        entering={FadeInDown.delay(100).springify()}
+        entering={FadeInDown.delay(100).duration(320)}
         style={{ gap: 14 }}
       >
         <Field
@@ -77,7 +77,7 @@ export default function Login() {
         />
       </Animated.View>
       <Animated.View
-        entering={FadeInDown.delay(200).springify()}
+        entering={FadeInDown.delay(200).duration(320)}
         style={{
           flexDirection: "row",
           gap: 10,

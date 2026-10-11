@@ -188,7 +188,7 @@ export default function Chat() {
         onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}
         keyboardShouldPersistTaps="handled"
       >
-        <Animated.View entering={FadeInDown.springify()}>
+        <Animated.View entering={FadeInDown.duration(320)}>
           {renderProposal()}
         </Animated.View>
         <View style={styles.subject}>
@@ -200,7 +200,7 @@ export default function Chat() {
         {messages.map((m) => {
           const mine = m.sender_id === me.user_id;
           return (
-            <Animated.View key={m.id} entering={FadeInUp.springify()} style={[styles.bubble, mine ? styles.mine : styles.theirs]}>
+            <Animated.View key={m.id} entering={FadeInUp.duration(320)} style={[styles.bubble, mine ? styles.mine : styles.theirs]}>
               <Text style={{ color: mine ? "#fff" : colors.ink, fontSize: 13, lineHeight: 18 }}>{m.content}</Text>
               <Text style={{ fontSize: 9, marginTop: 4, alignSelf: "flex-end", color: mine ? "rgba(255,255,255,0.75)" : colors.muted }}>
                 {time(m.created_at)}

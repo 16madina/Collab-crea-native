@@ -37,7 +37,7 @@ export default function Forgot() {
         subtitle={`Si un compte existe pour ${email.trim()}, vous recevrez un lien pour réinitialiser votre mot de passe.`}
       >
         <Animated.View
-          entering={ZoomIn.springify()}
+          entering={ZoomIn.duration(320)}
           style={{ alignItems: "center", marginVertical: 20 }}
         >
           <View
@@ -89,7 +89,7 @@ export default function Forgot() {
       subtitle="Entrez votre email, nous vous enverrons un lien de réinitialisation."
     >
       <Animated.View
-        entering={FadeInDown.delay(100).springify()}
+        entering={FadeInDown.delay(100).duration(320)}
         style={{ gap: 14 }}
       >
         <Field

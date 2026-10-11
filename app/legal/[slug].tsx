@@ -64,7 +64,7 @@ export default function Legal() {
 
   return (
     <Screen title={page.title}>
-      <Animated.View entering={FadeInDown.springify()}>
+      <Animated.View entering={FadeInDown.duration(320)}>
         <Card style={{ gap: 12, padding: 20 }}>
           <Text style={type.h1}>{page.title}</Text>
           {blocks.map((b, i) =>

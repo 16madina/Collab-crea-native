@@ -73,7 +73,7 @@ function Header({ me, unread, avatarUri, children }: { me: Profile; unread: bool
         </View>
       </View>
       <View style={{ alignItems: "center", marginTop: -70, paddingHorizontal: 20 }}>
-        <Animated.View entering={ZoomIn.springify()} style={[styles.avatarWrap, shadow.soft]}>
+        <Animated.View entering={ZoomIn.duration(320)} style={[styles.avatarWrap, shadow.soft]}>
           <Press onPress={() => setSheet("avatar")} scaleTo={0.95}>
             <Avatar uri={avatarUri} size={108} />
             <View style={styles.editDot}>
@@ -87,7 +87,7 @@ function Header({ me, unread, avatarUri, children }: { me: Profile; unread: bool
       <Sheet visible={sheet !== null} onClose={() => setSheet(null)} title={sheet === "avatar" ? (me.role === "brand" ? "Changer le logo" : "Photo de profil") : "Image de couverture"} subtitle="Sélection démo — la galerie sera branchée plus tard.">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
           {(sheet === "banner" ? SAMPLE_BANNERS : SAMPLE_AVATARS).map((u, i) => (
-            <Animated.View key={u} entering={ZoomIn.delay(i * 40).springify()} style={sheet === "banner" ? { width: "100%" } : undefined}>
+            <Animated.View key={u} entering={ZoomIn.delay(i * 40).duration(320)} style={sheet === "banner" ? { width: "100%" } : undefined}>
               <Press
                 scaleTo={0.92}
                 onPress={() => {
@@ -215,7 +215,7 @@ function CreatorProfile({ me, unread, onLogout }: { me: Profile; unread: boolean
         <VerificationBanner p={me} />
       </View>
 
-      <Animated.View entering={FadeInDown.delay(100).springify()}>
+      <Animated.View entering={FadeInDown.delay(100).duration(320)}>
         <Press onPress={() => router.push("/wallet")} scaleTo={0.98} style={[styles.wallet, shadow.soft]}>
           <LinearGradient colors={["#FF6B47", "#E8431F"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
           <View style={styles.orb} />
@@ -244,7 +244,7 @@ function CreatorProfile({ me, unread, onLogout }: { me: Profile; unread: boolean
         />
       </View>
 
-      <Animated.View key={tab} entering={FadeInDown.springify().damping(18)} layout={LinearTransition} style={{ paddingHorizontal: 20, marginTop: 16, gap: 14 }}>
+      <Animated.View key={tab} entering={FadeInDown.duration(320)} layout={LinearTransition} style={{ paddingHorizontal: 20, marginTop: 16, gap: 14 }}>
         {tab === "infos" && (
           <>
             <Card>
@@ -282,7 +282,7 @@ function CreatorProfile({ me, unread, onLogout }: { me: Profile; unread: boolean
             ) : (
               <View style={styles.grid}>
                 {myPortfolio.slice(0, 9).map((p, i) => (
-                  <Animated.View key={p.id} entering={FadeInDown.delay(i * 40).springify()}>
+                  <Animated.View key={p.id} entering={FadeInDown.delay(i * 40).duration(320)}>
                     <Press onPress={() => router.push("/edit/portfolio")} style={{ width: TILE, height: TILE * 1.3, borderRadius: radius.md, overflow: "hidden" }}>
                       <Image source={p.media_url} style={{ flex: 1 }} contentFit="cover" transition={250} />
                       {p.media_type === "video" ? (
@@ -338,7 +338,7 @@ function CreatorProfile({ me, unread, onLogout }: { me: Profile; unread: boolean
               const o = offers.find((x) => x.id === a.offer_id);
               const brand = profiles.find((p) => p.user_id === o?.brand_id);
               return (
-                <Animated.View key={a.id} entering={FadeInDown.delay(i * 50).springify()}>
+                <Animated.View key={a.id} entering={FadeInDown.delay(i * 50).duration(320)}>
                   <Press onPress={() => o && router.push(`/offer/${o.id}`)} scaleTo={0.98} style={[styles.rowCard, shadow.soft]}>
                     {brand ? <Avatar uri={brand.logo_url ?? brand.avatar_url} size={44} /> : null}
                     <View style={{ flex: 1, gap: 2 }}>
@@ -407,7 +407,7 @@ function ReviewsList({ reviews, who }: { reviews: { id: string; brand_id: string
       {reviews.map((r, i) => {
         const p = profiles.find((x) => x.user_id === (who === "brand" ? r.brand_id : r.creator_id));
         return (
-          <Animated.View key={r.id} entering={FadeInDown.delay(i * 50).springify()}>
+          <Animated.View key={r.id} entering={FadeInDown.delay(i * 50).duration(320)}>
             <Card>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 {p ? <Avatar uri={p.logo_url ?? p.avatar_url} size={36} /> : null}
@@ -483,7 +483,7 @@ function BrandProfile({ me, unread, onLogout }: { me: Profile; unread: boolean; 
         />
       </View>
 
-      <Animated.View key={tab} entering={FadeInDown.springify().damping(18)} style={{ paddingHorizontal: 20, marginTop: 16, gap: 14 }}>
+      <Animated.View key={tab} entering={FadeInDown.duration(320)} style={{ paddingHorizontal: 20, marginTop: 16, gap: 14 }}>
         {tab === "entreprise" && (
           <>
             <Card>
@@ -534,7 +534,7 @@ function BrandProfile({ me, unread, onLogout }: { me: Profile; unread: boolean; 
               <Empty icon="briefcase-outline" title="Aucune offre" text="Publiez votre première offre pour recevoir des candidatures." />
             ) : (
               myOffers.slice(0, 5).map((o, i) => (
-                <Animated.View key={o.id} entering={FadeInDown.delay(i * 50).springify()}>
+                <Animated.View key={o.id} entering={FadeInDown.delay(i * 50).duration(320)}>
                   <Press onPress={() => router.push(`/offer/${o.id}`)} scaleTo={0.98} style={[styles.rowCard, shadow.soft]}>
                     {o.images[0] ? <Image source={o.images[0]} style={{ width: 48, height: 48, borderRadius: 12 }} /> : <View style={[styles.infoIcon, { width: 48, height: 48 }]}><Ionicons name="briefcase-outline" size={20} color={colors.primary} /></View>}
                     <View style={{ flex: 1 }}>
@@ -557,7 +557,7 @@ function BrandProfile({ me, unread, onLogout }: { me: Profile; unread: boolean; 
             <Empty icon="heart-outline" title="Aucun favori" text="Ajoutez des créateurs en favoris depuis leur profil." />
           ) : (
             favs.map((p, i) => (
-              <Animated.View key={p.user_id} entering={FadeInDown.delay(i * 50).springify()}>
+              <Animated.View key={p.user_id} entering={FadeInDown.delay(i * 50).duration(320)}>
                 <Press onPress={() => router.push(`/profile/${p.user_id}`)} scaleTo={0.98} style={[styles.rowCard, shadow.soft]}>
                   <Avatar uri={p.avatar_url} size={48} />
                   <View style={{ flex: 1 }}>

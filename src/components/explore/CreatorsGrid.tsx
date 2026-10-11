@@ -100,7 +100,7 @@ export function CreatorsGrid({ searchOpen }: { searchOpen: boolean }) {
       ) : (
         <View style={styles.grid}>
           {list.map((p, i) => (
-            <Animated.View key={p.user_id} entering={FadeInDown.delay(60 + (i % 6) * 60).springify()} layout={LinearTransition.springify()}>
+            <Animated.View key={p.user_id} entering={FadeInDown.delay(60 + (i % 6) * 60).duration(320)} layout={LinearTransition.duration(320)}>
               <Card p={p} />
             </Animated.View>
           ))}

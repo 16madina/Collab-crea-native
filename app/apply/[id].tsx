@@ -56,7 +56,7 @@ export default function Apply() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 30, gap: 18 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.springify()} style={styles.summary}>
+        <Animated.View entering={FadeInDown.duration(320)} style={styles.summary}>
           {offer.images[0] != null ? <Image source={offer.images[0]} style={[StyleSheet.absoluteFill, { opacity: 0.35 }]} contentFit="cover" /> : <GlossFill />}
           <LinearGradient colors={["#050505", "rgba(5,5,5,0.75)", "rgba(5,5,5,0.4)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
           <View style={styles.sumLogo}>

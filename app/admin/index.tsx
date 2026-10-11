@@ -29,7 +29,7 @@ export default function AdminHome() {
   if (!ok) return null;
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 40, paddingHorizontal: 20, gap: 16 }} showsVerticalScrollIndicator={false}>
-      <Animated.View entering={FadeInDown.springify()} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+      <Animated.View entering={FadeInDown.duration(320)} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ flex: 1 }}>
           <Text style={type.small}>Collab Créa</Text>
           <Text style={type.h1}>Admin Panel</Text>
@@ -39,7 +39,7 @@ export default function AdminHome() {
         ) : null}
         <IconButton name="log-out-outline" onPress={logout} />
       </Animated.View>
-      <Animated.View entering={FadeInDown.delay(60).springify()}>
+      <Animated.View entering={FadeInDown.delay(60).duration(320)}>
         <LinearGradient colors={[colors.night, "#3A1A10"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.hero, shadow.soft]}>
           <Text style={{ color: "rgba(255,255,255,0.7)", fontWeight: "600" }}>Commissions perçues</Text>
           <Text style={{ color: "#fff", fontSize: 28, fontWeight: "800", letterSpacing: -1 }}>{fcfa(revenue)}</Text>
@@ -53,7 +53,7 @@ export default function AdminHome() {
         {SECTIONS.map((sec, i) => {
           const n = badges[sec.value] ?? 0;
           return (
-            <Animated.View key={sec.value} entering={FadeInDown.delay(100 + i * 40).springify()} style={{ width: "31%", flexGrow: 1 }}>
+            <Animated.View key={sec.value} entering={FadeInDown.delay(100 + i * 40).duration(320)} style={{ width: "31%", flexGrow: 1 }}>
               <Press onPress={() => router.push(`/admin/${sec.value}`)} style={[s.tile, shadow.soft]} scaleTo={0.93}>
                 <View style={s.icon}><Ionicons name={sec.icon} size={22} color={colors.primary} /></View>
                 <Text style={s.label} numberOfLines={1}>{sec.label}</Text>

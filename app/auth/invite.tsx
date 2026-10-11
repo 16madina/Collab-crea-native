@@ -60,7 +60,7 @@ export default function Invite() {
       subtitle="Nous ouvrons la plateforme progressivement. Entrez votre code d'invitation pour créer votre compte."
       top={
         <Animated.View
-          entering={ZoomIn.springify()}
+          entering={ZoomIn.duration(320)}
           style={{ alignSelf: "center", marginTop: 10 }}
         >
           <View
@@ -82,7 +82,7 @@ export default function Invite() {
       }
     >
       <Animated.View
-        entering={FadeInDown.delay(120).springify()}
+        entering={FadeInDown.delay(120).duration(320)}
         style={[{ gap: 8 }, shakeStyle]}
       >
         <TextInput

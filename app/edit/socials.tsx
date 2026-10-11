@@ -64,7 +64,7 @@ function Editor({ me }: { me: Profile }) {
         const st = status[p];
         const canOauth = p === "tiktok" || p === "youtube";
         return (
-          <Animated.View key={p} entering={FadeInDown.delay(i * 60).springify()}>
+          <Animated.View key={p} entering={FadeInDown.delay(i * 60).duration(320)}>
             <Card>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <View style={[styles.icon, { backgroundColor: meta.color }]}>

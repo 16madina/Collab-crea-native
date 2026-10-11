@@ -118,7 +118,7 @@ export default function Settings() {
   return (
     <Screen title="Paramètres" subtitle={me.role === "brand" ? me.company_name : me.full_name}>
       {sections.map((s, i) => (
-        <Animated.View key={i} entering={FadeInDown.delay(i * 60).springify()}>
+        <Animated.View key={i} entering={FadeInDown.delay(i * 60).duration(320)}>
           {s}
         </Animated.View>
       ))}

@@ -39,7 +39,7 @@ export const logout = () => {
 export function StatTile({ label, value, icon, tone = "light", i = 0, sub }: { label: string; value: string | number; icon: keyof typeof Ionicons.glyphMap; tone?: "light" | "dark" | "primary"; i?: number; sub?: string }) {
   const dark = tone !== "light";
   return (
-    <Animated.View entering={FadeInDown.delay(i * 50).springify()} style={[st.tile, shadow.soft, tone === "dark" && { backgroundColor: colors.night }, tone === "primary" && { backgroundColor: colors.primary }]}>
+    <Animated.View entering={FadeInDown.delay(i * 50).duration(320)} style={[st.tile, shadow.soft, tone === "dark" && { backgroundColor: colors.night }, tone === "primary" && { backgroundColor: colors.primary }]}>
       <View style={[st.tileIcon, dark && { backgroundColor: "rgba(255,255,255,0.14)" }]}>
         <Ionicons name={icon} size={18} color={dark ? "#fff" : colors.primary} />
       </View>
@@ -68,7 +68,7 @@ export function Act({ label, icon, onPress, tone = "light" }: { label: string; i
 export function Item({ children, i = 0, onPress }: { children: ReactNode; i?: number; onPress?: () => void }) {
   const inner = <View style={[st.item, shadow.soft]}>{children}</View>;
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(i, 8) * 45).springify()}>
+    <Animated.View entering={FadeInDown.delay(Math.min(i, 8) * 45).duration(320)}>
       {onPress ? <Press onPress={onPress} scaleTo={0.98}>{inner}</Press> : inner}
     </Animated.View>
   );

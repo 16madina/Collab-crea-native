@@ -40,7 +40,7 @@ const ACTIONS: Record<Role, Action[]> = {
 
 function ActionCard({ a, onPress, index }: { a: Action; onPress: () => void; index: number }) {
   return (
-    <Animated.View entering={FadeInDown.delay(120 + index * 70).springify()}>
+    <Animated.View entering={FadeInDown.delay(120 + index * 70).duration(320)}>
       <Press onPress={onPress} style={[styles.card, luxShadow]} scaleTo={0.96}>
         <GlossFill />
         {a.image ? <Image source={a.image} style={styles.cardImg} contentFit="cover" /> : null}
@@ -62,7 +62,7 @@ function ActionCard({ a, onPress, index }: { a: Action; onPress: () => void; ind
 
 function ActionRow({ a, onPress, index, first }: { a: Action; onPress: () => void; index: number; first: boolean }) {
   return (
-    <Animated.View entering={FadeInDown.delay(100 + index * 55).springify()}>
+    <Animated.View entering={FadeInDown.delay(100 + index * 55).duration(320)}>
       <Press onPress={onPress} style={[styles.row, first && goldGlow, !first && { borderColor: goldBorder }]} scaleTo={0.97}>
         {first ? <GoldFill style={{ borderRadius: radius.lg }} /> : <GlossFill style={{ borderRadius: radius.lg }} />}
         <View style={[styles.rowIcon, first && { borderColor: "rgba(11,11,11,0.35)" }]}>
@@ -108,7 +108,7 @@ export default function CreateMenu() {
         <Pressable onPress={close} style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.55)" }]} />
       </Animated.View>
 
-      <Animated.View entering={SlideInDown.springify().damping(18)} style={[styles.sheet, { paddingBottom: insets.bottom + 18 }]}>
+      <Animated.View entering={SlideInDown.duration(320)} style={[styles.sheet, { paddingBottom: insets.bottom + 18 }]}>
         <GlossFill />
         {/* reflets dorés du bord supérieur */}
         <LinearGradient colors={["rgba(245,211,148,0.16)", "rgba(245,211,148,0)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 0.35 }} style={styles.glowL} pointerEvents="none" />

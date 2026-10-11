@@ -115,7 +115,7 @@ export function BrandHome() {
       </Animated.View>
 
       {/* Bannière */}
-      <Animated.View entering={FadeInDown.delay(100).springify()} style={{ paddingHorizontal: 16, marginTop: 16 }}>
+      <Animated.View entering={FadeInDown.delay(100).duration(320)} style={{ paddingHorizontal: 16, marginTop: 16 }}>
         <GlossCard gold style={styles.banner}>
           <Image source={HERO} style={styles.bannerImg} contentFit="cover" />
           <LinearGradient colors={["#0B0B0B", "rgba(11,11,11,0.85)", "rgba(11,11,11,0)"]} locations={[0, 0.45, 0.8]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
@@ -158,7 +158,7 @@ export function BrandHome() {
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
           {creators.slice(0, 10).map((p, i) => (
-            <Animated.View key={p.user_id} entering={FadeInRight.delay(150 + i * 60).springify()} layout={LinearTransition}>
+            <Animated.View key={p.user_id} entering={FadeInRight.delay(150 + i * 60).duration(320)} layout={LinearTransition}>
               <CreatorCard p={p} />
             </Animated.View>
           ))}
@@ -178,7 +178,7 @@ export function BrandHome() {
           const b = profiles.find((p) => p.user_id === o.brand_id);
           const apps = applications.filter((a) => a.offer_id === o.id).length;
           return (
-            <Animated.View key={o.id} entering={FadeInRight.delay(250 + i * 70).springify()}>
+            <Animated.View key={o.id} entering={FadeInRight.delay(250 + i * 70).duration(320)}>
               <Press onPress={() => router.push(`/offer/${o.id}`)} style={[styles.camp, luxShadow]} scaleTo={0.97}>
                 <GlossFill />
                 <View style={styles.campLogo}>

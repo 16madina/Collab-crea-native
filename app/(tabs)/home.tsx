@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, FadeInRight, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, FadeInRight, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ALL_PLATFORMS, formatFollowers, parseFollowers, PLATFORM } from "../../src/components/account/constants";
 import { avatarOf, flagOf, nameOf } from "../../src/components/collab/common";
@@ -174,7 +174,7 @@ function PagerDots({ count, index }: { count: number; index: number }) {
   );
 }
 function PagerDot({ on }: { on: boolean }) {
-  const st = useAnimatedStyle(() => ({ width: withSpring(on ? 18 : 7), opacity: withSpring(on ? 1 : 0.35) }));
+  const st = useAnimatedStyle(() => ({ width: withTiming(on ? 18 : 7, { duration: 200 }), opacity: withTiming(on ? 1 : 0.35, { duration: 200 }) }));
   return <Animated.View style={[styles.dot, on && { backgroundColor: colors.primary }, st]} />;
 }
 
@@ -271,7 +271,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={AD_W + 14} decelerationRate="fast" contentContainerStyle={{ paddingHorizontal: 16, gap: 14, paddingBottom: 10 }}>
           {popularOffers.map((o, i) => (
-            <Animated.View key={o.id} entering={FadeInRight.delay(260 + i * 60).springify()}>
+            <Animated.View key={o.id} entering={FadeInRight.delay(260 + i * 60).duration(320)}>
               <AdCard o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={applications.filter((x) => x.offer_id === o.id).length} />
             </Animated.View>
           ))}
@@ -303,7 +303,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       </Animated.View>
 
       {/* Salutation */}
-      <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.greet}>
+      <Animated.View entering={FadeInDown.delay(80).duration(320)} style={styles.greet}>
         <Press onPress={() => router.navigate(me ? "/(tabs)/profile" : "/auth/signup")} scaleTo={0.92}>
           <GoldRing size={60}>
             {me ? (
@@ -329,7 +329,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       </Animated.View>
 
       {/* Recherche */}
-      <Animated.View entering={FadeInDown.delay(140).springify()} style={styles.searchRow}>
+      <Animated.View entering={FadeInDown.delay(140).duration(320)} style={styles.searchRow}>
         <View style={styles.search}>
           <GlossFill />
           <Ionicons name="search-outline" size={20} color={colors.inkSoft} />
@@ -364,7 +364,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
         {CATS.map((c, i) => {
           const on = c.key === cat;
           return (
-            <Animated.View key={c.key} entering={FadeInDown.delay(180 + i * 40).springify()}>
+            <Animated.View key={c.key} entering={FadeInDown.delay(180 + i * 40).duration(320)}>
               <Press onPress={() => setCat(c.key)} style={{ alignItems: "center", gap: 7 }} scaleTo={0.9}>
                 <View style={[styles.catBox, on ? goldGlow : null]}>
                   {on ? <GoldFill style={{ borderRadius: 18 }} /> : <GlossFill style={{ borderRadius: 18 }} />}
@@ -395,7 +395,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
             scrollEventThrottle={32}
           >
             {recommended.map((p, i) => (
-              <Animated.View key={p.user_id} entering={FadeInRight.delay(220 + i * 80).springify()}>
+              <Animated.View key={p.user_id} entering={FadeInRight.delay(220 + i * 80).duration(320)}>
                 <FeaturedCard p={p} />
               </Animated.View>
             ))}
@@ -422,7 +422,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
             scrollEventThrottle={32}
           >
             {newOffers.map((o, i) => (
-              <Animated.View key={o.id} entering={FadeInRight.delay(220 + i * 80).springify()}>
+              <Animated.View key={o.id} entering={FadeInRight.delay(220 + i * 80).duration(320)}>
                 <OfferFeatured o={o} brand={profiles.find((p) => p.user_id === o.brand_id)} apps={applications.filter((x) => x.offer_id === o.id).length} />
               </Animated.View>
             ))}
@@ -443,7 +443,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 6 }}>
           {popular.map((p, i) => (
-            <Animated.View key={p.user_id} entering={FadeInRight.delay(300 + i * 60).springify()}>
+            <Animated.View key={p.user_id} entering={FadeInRight.delay(300 + i * 60).duration(320)}>
               <NewCard p={p} />
             </Animated.View>
           ))}
