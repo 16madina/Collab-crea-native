@@ -27,12 +27,16 @@ export default function Welcome() {
     if (Platform.OS === "ios") void AppleAuthentication.isAvailableAsync().then(setApple);
   }, []);
 
+  const locked = !terms;
+  const needTerms = () => {
+    setTermsErr(true);
+    toast("Accepte les conditions pour continuer", "error");
+  };
+  const go = (path: string) => (locked ? needTerms() : router.push(path as never));
+
   const social = async (p: "google" | "apple") => {
     if (busy) return;
-    if (!terms) {
-      setTermsErr(true);
-      return toast("Accepte les conditions pour continuer", "error");
-    }
+    if (locked) return needTerms();
     if (p === "apple" && !apple) return toast("Connexion Apple disponible sur iPhone", "error");
     setBusy(p);
     const r = await socialSignIn(p, role);
@@ -48,15 +52,25 @@ export default function Welcome() {
       title="Bienvenue"
       subtitle={role === "brand" ? "Trouve les créateurs idéaux pour ta marque." : "Collabore avec des marques et fais grandir ton audience."}
     >
+      <View style={[styles.terms, terms && { borderColor: colors.primary }]}>
+        <Checkbox value={terms} onChange={(v: boolean) => { setTerms(v); setTermsErr(false); }}>
+          <Text style={[styles.legal, termsErr && !terms && { color: "#E5484D" }]}>
+            J'accepte les{" "}
+            <Text style={styles.link} onPress={() => router.push("/legal/terms")}>Conditions générales d'utilisation</Text> et la{" "}
+            <Text style={styles.link} onPress={() => router.push("/legal/privacy")}>Politique de confidentialité</Text>.
+          </Text>
+        </Checkbox>
+      </View>
+
       <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.row}>
-        <Press onPress={() => social("google")} style={styles.social} scaleTo={0.97}>
-          {busy === "google" ? <ActivityIndicator color="#111" /> : <Ionicons name="logo-google" size={18} color="#111" />}
-          <Text style={styles.socialText}>Google</Text>
+        <Press onPress={() => social("google")} style={[styles.social, locked && styles.off]} scaleTo={0.97}>
+          {busy === "google" ? <ActivityIndicator color="#111" /> : <Ionicons name="logo-google" size={18} color={locked ? "#8a8a8a" : "#111"} />}
+          <Text style={[styles.socialText, locked && styles.offText]}>Google</Text>
         </Press>
         {Platform.OS !== "android" ? (
-          <Press onPress={() => social("apple")} style={[styles.social, styles.apple]} scaleTo={0.97}>
-            {busy === "apple" ? <ActivityIndicator color="#fff" /> : <Ionicons name="logo-apple" size={20} color="#fff" />}
-            <Text style={[styles.socialText, { color: "#fff" }]}>Apple</Text>
+          <Press onPress={() => social("apple")} style={[styles.social, styles.apple, locked && styles.off]} scaleTo={0.97}>
+            {busy === "apple" ? <ActivityIndicator color="#fff" /> : <Ionicons name="logo-apple" size={20} color={locked ? "#8a8a8a" : "#fff"} />}
+            <Text style={[styles.socialText, { color: "#fff" }, locked && styles.offText]}>Apple</Text>
           </Press>
         ) : null}
       </Animated.View>
@@ -68,27 +82,27 @@ export default function Welcome() {
       </View>
 
       <Animated.View entering={FadeInDown.delay(160).springify()} style={{ gap: 12 }}>
-        <GoldButton label="Créer un compte" size="lg" onPress={() => router.push(`/auth/signup?role=${role}`)} style={{ alignSelf: "stretch" }} />
-        <Press onPress={() => router.push("/auth/login")} style={styles.login} scaleTo={0.97}>
-          <Text style={styles.loginText}>J'ai déjà un compte · Se connecter</Text>
+        {locked ? (
+          <Press onPress={needTerms} style={[styles.login, styles.off]} scaleTo={0.97}>
+            <Text style={[styles.loginText, styles.offText]}>Créer un compte</Text>
+          </Press>
+        ) : (
+          <GoldButton label="Créer un compte" size="lg" onPress={() => go(`/auth/signup?role=${role}&terms=1`)} style={{ alignSelf: "stretch" }} />
+        )}
+        <Press onPress={() => go("/auth/login")} style={[styles.login, locked && styles.off]} scaleTo={0.97}>
+          <Text style={[styles.loginText, locked && styles.offText]}>J'ai déjà un compte · Se connecter</Text>
         </Press>
       </Animated.View>
 
-      <View style={{ marginTop: 6 }}>
-        <Checkbox value={terms} onChange={(v: boolean) => { setTerms(v); setTermsErr(false); }}>
-          <Text style={[styles.legal, termsErr && !terms && { color: "#E5484D" }]}>
-            J'accepte les{" "}
-            <Text style={styles.link} onPress={() => router.push("/legal/terms")}>Conditions générales d'utilisation</Text> et la{" "}
-            <Text style={styles.link} onPress={() => router.push("/legal/privacy")}>Politique de confidentialité</Text>.
-          </Text>
-        </Checkbox>
-      </View>
     </AuthShell>
   );
 }
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 12 },
+  off: { backgroundColor: "#2a2a2a", borderColor: "#2a2a2a", borderWidth: 1 },
+  offText: { color: "#8a8a8a" },
+  terms: { padding: 14, borderRadius: radius.lg, borderWidth: 1, borderColor: goldBorder, marginBottom: 4 },
   social: { flex: 1, height: 52, borderRadius: 26, backgroundColor: "#F8F6F2", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   apple: { backgroundColor: "#000", borderWidth: 1, borderColor: "#3a3a3a" },
   socialText: { color: "#111", fontSize: 15, fontWeight: "700" },

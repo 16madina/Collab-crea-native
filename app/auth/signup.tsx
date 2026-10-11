@@ -51,7 +51,7 @@ function Dot({ active, done }: { active: boolean; done: boolean }) {
 const BRAND_SOCIALS: SocialPlatform[] = ["instagram", "facebook", "tiktok"];
 
 export default function Signup() {
-  const params = useLocalSearchParams<{ role?: string; code?: string }>();
+  const params = useLocalSearchParams<{ role?: string; code?: string; terms?: string }>();
   const inviteRequired = useDB((s) => s.inviteRequired);
   const inviteUnlocked = useDB((s) => s.inviteUnlocked);
   const signUp = useDB((s) => s.signUp);
@@ -98,7 +98,7 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
-  const [terms, setTerms] = useState(false);
+  const [terms, setTerms] = useState(params.terms === "1");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

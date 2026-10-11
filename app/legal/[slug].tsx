@@ -8,7 +8,7 @@ import { colors, type } from "../../src/theme";
 
 /** Rend un markdown minimal : titres ##/###, listes "- ", paragraphes, **gras**. */
 function Inline({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  const parts = text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").split(/(\*\*[^*]+\*\*)/g);
   return (
     <Text style={type.body}>
       {parts.map((p, i) =>
