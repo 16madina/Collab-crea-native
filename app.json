@@ -35,6 +35,12 @@
           "cameraPermission": "Collab Créa utilise l'appareil photo pour la vérification d'identité et tes contenus.",
           "microphonePermission": "Collab Créa utilise le micro pour filmer tes contenus."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#D9AC65"
+        }
       ]
     ],
     "experiments": {

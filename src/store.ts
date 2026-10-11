@@ -1669,6 +1669,8 @@ async function connect(userId: string) {
     onError: (m) => toast(m, "error"),
   });
   useDB.setState({ ready: true });
+  // Notifications push (téléphone réel + build EAS uniquement).
+  void import("./backend/push").then((p) => p.registerForPush(userId));
 }
 
 /** Visiteur / déconnecté : données publiques (offres actives, profils, portfolios, pages légales). */

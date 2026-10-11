@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { Platform } from "react-native";
 import { PlayfairDisplay_700Bold, PlayfairDisplay_700Bold_Italic, useFonts } from "@expo-google-fonts/playfair-display";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -7,6 +9,13 @@ import { colors } from "../src/theme";
 
 export default function RootLayout() {
   useFonts({ PlayfairDisplay_700Bold, PlayfairDisplay_700Bold_Italic });
+  // Toucher une notification push ouvre l'écran concerné.
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    let off: (() => void) | undefined;
+    void import("../src/backend/push").then((p) => (off = p.listenNotificationTaps()));
+    return () => off?.();
+  }, []);
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar style="light" />
