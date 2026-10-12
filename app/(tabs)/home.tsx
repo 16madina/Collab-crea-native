@@ -64,6 +64,7 @@ import { AD_W, AdCard } from "../../src/components/offers/OfferCards";
 const W = Dimensions.get("window").width;
 const FEAT_W = Math.round(W * 0.8);
 const FEAT_GAP = 12;
+const FEAT_W_LIGHT = Math.round(W * 0.85);
 const NEW_W = Math.round((W - 32 - 2 * 10) / 2.4);
 
 const CATS: {
@@ -301,7 +302,10 @@ function OfferFeatured({
           label="Voir l'offre"
           size={tone === "light" ? "sm" : "md"}
           onPress={() => router.push(`/offer/${o.id}`)}
-          style={{ marginTop: 10, minWidth: tone === "light" ? 128 : 150 }}
+          style={{
+            marginTop: tone === "light" ? 7 : 10,
+            minWidth: tone === "light" ? 128 : 150,
+          }}
         />
       </View>
     </Press>
@@ -346,6 +350,136 @@ function NewCard({ p }: { p: Profile }) {
         </View>
       </View>
     </Press>
+  );
+}
+
+// Mode clair : catégories populaires illustrées (ouvrent Explorer filtré).
+const REMOTE = (id: string) => ({
+  uri: `https://images.unsplash.com/${id}?w=480&q=75&auto=format&fit=crop`,
+});
+const POP_CATS: {
+  title: string;
+  sub?: string;
+  cat: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  img: number | { uri: string };
+}[] = [
+  {
+    title: "Beauté",
+    sub: "& Bien-être",
+    cat: "Beauté",
+    icon: "lipstick",
+    img: require("../../assets/brand/hero.jpg"),
+  },
+  {
+    title: "Mode",
+    sub: "& Accessoires",
+    cat: "Mode",
+    icon: "hanger",
+    img: REMOTE("photo-1584917865442-de89df76afd3"),
+  },
+  {
+    title: "Technologie",
+    cat: "Tech",
+    icon: "cellphone",
+    img: REMOTE("photo-1511707171634-5f897ff02aa9"),
+  },
+  {
+    title: "Cuisine",
+    sub: "& Gastronomie",
+    cat: "Cuisine",
+    icon: "silverware-fork-knife",
+    img: REMOTE("photo-1504674900247-0877df9cc836"),
+  },
+  {
+    title: "Fitness",
+    sub: "& Sport",
+    cat: "Fitness",
+    icon: "dumbbell",
+    img: REMOTE("photo-1517836357463-d25dfeac3438"),
+  },
+  {
+    title: "Lifestyle",
+    cat: "Lifestyle",
+    icon: "coffee-outline",
+    img: require("../../assets/profile/p5.jpg"),
+  },
+];
+
+function CategoryTiles() {
+  const styles = STYLES.light;
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={170 + 12}
+      decelerationRate="fast"
+      contentContainerStyle={{
+        paddingHorizontal: 16,
+        gap: 12,
+        paddingBottom: 10,
+      }}
+    >
+      {POP_CATS.map((c, i) => (
+        <Animated.View
+          key={c.cat}
+          entering={FadeInRight.delay(260 + i * 60).duration(320)}
+        >
+          <Press
+            onPress={() =>
+              router.push(
+                `/(tabs)/offers?tab=offers&cat=${encodeURIComponent(c.cat)}`,
+              )
+            }
+            style={[styles.catTile, shadowOf(PAL.light)]}
+            scaleTo={0.97}
+          >
+            <LinearGradient
+              colors={["#E8BBA8", "#B97055"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <MaterialCommunityIcons
+              name={c.icon}
+              size={46}
+              color="rgba(255,248,243,0.35)"
+              style={{ position: "absolute", right: 14, top: 14 }}
+            />
+            <Image
+              source={c.img}
+              style={StyleSheet.absoluteFill}
+              contentFit="cover"
+              transition={250}
+            />
+            <LinearGradient
+              colors={[
+                "rgba(48,32,28,0.62)",
+                "rgba(48,32,28,0.15)",
+                "rgba(48,32,28,0.05)",
+              ]}
+              locations={[0, 0.55, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.catTileBody}>
+              <Text style={styles.catTileTitle} numberOfLines={1}>
+                {c.title}
+              </Text>
+              {c.sub ? (
+                <Text style={styles.catTileSub} numberOfLines={1}>
+                  {c.sub}
+                </Text>
+              ) : null}
+              <View style={styles.catTileArrow}>
+                <Ionicons name="arrow-forward" size={13} color="#FFF8F3" />
+              </View>
+            </View>
+          </Press>
+        </Animated.View>
+      ))}
+    </ScrollView>
   );
 }
 
@@ -536,7 +670,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
           <Ionicons name="arrow-forward" size={14} color={t.primary} />
         </Press>
       </View>
-      {popularOffers.length === 0 ? (
+      {tone === "light" ? (
+        <CategoryTiles />
+      ) : popularOffers.length === 0 ? (
         <Empty
           icon="megaphone-outline"
           title="Aucune annonce"
@@ -591,10 +727,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
         {/* Reflet doré d'ambiance en haut à droite */}
         {tone === "dark" && (
           <LinearGradient
-            colors={[
-              `${t.ambient}0.16)`,
-              `${t.ambient}0)`,
-            ]}
+            colors={[`${t.ambient}0.16)`, `${t.ambient}0)`]}
             start={{ x: 1, y: 0 }}
             end={{ x: 0.3, y: 0.6 }}
             style={styles.ambient}
@@ -705,15 +838,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                   onPress={toggleTone}
                   style={styles.iconBtn}
                   scaleTo={0.9}
-                  accessibilityLabel={
-                    "Mode clair"
-                  }
+                  accessibilityLabel={"Mode clair"}
                 >
-                  <Ionicons
-                    name="sunny-outline"
-                    size={22}
-                    color={t.ink}
-                  />
+                  <Ionicons name="sunny-outline" size={22} color={t.ink} />
                 </Press>
                 <Press
                   onPress={() =>
@@ -949,7 +1076,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  snapToInterval={FEAT_W + FEAT_GAP}
+                  snapToInterval={
+                    (tone === "light" ? FEAT_W_LIGHT : FEAT_W) + FEAT_GAP
+                  }
                   decelerationRate="fast"
                   contentContainerStyle={{
                     paddingHorizontal: 16,
@@ -958,7 +1087,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                   onScroll={(e) =>
                     setPage(
                       Math.round(
-                        e.nativeEvent.contentOffset.x / (FEAT_W + FEAT_GAP),
+                        e.nativeEvent.contentOffset.x /
+                          ((tone === "light" ? FEAT_W_LIGHT : FEAT_W) +
+                            FEAT_GAP),
                       ),
                     )
                   }
@@ -998,7 +1129,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  snapToInterval={FEAT_W + FEAT_GAP}
+                  snapToInterval={
+                    (tone === "light" ? FEAT_W_LIGHT : FEAT_W) + FEAT_GAP
+                  }
                   decelerationRate="fast"
                   contentContainerStyle={{
                     paddingHorizontal: 16,
@@ -1007,7 +1140,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                   onScroll={(e) =>
                     setPage(
                       Math.round(
-                        e.nativeEvent.contentOffset.x / (FEAT_W + FEAT_GAP),
+                        e.nativeEvent.contentOffset.x /
+                          ((tone === "light" ? FEAT_W_LIGHT : FEAT_W) +
+                            FEAT_GAP),
                       ),
                     )
                   }
@@ -1123,19 +1258,61 @@ const makeStyles = (t: Pal, light = false) =>
     offerTitle: {
       fontFamily: fonts.serif,
       color: t.ink,
-      fontSize: light ? 16 : 18,
-      lineHeight: light ? 20 : 22,
-      marginTop: 8,
+      fontSize: light ? 15 : 18,
+      lineHeight: light ? 18 : 22,
+      marginTop: light ? 6 : 8,
       maxWidth: "58%",
     },
     offerBudget: {
       color: t.primary,
       fontSize: light ? 12 : 13,
       fontWeight: "800",
-      marginTop: light ? 6 : 8,
+      marginTop: light ? 5 : 8,
     },
     offerApps: { color: t.inkSoft, fontSize: 10, marginTop: 2 },
     ambient: { position: "absolute", top: 0, right: 0, width: W, height: 360 },
+    catTile: {
+      width: 170,
+      height: 115,
+      borderRadius: 16,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: "rgba(255,248,243,0.6)",
+      backgroundColor: "#E8BBA8",
+    },
+    catTileBody: {
+      position: "absolute",
+      left: 14,
+      top: 14,
+      bottom: 12,
+      right: 12,
+    },
+    catTileTitle: {
+      fontFamily: fonts.serif,
+      color: "#FFF8F3",
+      fontSize: 17,
+      lineHeight: 21,
+    },
+    catTileSub: {
+      fontFamily: fonts.serif,
+      color: "#FFF8F3",
+      fontSize: 14,
+      lineHeight: 18,
+      opacity: 0.95,
+    },
+    catTileArrow: {
+      position: "absolute",
+      left: 0,
+      bottom: 0,
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      borderWidth: 1,
+      borderColor: "rgba(255,248,243,0.7)",
+      backgroundColor: "rgba(48,32,28,0.2)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
     hero: {
       height: Math.round(W * 0.66) + 90,
       borderBottomLeftRadius: 28,
@@ -1308,15 +1485,17 @@ const makeStyles = (t: Pal, light = false) =>
       justifyContent: "center",
     },
     feat: {
-      width: FEAT_W,
-      height: light ? 212 : 240,
-      borderRadius: radius.lg,
+      width: light ? FEAT_W_LIGHT : FEAT_W,
+      height: light ? 200 : 240,
+      borderRadius: light ? 22 : radius.lg,
       overflow: "hidden",
       borderWidth: 1,
       borderColor: t.borderStrong,
       backgroundColor: t.card,
     },
-    featBody: { position: "absolute", left: 16, bottom: 16, right: 16 },
+    featBody: light
+      ? { position: "absolute", left: 16, top: 14, right: 16 }
+      : { position: "absolute", left: 16, bottom: 16, right: 16 },
     nameRow: { flexDirection: "row", alignItems: "center", gap: 5 },
     featName: { color: t.ink, fontSize: 21, fontWeight: "800", flexShrink: 1 },
     featFollowers: { color: t.inkSoft, fontSize: 12, marginTop: 2 },
