@@ -25,7 +25,7 @@ import { AD_W, AdCard } from "../../src/components/offers/OfferCards";
 const W = Dimensions.get("window").width;
 const FEAT_W = Math.round(W * 0.8);
 const FEAT_GAP = 12;
-const NEW_W = Math.round((W - 32 - 3 * 8) / 3.6);
+const NEW_W = Math.round((W - 32 - 2 * 10) / 2.4);
 
 const CATS: { key: string; label: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }[] = [
   { key: "Tous", label: "Toutes", icon: "dots-grid" },
@@ -143,23 +143,25 @@ function NewCard({ p }: { p: Profile }) {
   return (
     <Press onPress={() => router.push(`/profile/${p.user_id}`)} style={[styles.newCard, luxShadow]} scaleTo={0.96}>
       <GlossFill />
-      <View style={{ height: NEW_W * 1.05 }}>
-        <Photo p={p} mono={34} />
+      <View style={{ height: NEW_W * 1.1 }}>
+        <Photo p={p} mono={40} />
         <Heart p={p} />
       </View>
-      <View style={{ padding: 8, gap: 2 }}>
+      <View style={styles.newBody}>
         <View style={styles.nameRow}>
           <Text style={styles.newName} numberOfLines={1}>
             {shortName(p.full_name)}
           </Text>
           {p.identity_verified && <Ionicons name="checkmark-circle" size={14} color={colors.primary} />}
         </View>
-        <Text style={styles.newFollowers}>{formatFollowers(totalFollowers(p))}</Text>
-        {p.category ? (
-          <View style={{ marginTop: 4, alignSelf: "flex-start" }}>
-            <Tag label={p.category} />
-          </View>
-        ) : null}
+        <View style={styles.newMeta}>
+          <Ionicons name="people-outline" size={12} color={colors.inkSoft} />
+          <Text style={styles.newFollowers}>{formatFollowers(totalFollowers(p))}</Text>
+          <Text style={styles.newFlag}>{flagOf(p.country ?? p.residence_country)}</Text>
+        </View>
+        <View style={{ marginTop: 4, alignSelf: "flex-start" }}>
+          <Tag label={p.category || "Créateur"} />
+        </View>
       </View>
     </Press>
   );
@@ -442,7 +444,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       {popular.length === 0 ? (
         <Empty icon="people-outline" title="Aucun créateur trouvé" text="Essaie une autre catégorie, un autre pays ou une autre plateforme." />
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 6 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10, paddingBottom: 6 }}>
           {popular.map((p, i) => (
             <Animated.View key={p.user_id} entering={FadeInRight.delay(300 + i * 60).duration(320)}>
               <NewCard p={p} />
@@ -502,8 +504,11 @@ const styles = StyleSheet.create({
   dots: { flexDirection: "row", gap: 6, justifyContent: "center", marginTop: 14 },
   dot: { height: 7, borderRadius: 4, backgroundColor: colors.inkSoft },
   newCard: { width: NEW_W, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0E0E0E" },
-  newName: { color: colors.ink, fontSize: 11, fontWeight: "700", flexShrink: 1 },
-  newFollowers: { color: colors.inkSoft, fontSize: 11 },
+  newName: { color: colors.ink, fontSize: 13, fontWeight: "700", flexShrink: 1 },
+  newBody: { padding: 10, gap: 3, height: 84 },
+  newMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
+  newFlag: { fontSize: 13, marginLeft: "auto" },
+  newFollowers: { color: colors.inkSoft, fontSize: 12 },
 });
 
 export default function Home() {
