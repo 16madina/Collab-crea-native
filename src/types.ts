@@ -5,6 +5,8 @@ export type Role = "creator" | "brand" | "admin";
 export type SocialPlatform = "instagram" | "tiktok" | "youtube" | "snapchat" | "facebook";
 
 export type PricingItem = { type: string; price: number; description?: string };
+/** Option supplémentaire de la grille (ex. droits d'utilisation +50 %, exclusivité +300 $). */
+export type PricingOption = { label: string; value: number; unit: "%" | "amount" };
 
 export type Profile = {
   user_id: string;
@@ -26,7 +28,7 @@ export type Profile = {
   company_description?: string;
   brand_prefs?: { collaboration_types: string[]; target_categories: string[] };
   // créateur
-  pricing?: { currency: "XOF" | "EUR" | "USD"; items: PricingItem[] };
+  pricing?: { currency: "XOF" | "EUR" | "USD"; items: PricingItem[]; options?: PricingOption[] };
   followers: Partial<Record<SocialPlatform, string>>;
   // vérification
   email_verified: boolean;

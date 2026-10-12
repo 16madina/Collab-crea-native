@@ -8,7 +8,7 @@ import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Empty, fmtDate, toast } from "../../kit";
-import { GlossFill, GoldFill, GoldText, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../../lux";
+import { GlossFill, GoldButton, GoldFill, GoldText, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../../lux";
 import { useDB } from "../../store";
 import { colors, fonts, radius } from "../../theme";
 import type { Profile, SocialPlatform } from "../../types";
@@ -171,6 +171,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
 
           {tab === "pricing" && (
             <View style={[styles.grid, { gap: 10, paddingHorizontal: 16 }]}>
+              <GoldButton label="Voir la grille tarifaire" icon="document-text-outline" onPress={() => router.push(`/rates/${p.user_id}`)} style={{ alignSelf: "stretch", marginBottom: 4 }} />
               {rates.map((it, i) => {
                 const plat = platformOfType(it.type);
                 const story = it.type.toLowerCase().includes("story");

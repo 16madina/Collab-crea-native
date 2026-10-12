@@ -111,7 +111,7 @@ export const DEFAULT_RATES = [
 /** Plateforme déduite d'un intitulé de service ("Story Instagram" → instagram). */
 export function platformOfType(t: string): SocialPlatform | "pack" | "other" {
   const l = t.toLowerCase();
-  if (l.startsWith("pack")) return "pack";
+  if (l.startsWith("pack") || l.startsWith("partenariat")) return "pack";
   if (l.includes("insta")) return "instagram";
   if (l.includes("tiktok")) return "tiktok";
   if (l.includes("youtube")) return "youtube";

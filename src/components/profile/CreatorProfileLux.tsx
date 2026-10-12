@@ -9,7 +9,7 @@ import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, LinearTransition } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Empty, fmtDate, toast } from "../../kit";
-import { GlossFill, GoldFill, GoldRing, GoldText, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../../lux";
+import { GlossFill, GoldButton, GoldFill, GoldRing, GoldText, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../../lux";
 import { fcfa, useDB } from "../../store";
 import { colors, fonts, radius } from "../../theme";
 import { ACTIVE_COLLAB, type Profile, type SocialPlatform } from "../../types";
@@ -170,6 +170,7 @@ function PricingTab({ me }: { me: Profile }) {
           </Press>
         }
       />
+      <GoldButton label="Voir ma grille tarifaire" icon="document-text-outline" onPress={() => router.push(`/rates/${me.user_id}`)} style={{ alignSelf: "stretch", marginHorizontal: 16, marginBottom: 12 }} />
       {items.length === 0 ? (
         <Empty icon="pricetags-outline" title="Aucun tarif" text="Définis tes tarifs pour que les marques connaissent tes prix." />
       ) : (
