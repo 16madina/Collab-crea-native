@@ -237,6 +237,7 @@ export type SocialVerification = {
   ai_extracted_name?: string;
   ai_extracted_followers?: string;
   ai_confidence?: number;
+  ai_reason?: string;
   status: "pending_admin" | "verified" | "rejected";
   admin_notes?: string;
   created_at: string;

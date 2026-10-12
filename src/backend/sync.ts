@@ -312,6 +312,7 @@ export const map = {
       ai_extracted_followers: opt(r.ai_extracted_followers as string),
       ai_confidence:
         r.ai_confidence == null ? undefined : Number(r.ai_confidence),
+      ai_reason: opt(r.ai_reason as string),
       status: (r.status === "pending_ai"
         ? "pending_admin"
         : r.status) as SocialVerification["status"],

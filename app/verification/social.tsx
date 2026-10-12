@@ -11,6 +11,8 @@ import { colors, radius, type } from "../../src/theme";
 import { SocialPlatform, SocialVerification } from "../../src/types";
 import { Button, Press } from "../../src/ui";
 import { isLive, pickMedia, uploadFile, type Picked } from "../../src/backend/upload";
+import { supabase } from "../../src/backend/supabase";
+import { map, refresh } from "../../src/backend/sync";
 
 type Phase = "form" | "extracting" | "uploading" | "analyzing" | "result";
 const PHASE_LABEL: Record<"extracting" | "uploading" | "analyzing", [string, keyof typeof Ionicons.glyphMap]> = {
@@ -64,7 +66,18 @@ export default function SocialVerificationScreen() {
       void (async () => {
         try {
           const screenshot_url = shotFile ? await uploadFile("social-screenshots", shotFile, "social") : undefined;
-          setResult(submit({ platform, page_name: page.trim(), claimed_followers: claimedN, screenshot_url }));
+          // Enregistrement puis analyse IA côté serveur (fonction verify-social-screenshot).
+          const { data: row, error } = await supabase
+            .from("social_verifications")
+            .insert({ user_id: me.user_id, platform, page_name: page.trim(), claimed_followers: claimedN, screenshot_url: screenshot_url ?? "", status: "pending_ai" })
+            .select("id")
+            .single();
+          if (error) throw error;
+          setPhase("analyzing");
+          const { data: out } = await supabase.functions.invoke("verify-social-screenshot", { body: { verification_id: row.id } });
+          const v = (out as { verification?: Record<string, unknown> } | null)?.verification;
+          setResult(v ? map.social.from(v) : { id: row.id, user_id: me.user_id, platform, page_name: page.trim(), claimed_followers: claimedN, status: "pending_admin", created_at: new Date().toISOString() });
+          refresh(useDB as never);
           setPhase("result");
         } catch (e) {
           toast((e as Error).message, "error");
@@ -131,6 +144,7 @@ export default function SocialVerificationScreen() {
           <Text style={type.small}>Page : {result.page_name}</Text>
           <Text style={type.small}>Abonnés revendiqués : {result.claimed_followers}</Text>
           {result.ai_confidence != null ? <Text style={type.small}>Confiance IA : {result.ai_confidence} %</Text> : null}
+          {result.ai_reason ? <Text style={[type.small, { textAlign: "center" }]}>{result.ai_reason}</Text> : null}
         </Card>
         <Button label="Terminé" icon="checkmark" onPress={() => router.back()} />
         {!ok && !pending ? <Button label="Réessayer" variant="outline" icon="refresh" onPress={() => setPhase("form")} /> : null}
