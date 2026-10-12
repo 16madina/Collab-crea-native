@@ -7,6 +7,7 @@ import type { BottomTabBarProps } from "expo-router/tabs";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppearance } from "../../src/appearance";
 import { colors, shadow } from "../../src/theme";
 import { Press, tap } from "../../src/ui";
 
@@ -17,7 +18,9 @@ const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionico
   profile: ["person", "person-outline", "Profil"],
 };
 
-function TabItem({ focused, name, onPress }: { focused: boolean; name: string; onPress: () => void }) {
+function TabItem({ focused, name, onPress, light }: { focused: boolean; name: string; onPress: () => void; light?: boolean }) {
+  const accent = light ? "#B26F55" : colors.primary;
+  const idle = light ? "#6B4F43" : colors.inkSoft;
   const [on, off, label] = ICONS[name];
   const userId = useDB((s) => s.userId);
   const messages = useDB((s) => s.messages);
@@ -39,15 +42,15 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
   return (
     <Pressable onPress={onPress} style={styles.item} hitSlop={6}>
       <Animated.View style={icon}>
-        <Ionicons name={focused ? on : off} size={23} color={focused ? colors.primary : colors.inkSoft} />
+        <Ionicons name={focused ? on : off} size={23} color={focused ? accent : idle} />
         {badge > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badge}</Text>
           </View>
         )}
       </Animated.View>
-      <Text style={[styles.label, focused && { color: colors.primary, fontWeight: "700" }]}>{label}</Text>
-      <Animated.View style={[styles.dot, dot]} />
+      <Text style={[styles.label, { color: idle }, focused && { color: accent, fontWeight: "700" }]}>{label}</Text>
+      <Animated.View style={[styles.dot, { backgroundColor: accent }, dot]} />
     </Pressable>
   );
 }
@@ -55,6 +58,7 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
 function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   dbg("4. barre d'onglets : rendu");
   const insets = useSafeAreaInsets();
+  const light = useAppearance((s) => s.home) === "light" && state.index === 0;
   const go = (i: number) => {
     const route = state.routes[i];
     tap();
@@ -62,16 +66,16 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   };
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 12) }]} pointerEvents="box-none">
-      <View style={[styles.bar, shadow.soft]}>
-        <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
-        <TabItem focused={state.index === 0} name="home" onPress={() => go(0)} />
-        <TabItem focused={state.index === 1} name="offers" onPress={() => go(1)} />
+      <View style={[styles.bar, shadow.soft, light && styles.barLight]}>
+        <BlurView intensity={70} tint={light ? "light" : "dark"} style={StyleSheet.absoluteFill} />
+        <TabItem focused={state.index === 0} name="home" light={light} onPress={() => go(0)} />
+        <TabItem focused={state.index === 1} name="offers" light={light} onPress={() => go(1)} />
         <View style={{ width: 70 }} />
-        <TabItem focused={state.index === 2} name="collabs" onPress={() => go(2)} />
-        <TabItem focused={state.index === 3} name="profile" onPress={() => go(3)} />
+        <TabItem focused={state.index === 2} name="collabs" light={light} onPress={() => go(2)} />
+        <TabItem focused={state.index === 3} name="profile" light={light} onPress={() => go(3)} />
       </View>
-      <Press onPress={() => router.push(useDB.getState().userId ? "/create" : "/auth/signup")} style={[styles.fab, shadow.glow]} scaleTo={0.88}>
-        <Ionicons name="add" size={32} color={colors.onPrimary} />
+      <Press onPress={() => router.push(useDB.getState().userId ? "/create" : "/auth/signup")} style={[styles.fab, shadow.glow, light && styles.fabLight]} scaleTo={0.88}>
+        <Ionicons name="add" size={32} color={light ? "#2B1A13" : colors.onPrimary} />
       </Press>
     </View>
   );
@@ -107,6 +111,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
   },
+  barLight: { backgroundColor: "rgba(251,240,233,0.88)", borderColor: "rgba(255,255,255,0.9)", shadowColor: "#9A5D45", shadowOpacity: 0.18 },
+  fabLight: { backgroundColor: "#D9A188", borderColor: "#F6E7DE", shadowColor: "#9A5D45" },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 3, height: "100%" },
   label: { fontSize: 10, color: colors.inkSoft, fontWeight: "500" },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, position: "absolute", bottom: 6 },

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Chips, Field, toast } from "../kit";
 import { GoldButton, GoldFill, goldBorder, goldBorderStrong } from "../lux";
+import { PAL, useTone } from "../appearance";
 import { useDB, useMe } from "../store";
 import { colors, radius } from "../theme";
 import { Press } from "../ui";
@@ -32,14 +33,16 @@ export function SpaceSwitcher() {
   const me = useMe();
   const [open, setOpen] = useState(false);
   const sw = useSpaceSwitch();
+  const tone = useTone();
   if (!me || me.role === "admin") return null;
   const isBrand = me.role === "brand";
+  const t = PAL[tone];
   return (
     <>
-      <Press onPress={() => setOpen(true)} style={styles.chip} scaleTo={0.95}>
-        <Ionicons name={isBrand ? "briefcase-outline" : "person-outline"} size={15} color={colors.primary} />
-        <Text style={styles.chipText}>{isBrand ? "Compte Marque" : "Compte Créateur"}</Text>
-        <Ionicons name="chevron-down" size={14} color={colors.ink} />
+      <Press onPress={() => setOpen(true)} style={[styles.chip, tone === "light" && { backgroundColor: "rgba(255,255,255,0.55)", borderColor: t.border }]} scaleTo={0.95}>
+        <Ionicons name={isBrand ? "briefcase-outline" : "person-outline"} size={15} color={t.primary} />
+        <Text style={[styles.chipText, { color: t.ink }]}>{isBrand ? "Compte Marque" : "Compte Créateur"}</Text>
+        <Ionicons name="chevron-down" size={14} color={t.ink} />
       </Press>
       <Sheet visible={open} onClose={() => setOpen(false)} title="Changer d'espace" subtitle="Un seul compte, deux espaces séparés.">
         {(

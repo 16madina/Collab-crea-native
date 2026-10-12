@@ -5,7 +5,16 @@ import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 import { ReactNode } from "react";
-import { Platform, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
+import {
+  Platform,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
+} from "react-native";
+import { PAL, useTone } from "./appearance";
 import { colors, radius } from "./theme";
 import { Press } from "./ui";
 
@@ -21,6 +30,20 @@ export const GOLD = {
 export const CARD = {
   colors: ["#242424", "#111111", "#050505"] as const,
   locations: [0, 0.48, 1] as const,
+  start: { x: 0.2, y: 0 },
+  end: { x: 0.8, y: 1 },
+};
+
+// Or rosé (mode clair « champagne rosé »).
+export const ROSE = {
+  colors: ["#F4D6C6", "#D9A188", "#B87358", "#EFC7B3"] as const,
+  locations: [0, 0.45, 0.75, 1] as const,
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 1 },
+};
+export const CARD_LIGHT = {
+  colors: ["#FFF8F4", "#F9EAE1", "#F3DDD1"] as const,
+  locations: [0, 0.5, 1] as const,
   start: { x: 0.2, y: 0 },
   end: { x: 0.8, y: 1 },
 };
@@ -45,29 +68,80 @@ export const goldGlow = {
 
 /** Remplissage or métallique avec reflet supérieur (à placer en absoluteFill). */
 export function GoldFill({ style }: { style?: StyleProp<ViewStyle> }) {
+  const tone = useTone();
   return (
-    <View style={[StyleSheet.absoluteFill, { overflow: "hidden" }, style]} pointerEvents="none">
-      <LinearGradient {...GOLD} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={["rgba(255,255,255,0.45)", "rgba(255,255,255,0)"]} locations={[0, 0.55]} style={styles.sheenTop} />
+    <View
+      style={[StyleSheet.absoluteFill, { overflow: "hidden" }, style]}
+      pointerEvents="none"
+    >
+      <LinearGradient
+        {...(tone === "light" ? ROSE : GOLD)}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={["rgba(255,255,255,0.45)", "rgba(255,255,255,0)"]}
+        locations={[0, 0.55]}
+        style={styles.sheenTop}
+      />
     </View>
   );
 }
 
 /** Fond de carte noir brillant + liseré lumineux en haut. */
 export function GlossFill({ style }: { style?: StyleProp<ViewStyle> }) {
+  const tone = useTone();
+  if (tone === "light")
+    return (
+      <View style={[StyleSheet.absoluteFill, style]} pointerEvents="none">
+        <LinearGradient {...CARD_LIGHT} style={StyleSheet.absoluteFill} />
+        <LinearGradient
+          colors={["rgba(255,255,255,0.7)", "rgba(255,255,255,0)"]}
+          locations={[0, 0.4]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
+    );
   return (
     <View style={[StyleSheet.absoluteFill, style]} pointerEvents="none">
       <LinearGradient {...CARD} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={["rgba(255,255,255,0.07)", "rgba(255,255,255,0)"]} locations={[0, 0.35]} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={["rgba(255,255,255,0)", "rgba(255,236,200,0.22)", "rgba(255,255,255,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.hairline} />
+      <LinearGradient
+        colors={["rgba(255,255,255,0.07)", "rgba(255,255,255,0)"]}
+        locations={[0, 0.35]}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={[
+          "rgba(255,255,255,0)",
+          "rgba(255,236,200,0.22)",
+          "rgba(255,255,255,0)",
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.hairline}
+      />
     </View>
   );
 }
 
 /** Carte sombre brillante à bordure dorée discrète. */
-export function GlossCard({ children, style, gold }: { children?: ReactNode; style?: StyleProp<ViewStyle>; gold?: boolean }) {
+export function GlossCard({
+  children,
+  style,
+  gold,
+}: {
+  children?: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  gold?: boolean;
+}) {
   return (
-    <View style={[styles.card, { borderColor: gold ? goldBorderStrong : goldBorder }, luxShadow, style]}>
+    <View
+      style={[
+        styles.card,
+        { borderColor: gold ? goldBorderStrong : goldBorder },
+        luxShadow,
+        style,
+      ]}
+    >
       <GlossFill />
       {children}
     </View>
@@ -90,38 +164,117 @@ export function GoldButton({
 }) {
   const h = size === "xs" ? 26 : size === "sm" ? 32 : size === "lg" ? 54 : 42;
   const fs = size === "xs" ? 10 : size === "sm" ? 11 : size === "lg" ? 15 : 13;
+  const on = PAL[useTone()].onPrimary;
   return (
-    <Press onPress={onPress} style={[styles.btn, { height: h, paddingHorizontal: size === "xs" ? 10 : size === "sm" ? 12 : 20 }, goldGlow, style]} scaleTo={0.95}>
+    <Press
+      onPress={onPress}
+      style={[
+        styles.btn,
+        {
+          height: h,
+          paddingHorizontal: size === "xs" ? 10 : size === "sm" ? 12 : 20,
+        },
+        goldGlow,
+        style,
+      ]}
+      scaleTo={0.95}
+    >
       <GoldFill style={{ borderRadius: radius.pill }} />
-      <Text style={[styles.btnText, { fontSize: fs }]}>{label}</Text>
-      {icon ? <Ionicons name={icon} size={fs + 2} color={colors.onPrimary} /> : null}
+      <Text style={[styles.btnText, { fontSize: fs, color: on }]}>{label}</Text>
+      {icon ? <Ionicons name={icon} size={fs + 2} color={on} /> : null}
     </Press>
   );
 }
 
 /** Pastille de filtre : sélectionnée = or métallique, sinon contour discret. */
-export function GoldPill({ label, on, onPress, icon }: { label: string; on: boolean; onPress: () => void; icon?: keyof typeof Ionicons.glyphMap }) {
+export function GoldPill({
+  label,
+  on,
+  onPress,
+  icon,
+}: {
+  label: string;
+  on: boolean;
+  onPress: () => void;
+  icon?: keyof typeof Ionicons.glyphMap;
+}) {
+  const t = PAL[useTone()];
   return (
-    <Press onPress={onPress} style={[styles.pill, on ? [{ borderColor: "transparent" }, goldGlow] : null]} scaleTo={0.94}>
+    <Press
+      onPress={onPress}
+      style={[
+        styles.pill,
+        { borderColor: t.border },
+        on ? [{ borderColor: "transparent" }, goldGlow] : null,
+      ]}
+      scaleTo={0.94}
+    >
       {on && <GoldFill style={{ borderRadius: radius.pill }} />}
-      {icon && <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.inkSoft} />}
-      <Text style={{ fontSize: 11, fontWeight: on ? "700" : "600", color: on ? colors.onPrimary : colors.ink }}>{label}</Text>
+      {icon && (
+        <Ionicons name={icon} size={14} color={on ? t.onPrimary : t.inkSoft} />
+      )}
+      <Text
+        style={{
+          fontSize: 11,
+          fontWeight: on ? "700" : "600",
+          color: on ? t.onPrimary : t.ink,
+        }}
+      >
+        {label}
+      </Text>
     </Press>
   );
 }
 
 /** Anneau or autour d'un avatar. */
-export function GoldRing({ size, children }: { size: number; children: ReactNode }) {
+export function GoldRing({
+  size,
+  children,
+}: {
+  size: number;
+  children: ReactNode;
+}) {
+  const tone = useTone();
   return (
-    <View style={[{ width: size + 6, height: size + 6, borderRadius: (size + 6) / 2, padding: 3 }, goldGlow]}>
+    <View
+      style={[
+        {
+          width: size + 6,
+          height: size + 6,
+          borderRadius: (size + 6) / 2,
+          padding: 3,
+        },
+        goldGlow,
+      ]}
+    >
       <GoldFill style={{ borderRadius: (size + 6) / 2 }} />
-      <View style={{ flex: 1, borderRadius: size / 2, overflow: "hidden", backgroundColor: colors.bg }}>{children}</View>
+      <View
+        style={{
+          flex: 1,
+          borderRadius: size / 2,
+          overflow: "hidden",
+          backgroundColor: PAL[tone].bg,
+        }}
+      >
+        {children}
+      </View>
     </View>
   );
 }
 
 /** Texte or métallique (logo, accents). Sur le web, retombe sur la couleur champagne. */
-export function GoldText({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
+export function GoldText({
+  children,
+  style,
+}: {
+  children: ReactNode;
+  style?: StyleProp<TextStyle>;
+}) {
+  const tone = useTone();
+  if (tone === "light")
+    return (
+      <Text style={[style, { color: PAL.light.primary }]}>{children}</Text>
+    );
   if (Platform.OS === "web") {
     return (
       <Text
@@ -130,7 +283,8 @@ export function GoldText({ children, style }: { children: ReactNode; style?: Sty
           {
             color: "#E4BB78",
             // @ts-expect-error — propriétés CSS web
-            backgroundImage: "linear-gradient(135deg, #FFE4AC 0%, #D9AC65 45%, #B98236 75%, #F5D394 100%)",
+            backgroundImage:
+              "linear-gradient(135deg, #FFE4AC 0%, #D9AC65 45%, #B98236 75%, #F5D394 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           },
@@ -141,7 +295,13 @@ export function GoldText({ children, style }: { children: ReactNode; style?: Sty
     );
   }
   return (
-    <MaskedView maskElement={<Text style={[style, { backgroundColor: "transparent" }]}>{children}</Text>}>
+    <MaskedView
+      maskElement={
+        <Text style={[style, { backgroundColor: "transparent" }]}>
+          {children}
+        </Text>
+      }
+    >
       <LinearGradient {...GOLD}>
         <Text style={[style, { opacity: 0 }]}>{children}</Text>
       </LinearGradient>
@@ -152,8 +312,30 @@ export function GoldText({ children, style }: { children: ReactNode; style?: Sty
 const styles = StyleSheet.create({
   sheenTop: { position: "absolute", left: 0, right: 0, top: 0, height: "55%" },
   hairline: { position: "absolute", left: 0, right: 0, top: 0, height: 1 },
-  card: { borderRadius: radius.lg, overflow: "hidden", borderWidth: 1, backgroundColor: "#0E0E0E" },
-  btn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: radius.pill, alignSelf: "flex-start" },
+  card: {
+    borderRadius: radius.lg,
+    overflow: "hidden",
+    borderWidth: 1,
+    backgroundColor: "#0E0E0E",
+  },
+  btn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: radius.pill,
+    alignSelf: "flex-start",
+  },
   btnText: { color: colors.onPrimary, fontWeight: "800", letterSpacing: 0.2 },
-  pill: { flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingHorizontal: 15, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(255,255,255,0.02)" },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 34,
+    paddingHorizontal: 15,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: goldBorder,
+    backgroundColor: "rgba(255,255,255,0.02)",
+  },
 });

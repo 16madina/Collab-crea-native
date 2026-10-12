@@ -1,4 +1,5 @@
 // Composants de formulaire et de mise en page partagés par tous les écrans.
+import { PAL, useTone } from "./appearance";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ReactNode, useEffect } from "react";
@@ -135,13 +136,14 @@ export function Card({ children, style }: { children: ReactNode; style?: StylePr
 }
 
 export function Empty({ icon = "sparkles-outline", title, text, action }: { icon?: keyof typeof Ionicons.glyphMap; title: string; text?: string; action?: ReactNode }) {
+  const t = PAL[useTone()];
   return (
     <View style={{ alignItems: "center", paddingVertical: 40, gap: 10 }}>
       <View style={styles.emptyIcon}>
         <Ionicons name={icon} size={28} color={colors.primary} />
       </View>
-      <Text style={[type.h3, { textAlign: "center" }]}>{title}</Text>
-      {text ? <Text style={[type.small, { textAlign: "center", maxWidth: 280 }]}>{text}</Text> : null}
+      <Text style={[type.h3, { textAlign: "center", color: t.ink }]}>{title}</Text>
+      {text ? <Text style={[type.small, { textAlign: "center", maxWidth: 280, color: t.inkSoft }]}>{text}</Text> : null}
       {action}
     </View>
   );
