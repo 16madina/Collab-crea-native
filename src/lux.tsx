@@ -35,15 +35,17 @@ export const CARD = {
 };
 
 // Or rosé (mode clair « champagne rosé »).
+// linear-gradient(115deg, #FFE8D8 0%, #DDA88F 35%, #B97055 65%, #F5CBB5 100%)
 export const ROSE = {
-  colors: ["#F4D6C6", "#D9A188", "#B87358", "#EFC7B3"] as const,
-  locations: [0, 0.45, 0.75, 1] as const,
-  start: { x: 0, y: 0 },
-  end: { x: 1, y: 1 },
+  colors: ["#FFE8D8", "#DDA88F", "#B97055", "#F5CBB5"] as const,
+  locations: [0, 0.35, 0.65, 1] as const,
+  start: { x: 0, y: 0.3 },
+  end: { x: 1, y: 0.7 },
 };
+// linear-gradient(145deg, #FFF9F5 0%, #F5DDD0 55%, #E8BBA8 100%)
 export const CARD_LIGHT = {
-  colors: ["#FFF8F4", "#F9EAE1", "#F3DDD1"] as const,
-  locations: [0, 0.5, 1] as const,
+  colors: ["#FFF9F5", "#F5DDD0", "#E8BBA8"] as const,
+  locations: [0, 0.55, 1] as const,
   start: { x: 0.2, y: 0 },
   end: { x: 0.8, y: 1 },
 };
@@ -57,6 +59,13 @@ export const luxShadow = {
   shadowRadius: 22,
   shadowOffset: { width: 0, height: 12 },
   elevation: 10,
+};
+export const roseGlow = {
+  shadowColor: "#A65F46",
+  shadowOpacity: 0.22,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 6 },
+  elevation: 6,
 };
 export const goldGlow = {
   shadowColor: "#D9AC65",
@@ -79,7 +88,7 @@ export function GoldFill({ style }: { style?: StyleProp<ViewStyle> }) {
         style={StyleSheet.absoluteFill}
       />
       <LinearGradient
-        colors={["rgba(255,255,255,0.45)", "rgba(255,255,255,0)"]}
+        colors={tone === "light" ? ["rgba(255,248,240,0.35)", "rgba(255,255,255,0)"] : ["rgba(255,255,255,0.45)", "rgba(255,255,255,0)"]}
         locations={[0, 0.55]}
         style={styles.sheenTop}
       />
@@ -95,8 +104,8 @@ export function GlossFill({ style }: { style?: StyleProp<ViewStyle> }) {
       <View style={[StyleSheet.absoluteFill, style]} pointerEvents="none">
         <LinearGradient {...CARD_LIGHT} style={StyleSheet.absoluteFill} />
         <LinearGradient
-          colors={["rgba(255,255,255,0.7)", "rgba(255,255,255,0)"]}
-          locations={[0, 0.4]}
+          colors={["rgba(255,255,255,0.55)", "rgba(255,255,255,0)"]}
+          locations={[0, 0.45]}
           style={StyleSheet.absoluteFill}
         />
       </View>
@@ -164,7 +173,8 @@ export function GoldButton({
 }) {
   const h = size === "xs" ? 26 : size === "sm" ? 32 : size === "lg" ? 54 : 42;
   const fs = size === "xs" ? 10 : size === "sm" ? 11 : size === "lg" ? 15 : 13;
-  const on = PAL[useTone()].onPrimary;
+  const tone = useTone();
+  const on = PAL[tone].onPrimary;
   return (
     <Press
       onPress={onPress}
@@ -174,7 +184,7 @@ export function GoldButton({
           height: h,
           paddingHorizontal: size === "xs" ? 10 : size === "sm" ? 12 : 20,
         },
-        goldGlow,
+        tone === "light" ? roseGlow : goldGlow,
         style,
       ]}
       scaleTo={0.95}

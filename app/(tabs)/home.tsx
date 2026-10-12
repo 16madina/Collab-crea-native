@@ -49,6 +49,7 @@ import { mixRealDemo } from "../../src/mix";
 import { timeLeft } from "../../src/kit";
 import { fonts, radius } from "../../src/theme";
 import {
+  BG_LOCATIONS,
   PAL,
   type Pal,
   ToneContext,
@@ -79,6 +80,8 @@ const CATS: {
   { key: "Lifestyle", label: "Lifestyle", icon: "coffee-outline" },
   { key: "Humour", label: "Humour", icon: "emoticon-happy-outline" },
 ];
+
+const HERO_IMG = require("../../assets/creators/c8.jpg");
 
 const shadowOf = (t: Pal) => ({
   ...luxShadow,
@@ -296,8 +299,9 @@ function OfferFeatured({
         </Text>
         <GoldButton
           label="Voir l'offre"
+          size={tone === "light" ? "sm" : "md"}
           onPress={() => router.push(`/offer/${o.id}`)}
-          style={{ marginTop: 10, minWidth: 150 }}
+          style={{ marginTop: 10, minWidth: tone === "light" ? 128 : 150 }}
         />
       </View>
     </Press>
@@ -569,262 +573,366 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
 
   return (
     <ToneContext.Provider value={tone}>
-      <LinearGradient colors={t.bgGrad} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={t.bgGrad}
+        locations={BG_LOCATIONS[tone]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingTop: insets.top + 6,
+          paddingTop: tone === "light" ? 0 : insets.top + 6,
           paddingBottom: 150,
         }}
         showsVerticalScrollIndicator={false}
       >
         {/* Reflet doré d'ambiance en haut à droite */}
-        <LinearGradient
-          colors={[
-            `${t.ambient}${tone === "light" ? 0.7 : 0.16})`,
-            `${t.ambient}0)`,
-          ]}
-          start={{ x: 1, y: 0 }}
-          end={{ x: 0.3, y: 0.6 }}
-          style={styles.ambient}
-          pointerEvents="none"
-        />
-
-        {/* Barre du haut */}
-        <Animated.View entering={FadeIn.duration(500)} style={styles.topBar}>
-          <View style={{ gap: 10 }}>
-            <Logo size={40} />
-            <SpaceSwitcher />
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              alignSelf: "flex-start",
-            }}
-          >
-            <Press
-              onPress={toggleTone}
-              style={styles.iconBtn}
-              scaleTo={0.9}
-              accessibilityLabel={
-                tone === "light" ? "Mode sombre" : "Mode clair"
-              }
-            >
-              <Ionicons
-                name={tone === "light" ? "moon-outline" : "sunny-outline"}
-                size={22}
-                color={t.ink}
-              />
-            </Press>
-            <Press
-              onPress={() =>
-                router.push(me ? "/notifications" : "/auth/signup")
-              }
-              style={styles.iconBtn}
-              scaleTo={0.9}
-            >
-              <Ionicons name="notifications-outline" size={23} color={t.ink} />
-              {unread && <View style={styles.bellDot} />}
-            </Press>
-            <Press
-              onPress={() => searchRef.current?.focus()}
-              style={[styles.iconBtn, styles.iconBtnRing]}
-              scaleTo={0.9}
-            >
-              <Ionicons name="search-outline" size={21} color={t.ink} />
-            </Press>
-          </View>
-        </Animated.View>
-
-        {/* Salutation */}
-        <Animated.View
-          entering={FadeInDown.delay(80).duration(320)}
-          style={styles.greet}
-        >
-          <Press
-            onPress={() =>
-              router.navigate(me ? "/(tabs)/profile" : "/auth/signup")
-            }
-            scaleTo={0.92}
-          >
-            <GoldRing size={60}>
-              {me ? (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: t.card,
-                  }}
-                >
-                  <Text style={[styles.offerLogoText, { fontSize: 18 }]}>
-                    {initials(nameOf(me))}
-                  </Text>
-                  <Image
-                    source={avatarOf(me)}
-                    style={StyleSheet.absoluteFill}
-                    contentFit="cover"
-                  />
-                </View>
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="person" size={28} color={t.primary} />
-                </View>
-              )}
-            </GoldRing>
-          </Press>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.hello} numberOfLines={1}>
-              Bonjour {firstName} 👋
-            </Text>
-            <Text style={styles.sub} numberOfLines={2}>
-              {!me
-                ? "Découvre des créateurs incroyables. Crée ton compte pour collaborer."
-                : brandSpace
-                  ? "Trouve les créateurs idéaux pour ta marque."
-                  : "Découvre les offres des marques et collabore avec elles."}
-            </Text>
-          </View>
-        </Animated.View>
-
-        {/* Recherche */}
-        <Animated.View
-          entering={FadeInDown.delay(140).duration(320)}
-          style={styles.searchRow}
-        >
-          <View style={styles.search}>
-            <GlossFill />
-            <Ionicons name="search-outline" size={20} color={t.inkSoft} />
-            <TextInput
-              ref={searchRef}
-              value={q}
-              onChangeText={setQ}
-              placeholder="Rechercher un créateur, une marque…"
-              placeholderTextColor={t.muted}
-              style={styles.input}
-            />
-          </View>
-          <Press
-            onPress={() => setShowFilters((v) => !v)}
-            style={[
-              styles.filterBtn,
-              (showFilters || activeFilters > 0) && [styles.filterOn, goldGlow],
+        {tone === "dark" && (
+          <LinearGradient
+            colors={[
+              `${t.ambient}0.16)`,
+              `${t.ambient}0)`,
             ]}
-            scaleTo={0.9}
-          >
-            {showFilters || activeFilters > 0 ? (
-              <GoldFill style={{ borderRadius: 26 }} />
-            ) : (
-              <GlossFill style={{ borderRadius: 26 }} />
-            )}
-            <Ionicons
-              name="options-outline"
-              size={22}
-              color={showFilters || activeFilters > 0 ? t.onPrimary : t.ink}
-            />
-          </Press>
-        </Animated.View>
-
-        {showFilters && (
-          <Animated.View
-            entering={FadeIn.duration(200)}
-            style={{ gap: 10, marginTop: 14 }}
-          >
-            <Text style={styles.filterLabel}>Pays</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.pillRow}
-            >
-              {["all", ...countries].map((c) => (
-                <GoldPill
-                  key={c}
-                  label={c === "all" ? "Tous les pays" : `${flagOf(c)} ${c}`}
-                  on={country === c}
-                  onPress={() => setCountry(c)}
-                />
-              ))}
-            </ScrollView>
-            <Text style={styles.filterLabel}>Plateforme</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.pillRow}
-            >
-              <GoldPill
-                label="Toutes"
-                on={platform === "all"}
-                onPress={() => setPlatform("all")}
-              />
-              {ALL_PLATFORMS.map((p) => (
-                <GoldPill
-                  key={p}
-                  label={PLATFORM[p].label}
-                  icon={PLATFORM[p].icon}
-                  on={platform === p}
-                  onPress={() => setPlatform(p)}
-                />
-              ))}
-            </ScrollView>
-          </Animated.View>
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0.3, y: 0.6 }}
+            style={styles.ambient}
+            pointerEvents="none"
+          />
         )}
 
-        {/* Catégories */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            gap: 12,
-            paddingTop: 18,
-            paddingBottom: 4,
-          }}
-        >
-          {CATS.map((c, i) => {
-            const on = c.key === cat;
-            return (
-              <Animated.View
-                key={c.key}
-                entering={FadeInDown.delay(180 + i * 40).duration(320)}
-              >
+        {tone === "light" ? (
+          <Animated.View
+            entering={FadeIn.duration(500)}
+            style={[styles.hero, { paddingTop: insets.top + 8 }]}
+          >
+            <Image
+              source={HERO_IMG}
+              style={styles.heroImg}
+              contentFit="cover"
+              contentPosition="top"
+            />
+            <LinearGradient
+              colors={[
+                "rgba(48,32,28,0.78)",
+                "rgba(48,32,28,0.45)",
+                "rgba(48,32,28,0)",
+              ]}
+              locations={[0, 0.45, 0.85]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <LinearGradient
+              colors={["rgba(255,228,205,0.18)", "rgba(166,95,70,0.12)"]}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.heroTop}>
+              <Logo size={40} />
+              <View style={{ flexDirection: "row", gap: 8 }}>
                 <Press
-                  onPress={() => setCat(c.key)}
-                  style={{ alignItems: "center", gap: 7 }}
+                  onPress={toggleTone}
+                  style={styles.heroBtn}
+                  scaleTo={0.9}
+                  accessibilityLabel="Mode sombre"
+                >
+                  <Ionicons name="moon-outline" size={20} color="#FFF8F3" />
+                </Press>
+                <Press
+                  onPress={() =>
+                    router.push(me ? "/notifications" : "/auth/signup")
+                  }
+                  style={styles.heroBtn}
                   scaleTo={0.9}
                 >
-                  <View style={[styles.catBox, on ? goldGlow : null]}>
-                    {on ? (
-                      <GoldFill style={{ borderRadius: 18 }} />
-                    ) : (
-                      <GlossFill style={{ borderRadius: 18 }} />
-                    )}
-                    <MaterialCommunityIcons
-                      name={c.icon}
-                      size={26}
-                      color={on ? t.onPrimary : t.ink}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.catLabel,
-                      on && { color: t.ink, fontWeight: "700" },
-                    ]}
-                  >
-                    {c.label}
-                  </Text>
+                  <Ionicons
+                    name="notifications-outline"
+                    size={21}
+                    color="#FFF8F3"
+                  />
+                  {unread && <View style={styles.bellDot} />}
                 </Press>
+              </View>
+            </View>
+            <View style={styles.heroBody}>
+              <Text style={styles.heroHello} numberOfLines={1}>
+                Bonjour {firstName} 👋
+              </Text>
+              <Text style={styles.heroSub} numberOfLines={2}>
+                {!me
+                  ? "Découvre des créateurs incroyables. Crée ton compte pour collaborer."
+                  : brandSpace
+                    ? "Trouve les créateurs idéaux pour ta marque."
+                    : "Découvre les offres des marques et collabore avec elles."}
+              </Text>
+              <GoldButton
+                label={
+                  brandSpace ? "Explorer les créateurs" : "Explorer les offres"
+                }
+                onPress={() =>
+                  router.push(
+                    brandSpace ? "/marketplace" : "/(tabs)/offers?tab=offers",
+                  )
+                }
+                style={{ marginTop: 14, minWidth: 190 }}
+              />
+              <View style={{ marginTop: 12 }}>
+                <SpaceSwitcher />
+              </View>
+            </View>
+          </Animated.View>
+        ) : (
+          <>
+            {/* Barre du haut */}
+            <Animated.View
+              entering={FadeIn.duration(500)}
+              style={styles.topBar}
+            >
+              <View style={{ gap: 10 }}>
+                <Logo size={40} />
+                <SpaceSwitcher />
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                  alignSelf: "flex-start",
+                }}
+              >
+                <Press
+                  onPress={toggleTone}
+                  style={styles.iconBtn}
+                  scaleTo={0.9}
+                  accessibilityLabel={
+                    "Mode clair"
+                  }
+                >
+                  <Ionicons
+                    name="sunny-outline"
+                    size={22}
+                    color={t.ink}
+                  />
+                </Press>
+                <Press
+                  onPress={() =>
+                    router.push(me ? "/notifications" : "/auth/signup")
+                  }
+                  style={styles.iconBtn}
+                  scaleTo={0.9}
+                >
+                  <Ionicons
+                    name="notifications-outline"
+                    size={23}
+                    color={t.ink}
+                  />
+                  {unread && <View style={styles.bellDot} />}
+                </Press>
+                <Press
+                  onPress={() => searchRef.current?.focus()}
+                  style={[styles.iconBtn, styles.iconBtnRing]}
+                  scaleTo={0.9}
+                >
+                  <Ionicons name="search-outline" size={21} color={t.ink} />
+                </Press>
+              </View>
+            </Animated.View>
+
+            {/* Salutation */}
+            <Animated.View
+              entering={FadeInDown.delay(80).duration(320)}
+              style={styles.greet}
+            >
+              <Press
+                onPress={() =>
+                  router.navigate(me ? "/(tabs)/profile" : "/auth/signup")
+                }
+                scaleTo={0.92}
+              >
+                <GoldRing size={60}>
+                  {me ? (
+                    <View
+                      style={{
+                        flex: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: t.card,
+                      }}
+                    >
+                      <Text style={[styles.offerLogoText, { fontSize: 18 }]}>
+                        {initials(nameOf(me))}
+                      </Text>
+                      <Image
+                        source={avatarOf(me)}
+                        style={StyleSheet.absoluteFill}
+                        contentFit="cover"
+                      />
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        flex: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons name="person" size={28} color={t.primary} />
+                    </View>
+                  )}
+                </GoldRing>
+              </Press>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.hello} numberOfLines={1}>
+                  Bonjour {firstName} 👋
+                </Text>
+                <Text style={styles.sub} numberOfLines={2}>
+                  {!me
+                    ? "Découvre des créateurs incroyables. Crée ton compte pour collaborer."
+                    : brandSpace
+                      ? "Trouve les créateurs idéaux pour ta marque."
+                      : "Découvre les offres des marques et collabore avec elles."}
+                </Text>
+              </View>
+            </Animated.View>
+
+            {/* Recherche */}
+            <Animated.View
+              entering={FadeInDown.delay(140).duration(320)}
+              style={styles.searchRow}
+            >
+              <View style={styles.search}>
+                <GlossFill />
+                <Ionicons name="search-outline" size={20} color={t.inkSoft} />
+                <TextInput
+                  ref={searchRef}
+                  value={q}
+                  onChangeText={setQ}
+                  placeholder="Rechercher un créateur, une marque…"
+                  placeholderTextColor={t.muted}
+                  style={styles.input}
+                />
+              </View>
+              <Press
+                onPress={() => setShowFilters((v) => !v)}
+                style={[
+                  styles.filterBtn,
+                  (showFilters || activeFilters > 0) && [
+                    styles.filterOn,
+                    goldGlow,
+                  ],
+                ]}
+                scaleTo={0.9}
+              >
+                {showFilters || activeFilters > 0 ? (
+                  <GoldFill style={{ borderRadius: 26 }} />
+                ) : (
+                  <GlossFill style={{ borderRadius: 26 }} />
+                )}
+                <Ionicons
+                  name="options-outline"
+                  size={22}
+                  color={showFilters || activeFilters > 0 ? t.onPrimary : t.ink}
+                />
+              </Press>
+            </Animated.View>
+
+            {showFilters && (
+              <Animated.View
+                entering={FadeIn.duration(200)}
+                style={{ gap: 10, marginTop: 14 }}
+              >
+                <Text style={styles.filterLabel}>Pays</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.pillRow}
+                >
+                  {["all", ...countries].map((c) => (
+                    <GoldPill
+                      key={c}
+                      label={
+                        c === "all" ? "Tous les pays" : `${flagOf(c)} ${c}`
+                      }
+                      on={country === c}
+                      onPress={() => setCountry(c)}
+                    />
+                  ))}
+                </ScrollView>
+                <Text style={styles.filterLabel}>Plateforme</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.pillRow}
+                >
+                  <GoldPill
+                    label="Toutes"
+                    on={platform === "all"}
+                    onPress={() => setPlatform("all")}
+                  />
+                  {ALL_PLATFORMS.map((p) => (
+                    <GoldPill
+                      key={p}
+                      label={PLATFORM[p].label}
+                      icon={PLATFORM[p].icon}
+                      on={platform === p}
+                      onPress={() => setPlatform(p)}
+                    />
+                  ))}
+                </ScrollView>
               </Animated.View>
-            );
-          })}
-        </ScrollView>
+            )}
+
+            {/* Catégories */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingHorizontal: 16,
+                gap: 12,
+                paddingTop: 18,
+                paddingBottom: 4,
+              }}
+            >
+              {CATS.map((c, i) => {
+                const on = c.key === cat;
+                return (
+                  <Animated.View
+                    key={c.key}
+                    entering={FadeInDown.delay(180 + i * 40).duration(320)}
+                  >
+                    <Press
+                      onPress={() => setCat(c.key)}
+                      style={{ alignItems: "center", gap: 7 }}
+                      scaleTo={0.9}
+                    >
+                      <View style={[styles.catBox, on ? goldGlow : null]}>
+                        {on ? (
+                          <GoldFill style={{ borderRadius: 18 }} />
+                        ) : (
+                          <GlossFill style={{ borderRadius: 18 }} />
+                        )}
+                        <MaterialCommunityIcons
+                          name={c.icon}
+                          size={26}
+                          color={on ? t.onPrimary : t.ink}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.catLabel,
+                          on && { color: t.ink, fontWeight: "700" },
+                        ]}
+                      >
+                        {c.label}
+                      </Text>
+                    </Press>
+                  </Animated.View>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
 
         {brandSpace ? (
           <>
@@ -964,7 +1072,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
   );
 }
 
-const makeStyles = (t: Pal) =>
+const makeStyles = (t: Pal, light = false) =>
   StyleSheet.create({
     adHead: {
       flexDirection: "row",
@@ -1015,19 +1123,67 @@ const makeStyles = (t: Pal) =>
     offerTitle: {
       fontFamily: fonts.serif,
       color: t.ink,
-      fontSize: 18,
-      lineHeight: 22,
+      fontSize: light ? 16 : 18,
+      lineHeight: light ? 20 : 22,
       marginTop: 8,
-      maxWidth: "62%",
+      maxWidth: "58%",
     },
     offerBudget: {
       color: t.primary,
-      fontSize: 13,
+      fontSize: light ? 12 : 13,
       fontWeight: "800",
-      marginTop: 8,
+      marginTop: light ? 6 : 8,
     },
     offerApps: { color: t.inkSoft, fontSize: 10, marginTop: 2 },
     ambient: { position: "absolute", top: 0, right: 0, width: W, height: 360 },
+    hero: {
+      height: Math.round(W * 0.66) + 90,
+      borderBottomLeftRadius: 28,
+      borderBottomRightRadius: 28,
+      overflow: "hidden",
+      paddingHorizontal: 18,
+      backgroundColor: "#3A2620",
+    },
+    heroImg: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      right: 0,
+      width: "68%",
+    },
+    heroTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    heroBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(48,32,28,0.35)",
+      borderWidth: 1,
+      borderColor: "rgba(255,248,243,0.35)",
+    },
+    heroBody: {
+      flex: 1,
+      justifyContent: "flex-end",
+      paddingBottom: 22,
+      maxWidth: "70%",
+    },
+    heroHello: {
+      fontFamily: fonts.serif,
+      color: "#FFF8F3",
+      fontSize: 27,
+      lineHeight: 32,
+    },
+    heroSub: {
+      color: "rgba(255,248,243,0.9)",
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: 6,
+    },
     topBar: {
       flexDirection: "row",
       alignItems: "center",
@@ -1153,7 +1309,7 @@ const makeStyles = (t: Pal) =>
     },
     feat: {
       width: FEAT_W,
-      height: 240,
+      height: light ? 212 : 240,
       borderRadius: radius.lg,
       overflow: "hidden",
       borderWidth: 1,
@@ -1194,7 +1350,10 @@ const makeStyles = (t: Pal) =>
     newFlag: { fontSize: 13, marginLeft: "auto" },
     newFollowers: { color: t.inkSoft, fontSize: 12 },
   });
-const STYLES = { dark: makeStyles(PAL.dark), light: makeStyles(PAL.light) };
+const STYLES = {
+  dark: makeStyles(PAL.dark),
+  light: makeStyles(PAL.light, true),
+};
 
 export default function Home() {
   dbg("3. accueil : rendu");

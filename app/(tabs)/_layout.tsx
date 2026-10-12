@@ -7,7 +7,9 @@ import type { BottomTabBarProps } from "expo-router/tabs";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { useAppearance } from "../../src/appearance";
+import { ROSE } from "../../src/lux";
 import { colors, shadow } from "../../src/theme";
 import { Press, tap } from "../../src/ui";
 
@@ -19,8 +21,8 @@ const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionico
 };
 
 function TabItem({ focused, name, onPress, light }: { focused: boolean; name: string; onPress: () => void; light?: boolean }) {
-  const accent = light ? "#B26F55" : colors.primary;
-  const idle = light ? "#6B4F43" : colors.inkSoft;
+  const accent = light ? "#A65F46" : colors.primary;
+  const idle = light ? "#735E55" : colors.inkSoft;
   const [on, off, label] = ICONS[name];
   const userId = useDB((s) => s.userId);
   const messages = useDB((s) => s.messages);
@@ -75,7 +77,8 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
         <TabItem focused={state.index === 3} name="profile" light={light} onPress={() => go(3)} />
       </View>
       <Press onPress={() => router.push(useDB.getState().userId ? "/create" : "/auth/signup")} style={[styles.fab, shadow.glow, light && styles.fabLight]} scaleTo={0.88}>
-        <Ionicons name="add" size={32} color={light ? "#2B1A13" : colors.onPrimary} />
+        {light && <LinearGradient {...ROSE} style={[StyleSheet.absoluteFill, { borderRadius: 32 }]} />}
+        <Ionicons name="add" size={32} color={light ? "#30201C" : colors.onPrimary} />
       </Press>
     </View>
   );
@@ -111,8 +114,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
   },
-  barLight: { backgroundColor: "rgba(251,240,233,0.88)", borderColor: "rgba(255,255,255,0.9)", shadowColor: "#9A5D45", shadowOpacity: 0.18 },
-  fabLight: { backgroundColor: "#D9A188", borderColor: "#F6E7DE", shadowColor: "#9A5D45" },
+  barLight: { backgroundColor: "rgba(255,248,243,0.82)", borderColor: "rgba(199,137,112,0.18)", shadowColor: "#A65F46", shadowOpacity: 0.14 },
+  fabLight: { backgroundColor: "#C78970", borderColor: "#FFF8F3", shadowColor: "#A65F46", shadowOpacity: 0.28, overflow: "hidden" },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 3, height: "100%" },
   label: { fontSize: 10, color: colors.inkSoft, fontWeight: "500" },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, position: "absolute", bottom: 6 },
