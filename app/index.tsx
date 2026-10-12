@@ -226,11 +226,11 @@ export default function Onboarding() {
               />
               <LinearGradient
                 colors={[
-                  "#0B0B0B",
+                  colors.bg,
                   "rgba(11,11,11,0.15)",
-                  "rgba(11,11,11,0)",
+                  `${colors.bg}00`,
                   "rgba(11,11,11,0.9)",
-                  "#0B0B0B",
+                  colors.bg,
                 ]}
                 locations={[0, 0.3, 0.45, 0.72, 0.85]}
                 style={StyleSheet.absoluteFill}
@@ -392,7 +392,7 @@ export default function Onboarding() {
                   transition={400}
                 />
                 <LinearGradient
-                  colors={["rgba(11,11,11,0)", "#0B0B0B"]}
+                  colors={[`${colors.bg}00`, colors.bg]}
                   locations={[0.82, 1]}
                   style={StyleSheet.absoluteFill}
                 />

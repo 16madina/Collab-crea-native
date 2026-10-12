@@ -10,7 +10,9 @@ Usage : npx expo export --platform web --output-dir /tmp/ccweb
 import base64, glob, os, re, sys
 
 src, out = sys.argv[1], sys.argv[2]
-js = open(glob.glob(os.path.join(src, "_expo/static/js/web/entry-*.js"))[0]).read()
+# Bundle principal = celui référencé par index.html (les autres morceaux sont chargés à la demande).
+main = re.search(r'src="/(_expo/static/js/web/[^"]+\.js)"', open(os.path.join(src, "index.html")).read()).group(1)
+js = open(os.path.join(src, main)).read()
 MIME = {"ttf": "font/ttf", "jpg": "image/jpeg", "png": "image/png"}
 for p in set(re.findall(r'"(/assets/[^"]+\.(?:ttf|jpg|png))"', js)):
     ext = p.rsplit(".", 1)[1]
@@ -39,7 +41,7 @@ html.framed .fx{display:flex}
 .status{position:fixed;top:0;left:0;right:0;height:50px;z-index:99999;justify-content:space-between;align-items:center;padding:0 28px 0 36px;color:#F8F6F2;font:600 15px -apple-system,system-ui,sans-serif;pointer-events:none;background:#0B0B0B}
 .homebar{position:fixed;bottom:6px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#F8F6F2;z-index:100000;pointer-events:none;opacity:.85}
 """
-HEAD = """window.__CC_PREVIEW__=true;try{history.replaceState(null,"","/")}catch(e){}
+HEAD = """window.__CC_PREVIEW__=true;window.__CC_START__=location.href;try{history.replaceState(null,"","/")}catch(e){}
 var isPhone=Math.min(screen.width,screen.height)<600&&(navigator.maxTouchPoints||0)>0;
 if(!isPhone){
   document.documentElement.className="framed";

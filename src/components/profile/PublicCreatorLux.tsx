@@ -74,7 +74,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
             <Text style={styles.monoText}>{nameOf(p).slice(0, 2).toUpperCase()}</Text>
           </View>
           <Image source={p.avatar_url} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="top" transition={300} />
-          <LinearGradient colors={["rgba(11,11,11,0.45)", "rgba(11,11,11,0)", "rgba(11,11,11,0.55)", "#0B0B0B"]} locations={[0, 0.25, 0.7, 1]} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={["rgba(11,11,11,0.45)", `${colors.bg}00`, "rgba(11,11,11,0.55)", colors.bg]} locations={[0, 0.25, 0.7, 1]} style={StyleSheet.absoluteFill} />
           <View style={styles.heroBody}>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -259,7 +259,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
       {/* Barre d'actions */}
       {!self && (
         <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-          <LinearGradient colors={["rgba(11,11,11,0)", "#0B0B0B"]} locations={[0, 0.35]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+          <LinearGradient colors={[`${colors.bg}00`, colors.bg]} locations={[0, 0.35]} style={StyleSheet.absoluteFill} pointerEvents="none" />
           <Press onPress={contact} style={[styles.contact, !isBrand && { flex: 1 }]} scaleTo={0.96}>
             <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.ink} />
             <Text style={styles.contactText}>Contacter</Text>
@@ -278,7 +278,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
 }
 
 const styles = StyleSheet.create({
-  hero: { justifyContent: "flex-end", backgroundColor: "#141210" },
+  hero: { justifyContent: "flex-end", backgroundColor: colors.surface },
   mono: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
   monoText: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 90, opacity: 0.8 },
   heroBody: { flexDirection: "row", alignItems: "flex-end", gap: 12, paddingHorizontal: 18, paddingBottom: 14 },
@@ -303,16 +303,16 @@ const styles = StyleSheet.create({
   tabLine: { height: 3, width: "80%", marginTop: 8, borderRadius: 2, overflow: "hidden" },
   tabLineOn: {},
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 8 },
-  tile: { width: TILE, height: TILE * 1.25, borderRadius: radius.sm, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#141210" },
+  tile: { width: TILE, height: TILE * 1.25, borderRadius: radius.sm, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: colors.surface },
   views: { position: "absolute", left: 7, bottom: 6, flexDirection: "row", alignItems: "center", gap: 4 },
   viewsText: { color: colors.ink, fontSize: 11, fontWeight: "700" },
-  priceCard: { width: PRICE_W, minHeight: 88, flexDirection: "row", alignItems: "center", gap: 8, padding: 9, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
+  priceCard: { width: PRICE_W, minHeight: 88, flexDirection: "row", alignItems: "center", gap: 8, padding: 9, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
   priceIcon: { width: 40, height: 56, borderRadius: 12, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" },
   priceTitle: { color: colors.ink, fontSize: 12, fontWeight: "700" },
   priceDesc: { color: colors.inkSoft, fontSize: 10 },
   priceValue: { fontSize: 13, fontWeight: "800", marginTop: 3 },
-  collabCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
-  brandLogo: { width: 48, height: 48, borderRadius: 24, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#141210", alignItems: "center", justifyContent: "center" },
+  collabCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
+  brandLogo: { width: 48, height: 48, borderRadius: 24, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
   brandMono: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 15 },
   collabTitle: { color: colors.ink, fontSize: 13, fontWeight: "700" },
   collabSub: { color: colors.inkSoft, fontSize: 11 },

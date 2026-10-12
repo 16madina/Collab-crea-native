@@ -15,7 +15,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { PAL, useTone } from "./appearance";
-import { colors, radius } from "./theme";
+import { colors, isLight, radius } from "./theme";
 import { Press } from "./ui";
 
 // linear-gradient(135deg, #FFE4AC 0%, #D9AC65 45%, #B98236 75%, #F5D394 100%)
@@ -50,12 +50,12 @@ export const CARD_LIGHT = {
   end: { x: 0.8, y: 1 },
 };
 
-export const goldBorder = "rgba(217,172,101,0.28)";
-export const goldBorderStrong = "rgba(245,211,148,0.55)";
+export const goldBorder = isLight() ? "rgba(199,137,112,0.24)" : "rgba(217,172,101,0.28)";
+export const goldBorderStrong = isLight() ? "rgba(199,137,112,0.38)" : "rgba(245,211,148,0.55)";
 
 export const luxShadow = {
-  shadowColor: "#000",
-  shadowOpacity: 0.55,
+  shadowColor: isLight() ? "#A65F46" : "#000",
+  shadowOpacity: isLight() ? 0.13 : 0.55,
   shadowRadius: 22,
   shadowOffset: { width: 0, height: 12 },
   elevation: 10,
@@ -68,8 +68,8 @@ export const roseGlow = {
   elevation: 6,
 };
 export const goldGlow = {
-  shadowColor: "#D9AC65",
-  shadowOpacity: 0.35,
+  shadowColor: isLight() ? "#A65F46" : "#D9AC65",
+  shadowOpacity: isLight() ? 0.2 : 0.35,
   shadowRadius: 14,
   shadowOffset: { width: 0, height: 6 },
   elevation: 8,

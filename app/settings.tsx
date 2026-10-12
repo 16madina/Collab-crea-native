@@ -4,7 +4,9 @@ import { Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { isEmail } from "../src/components/account/constants";
 import { Sheet } from "../src/components/account/Sheet";
+import { setToneAndReload } from "../src/appearance";
 import { Group, SettingRow, Toggle } from "../src/components/account/widgets";
+import { getTone } from "../src/theme";
 import { Banner, Field, Screen, Segmented, toast } from "../src/kit";
 import { useDB } from "../src/store";
 import { colors, type } from "../src/theme";
@@ -23,7 +25,6 @@ export default function Settings() {
   const [visible, setVisible] = useState(true);
   const [online, setOnline] = useState(true);
   const [lang, setLang] = useState<"fr" | "en">("fr");
-  const [dark, setDark] = useState(false);
   const [sheet, setSheet] = useState<"email" | "delete" | "bug" | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [emailErr, setEmailErr] = useState<string>();
@@ -101,7 +102,7 @@ export default function Settings() {
           ]}
         />
       </View>
-      <SettingRow icon="moon-outline" label="Mode sombre" sub="Bientôt disponible" right={<Toggle value={dark} onChange={setDark} />} last />
+      <SettingRow icon="moon-outline" label="Mode sombre" sub={getTone() === "dark" ? "Noir & Champagne" : "Désactivé · Champagne Rosé"} right={<Toggle value={getTone() === "dark"} onChange={(v: boolean) => void setToneAndReload(v ? "dark" : "light")} />} last />
     </Group>,
     <Group key="support" title="Support">
       <SettingRow icon="help-circle-outline" label="FAQ" onPress={() => router.push(FAQ_URL)} />

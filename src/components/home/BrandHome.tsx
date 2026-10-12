@@ -118,7 +118,7 @@ export function BrandHome() {
       <Animated.View entering={FadeInDown.delay(100).duration(320)} style={{ paddingHorizontal: 16, marginTop: 16 }}>
         <GlossCard gold style={styles.banner}>
           <Image source={HERO} style={styles.bannerImg} contentFit="cover" />
-          <LinearGradient colors={["#0B0B0B", "rgba(11,11,11,0.85)", "rgba(11,11,11,0)"]} locations={[0, 0.45, 0.8]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={[colors.bg, "rgba(11,11,11,0.85)", `${colors.bg}00`]} locations={[0, 0.45, 0.8]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
           <Text style={styles.bannerTitle}>
             Trouvez{"\n"}les créateurs idéaux{"\n"}
             <Text style={{ color: colors.primary }}>pour votre marque.</Text>
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   top: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingHorizontal: 16 },
   iconBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   dot: { position: "absolute", top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: "#E5484D", borderWidth: 1.5, borderColor: colors.bg },
-  logoMono: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0B0B0B" },
+  logoMono: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
   logoMonoText: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 15 },
   banner: { height: 172, padding: 18, justifyContent: "center" },
   bannerImg: { position: "absolute", right: 0, top: 0, bottom: 0, width: "58%" },
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   sectionTitle: { color: colors.ink, fontSize: 17, fontWeight: "700" },
   seeAll: { flexDirection: "row", alignItems: "center", gap: 4 },
   seeAllText: { color: colors.primary, fontSize: 12, fontWeight: "600" },
-  card: { width: CARD_W, height: CARD_W * 1.5, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#141210" },
+  card: { width: CARD_W, height: CARD_W * 1.5, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
   mono: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
   monoText: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 30, opacity: 0.8 },
   heart: { position: "absolute", top: 7, right: 7, width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: "rgba(248,246,242,0.4)", backgroundColor: "rgba(11,11,11,0.35)", alignItems: "center", justifyContent: "center" },
@@ -239,8 +239,8 @@ const styles = StyleSheet.create({
   tagText: { color: colors.ink, fontSize: 9, fontWeight: "600" },
   cardFollowers: { color: colors.ink, fontSize: 11, fontWeight: "800" },
   cardCity: { color: colors.inkSoft, fontSize: 9, flexShrink: 1 },
-  camp: { width: W * 0.68, flexDirection: "row", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
-  campLogo: { width: 52, height: 52, borderRadius: 26, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#0B0B0B", alignItems: "center", justifyContent: "center" },
+  camp: { width: W * 0.68, flexDirection: "row", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
+  campLogo: { width: 52, height: 52, borderRadius: 26, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" },
   campTitle: { color: colors.ink, fontSize: 13, fontWeight: "700" },
   campBudget: { color: colors.primary, fontSize: 12, fontWeight: "800" },
   campApps: { color: colors.inkSoft, fontSize: 10 },

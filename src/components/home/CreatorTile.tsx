@@ -93,8 +93,8 @@ export function CreatorTile({ p, width, variant = "grid" }: { p: Profile; width:
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: "#0E0E0E", borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
-  mono: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", backgroundColor: "#141210" },
+  card: { backgroundColor: colors.surface, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorder },
+  mono: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface },
   monoText: { fontFamily: fonts.serif, color: "#D9AC65", opacity: 0.85 },
   heart: { position: "absolute", top: 8, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(11,11,11,0.45)", borderWidth: 1, borderColor: "rgba(248,246,242,0.25)", alignItems: "center", justifyContent: "center" },
   catBadge: { position: "absolute", left: 8, bottom: 8, backgroundColor: "#F5D394", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 3 },

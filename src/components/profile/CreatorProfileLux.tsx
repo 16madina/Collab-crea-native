@@ -61,7 +61,7 @@ function SubChips<T extends string>({ items, value, onChange }: { items: { key: 
             {on && <GoldFill style={{ borderRadius: radius.pill }} />}
             <Text style={[styles.subChipText, on && { color: colors.onPrimary, fontWeight: "800" }]}>{it.label}</Text>
             {it.count ? (
-              <View style={[styles.count, on && { backgroundColor: "#0B0B0B" }]}>
+              <View style={[styles.count, on && { backgroundColor: colors.bg }]}>
                 <Text style={[styles.countText, on && { color: colors.primaryLight }]}>{it.count}</Text>
               </View>
             ) : null}
@@ -425,7 +425,7 @@ export function CreatorProfileLux({ me, onLogout }: { me: Profile; onLogout: () 
         {/* Couverture */}
         <Animated.View entering={FadeIn.duration(500)} style={styles.cover}>
           <Image source={me.banner_url ?? SAMPLE_BANNERS[0]} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} />
-          <LinearGradient colors={["rgba(11,11,11,0)", "rgba(11,11,11,0.35)", "#0B0B0B"]} locations={[0.4, 0.75, 1]} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={[`${colors.bg}00`, "rgba(11,11,11,0.35)", colors.bg]} locations={[0.4, 0.75, 1]} style={StyleSheet.absoluteFill} />
           <Press onPress={() => setSheet("banner")} style={styles.coverBtn} scaleTo={0.94}>
             <Ionicons name="camera-outline" size={15} color={colors.ink} />
             <Text style={styles.coverBtnText}>Modifier la couverture</Text>
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   coverBtn: { position: "absolute", right: 14, bottom: 22, flexDirection: "row", alignItems: "center", gap: 6, height: 32, paddingHorizontal: 12, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "rgba(11,11,11,0.55)" },
   coverBtnText: { color: colors.ink, fontSize: 11, fontWeight: "600" },
   identity: { flexDirection: "row", gap: 14, paddingHorizontal: 16 },
-  camBadge: { position: "absolute", right: 4, bottom: 4, width: 30, height: 30, borderRadius: 15, backgroundColor: "#141414", borderWidth: 1, borderColor: goldBorderStrong, alignItems: "center", justifyContent: "center" },
+  camBadge: { position: "absolute", right: 4, bottom: 4, width: 30, height: 30, borderRadius: 15, backgroundColor: colors.surface, borderWidth: 1, borderColor: goldBorderStrong, alignItems: "center", justifyContent: "center" },
   name: { fontFamily: fonts.serif, color: colors.ink, fontSize: 24, flexShrink: 1 },
   role: { color: colors.inkSoft, fontSize: 14 },
   location: { color: colors.inkSoft, fontSize: 12 },
@@ -579,19 +579,19 @@ const styles = StyleSheet.create({
   count: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   countText: { color: colors.ink, fontSize: 10, fontWeight: "800" },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16 },
-  tile: { width: TILE, height: TILE * 1.05, borderRadius: radius.sm, overflow: "hidden", backgroundColor: "#141210", borderWidth: 1, borderColor: goldBorder },
+  tile: { width: TILE, height: TILE * 1.05, borderRadius: radius.sm, overflow: "hidden", backgroundColor: colors.surface, borderWidth: 1, borderColor: goldBorder },
   views: { position: "absolute", left: 8, bottom: 6, flexDirection: "row", alignItems: "center", gap: 4 },
   viewsText: { color: colors.ink, fontSize: 12, fontWeight: "700" },
   tileCaption: { position: "absolute", left: 8, right: 8, bottom: 6, color: colors.ink, fontSize: 10, fontWeight: "700" },
   addService: { flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingHorizontal: 12, borderRadius: radius.pill, borderWidth: 1, borderColor: goldBorderStrong },
   addServiceText: { color: colors.ink, fontSize: 11, fontWeight: "700" },
-  priceCard: { width: PRICE_W, minHeight: 92, flexDirection: "row", alignItems: "center", gap: 8, padding: 9, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
+  priceCard: { width: PRICE_W, minHeight: 92, flexDirection: "row", alignItems: "center", gap: 8, padding: 9, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
   priceIcon: { width: 40, height: 56, borderRadius: 12, borderWidth: 1, borderColor: goldBorder, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" },
   priceTitle: { color: colors.ink, fontSize: 12, fontWeight: "700" },
   priceDesc: { color: colors.inkSoft, fontSize: 10 },
   priceValue: { fontSize: 13, fontWeight: "800" },
-  offerCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
-  brandLogo: { width: 54, height: 54, borderRadius: 27, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: "#141210", alignItems: "center", justifyContent: "center" },
+  offerCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
+  brandLogo: { width: 54, height: 54, borderRadius: 27, overflow: "hidden", borderWidth: 1, borderColor: goldBorder, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
   brandMono: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 17 },
   offerTitle: { color: colors.ink, fontSize: 14, fontWeight: "700", flexShrink: 1 },
   statusPill: { backgroundColor: "rgba(217,172,101,0.16)", borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2 },
@@ -599,9 +599,9 @@ const styles = StyleSheet.create({
   offerSub: { color: colors.inkSoft, fontSize: 11 },
   offerBudget: { color: colors.primary, fontSize: 12, fontWeight: "700" },
   offerDate: { color: colors.muted, fontSize: 10 },
-  reviewCard: { flexDirection: "row", gap: 12, padding: 14, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
+  reviewCard: { flexDirection: "row", gap: 12, padding: 14, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
   reviewText: { color: colors.ink, fontSize: 13, lineHeight: 18 },
-  secBox: { marginHorizontal: 16, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: "#0E0E0E" },
+  secBox: { marginHorizontal: 16, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: goldBorderStrong, backgroundColor: colors.surface },
   secGrid: { flexDirection: "row", flexWrap: "wrap" },
   secRow: { width: "50%", flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "rgba(53,48,42,0.6)" },
   secRowLeft: { borderRightWidth: 1, borderRightColor: "rgba(53,48,42,0.6)" },

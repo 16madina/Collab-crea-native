@@ -1,30 +1,49 @@
 // Apparence de l'accueil : « Noir & Champagne » (sombre) ou « Champagne rosé » (clair).
 // Le choix est mémorisé sur l'appareil ; les composants lux lisent le ton via ToneContext.
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useContext } from "react";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { colors } from "./theme";
+import { reloadAppAsync } from "expo";
+import { createContext } from "react";
+import { DARK_COLORS, getTone, LIGHT_COLORS, type Tone } from "./theme";
 
-export type Tone = "dark" | "light";
+export type { Tone };
+export const TONE_KEY = "cc-tone";
+const START_URL =
+  typeof window !== "undefined" && typeof document !== "undefined"
+    ? ((window as { __CC_START__?: string }).__CC_START__ ?? window.location.href)
+    : undefined;
 
-export const useAppearance = create<{ home: Tone; toggleHome: () => void }>()(
-  persist(
-    (set) => ({
-      home: "dark",
-      toggleHome: () =>
-        set((s) => ({ home: s.home === "dark" ? "light" : "dark" })),
-    }),
-    { name: "cc-appearance", storage: createJSONStorage(() => AsyncStorage) },
-  ),
-);
-
+/** Ton actif (fixé au démarrage ; changer de ton recharge l'app). */
+export const useTone = (): Tone => getTone();
 export const ToneContext = createContext<Tone>("dark");
-export const useTone = () => useContext(ToneContext);
+
+/** Lit le ton mémorisé sur l'appareil. */
+export async function loadTone(): Promise<Tone> {
+  try {
+    const v = await AsyncStorage.getItem(TONE_KEY);
+    return v === "light" ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
+/** Mémorise le ton puis recharge l'app pour que tous les écrans l'appliquent. */
+export async function setToneAndReload(t: Tone) {
+  try {
+    await AsyncStorage.setItem(TONE_KEY, t);
+  } catch {
+    /* stockage indisponible (aperçu) */
+  }
+  // Web : on recharge l'adresse de départ (les routes internes n'existent pas côté serveur).
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    window.location.replace(START_URL ?? window.location.href);
+    return;
+  }
+  await reloadAppAsync("theme");
+}
 
 export const PAL = {
   dark: {
-    ...colors,
+    ...DARK_COLORS,
     bgGrad: ["#0B0B0B", "#0B0B0B"] as readonly [string, string, ...string[]],
     card: "#0E0E0E",
     cardFade: "rgba(14,14,14,",
@@ -44,7 +63,7 @@ export const PAL = {
     title: "#F8F6F2",
   },
   light: {
-    ...colors,
+    ...LIGHT_COLORS,
     // Palette officielle « Champagne Rosé Premium »
     bg: "#FFF8F3",
     bgGrad: ["#FFF9F5", "#F7E6DB", "#EECBBB"] as readonly [string, string, ...string[]],

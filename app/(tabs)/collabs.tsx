@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   chipBadgeText: { color: colors.onPrimary, fontSize: 11, fontWeight: "800" },
   row: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(53,48,42,0.7)" },
   avatarRing: { width: 74, height: 74, borderRadius: 37, padding: 2, overflow: "hidden" },
-  avatarInner: { flex: 1, borderRadius: 35, overflow: "hidden", backgroundColor: "#141210", alignItems: "center", justifyContent: "center" },
+  avatarInner: { flex: 1, borderRadius: 35, overflow: "hidden", backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
   avatarMono: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 19 },
   name: { fontFamily: fonts.serif, color: colors.ink, fontSize: 17, flexShrink: 1 },
   rolePill: { backgroundColor: "rgba(255,255,255,0.08)", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 3 },

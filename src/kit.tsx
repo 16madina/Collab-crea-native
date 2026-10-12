@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   error: { color: colors.danger, fontSize: 11, fontWeight: "600" },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, height: 36, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  segment: { flexDirection: "row", backgroundColor: "#141414", borderRadius: radius.pill, padding: 4 },
+  segment: { flexDirection: "row", backgroundColor: colors.surface, borderRadius: radius.pill, padding: 4 },
   segItem: { flex: 1, height: 40, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
   segOn: { backgroundColor: colors.surface },
   segText: { fontWeight: "700", color: colors.muted, fontSize: 11 },

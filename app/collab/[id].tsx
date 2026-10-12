@@ -346,7 +346,7 @@ export default function CollabDetail() {
     <Screen title={offer?.title ?? "Collaboration"} subtitle={COLLAB_LABEL[s]}>
       <Animated.View entering={FadeInDown.duration(320)}>
         <View style={[styles.hero, shadow.soft]}>
-          <LinearGradient colors={["#1E1E1E", "#121212"]} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={[colors.surfaceHi, colors.surface]} style={StyleSheet.absoluteFill} />
           <Press onPress={() => other && router.push(`/profile/${other.user_id}`)} style={{ flexDirection: "row", alignItems: "center", gap: 10 }} scaleTo={0.98}>
             <Avatar uri={avatarOf(other)} size={44} />
             <View style={{ flex: 1 }}>

@@ -61,3 +61,53 @@ export const type = {
   small: { fontSize: 11, lineHeight: 16, fontWeight: "500" as const, color: colors.muted },
   tiny: { fontSize: 10, lineHeight: 12, fontWeight: "600" as const, color: colors.muted },
 };
+
+// ── Mode clair « Champagne Rosé Premium » ──────────────────────────────
+// Le ton est appliqué au démarrage (src/Boot.tsx), AVANT le chargement des écrans :
+// les StyleSheet créés ensuite lisent donc directement les bonnes couleurs.
+export type Tone = "dark" | "light";
+export const DARK_COLORS = { ...colors };
+export const LIGHT_COLORS: typeof colors = {
+  bg: "#FFF8F3",
+  bgDeep: "#F6E4D9",
+  surface: "#FFF9F5",
+  surfaceHi: "#F6E4D9",
+  ink: "#30201C",
+  inkSoft: "#735E55",
+  muted: "#9A857B",
+  line: "#EBD3C6",
+  primary: "#A65F46",
+  primaryDark: "#8C4D37",
+  primaryLight: "#DDA88F",
+  primaryPale: "#F6E4D9",
+  primarySoft: "rgba(199,137,112,0.14)",
+  onPrimary: "#FFFFFF",
+  night: "#FFF9F5",
+  nightSoft: "#F6E4D9",
+  glass: "rgba(255,249,245,0.82)",
+  glassBorder: "rgba(199,137,112,0.18)",
+  success: "#2F9E6B",
+  successSoft: "rgba(47,158,107,0.12)",
+  warning: "#B7791F",
+  warningSoft: "rgba(183,121,31,0.12)",
+  danger: "#C53030",
+  dangerSoft: "rgba(197,48,48,0.10)",
+};
+let TONE: Tone = "dark";
+export const getTone = () => TONE;
+export const isLight = () => TONE === "light";
+/** Remplace les couleurs partagées (à appeler une seule fois, au démarrage). */
+export function applyTone(t: Tone) {
+  TONE = t;
+  const src = t === "light" ? LIGHT_COLORS : DARK_COLORS;
+  Object.assign(colors, src);
+  shadow.glow.shadowColor = colors.primary;
+  shadow.soft.shadowColor = t === "light" ? "#A65F46" : "#000";
+  shadow.soft.shadowOpacity = t === "light" ? 0.14 : 0.35;
+  for (const v of Object.values(type) as { color?: string }[]) {
+    if (v.color === DARK_COLORS.ink || v.color === LIGHT_COLORS.ink) v.color = colors.ink;
+    else if (v.color === DARK_COLORS.inkSoft || v.color === LIGHT_COLORS.inkSoft) v.color = colors.inkSoft;
+    else if (v.color === DARK_COLORS.muted || v.color === LIGHT_COLORS.muted) v.color = colors.muted;
+    else if (v.color === DARK_COLORS.primary || v.color === LIGHT_COLORS.primary) v.color = colors.primary;
+  }
+}

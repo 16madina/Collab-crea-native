@@ -53,7 +53,7 @@ import {
   PAL,
   type Pal,
   ToneContext,
-  useAppearance,
+  setToneAndReload,
   useTone,
 } from "../../src/appearance";
 import type { Offer, Profile, SocialPlatform } from "../../src/types";
@@ -300,11 +300,11 @@ function OfferFeatured({
         </Text>
         <GoldButton
           label="Voir l'offre"
-          size={tone === "light" ? "sm" : "md"}
+          size="sm"
           onPress={() => router.push(`/offer/${o.id}`)}
           style={{
-            marginTop: tone === "light" ? 7 : 10,
-            minWidth: tone === "light" ? 128 : 150,
+            marginTop: 7,
+            minWidth: 128,
           }}
         />
       </View>
@@ -407,7 +407,8 @@ const POP_CATS: {
 ];
 
 function CategoryTiles() {
-  const styles = STYLES.light;
+  const tone = useTone();
+  const styles = STYLES[tone];
   return (
     <ScrollView
       horizontal
@@ -431,7 +432,7 @@ function CategoryTiles() {
                 `/(tabs)/offers?tab=offers&cat=${encodeURIComponent(c.cat)}`,
               )
             }
-            style={[styles.catTile, shadowOf(PAL.light)]}
+            style={[styles.catTile, shadowOf(PAL[tone])]}
             scaleTo={0.97}
           >
             <LinearGradient
@@ -529,8 +530,8 @@ function SectionHead({ title, onAll }: { title: string; onAll: () => void }) {
 }
 
 function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
-  const tone = useAppearance((s) => s.home);
-  const toggleTone = useAppearance((s) => s.toggleHome);
+  const tone = useTone();
+  const toggleTone = () => void setToneAndReload(tone === "light" ? "dark" : "light");
   const t = PAL[tone];
   const styles = STYLES[tone];
   dbg("5. accueil (contenu) : rendu");
@@ -670,40 +671,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
           <Ionicons name="arrow-forward" size={14} color={t.primary} />
         </Press>
       </View>
-      {tone === "light" ? (
-        <CategoryTiles />
-      ) : popularOffers.length === 0 ? (
-        <Empty
-          icon="megaphone-outline"
-          title="Aucune annonce"
-          text="Essaie une autre catégorie."
-        />
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={AD_W + 14}
-          decelerationRate="fast"
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            gap: 14,
-            paddingBottom: 10,
-          }}
-        >
-          {popularOffers.map((o, i) => (
-            <Animated.View
-              key={o.id}
-              entering={FadeInRight.delay(260 + i * 60).duration(320)}
-            >
-              <AdCard
-                o={o}
-                brand={profiles.find((p) => p.user_id === o.brand_id)}
-                apps={applications.filter((x) => x.offer_id === o.id).length}
-              />
-            </Animated.View>
-          ))}
-        </ScrollView>
-      )}
+      <CategoryTiles />
     </>
   );
 
@@ -719,23 +687,14 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingTop: tone === "light" ? 0 : insets.top + 6,
+          paddingTop: 0,
           paddingBottom: 150,
         }}
         showsVerticalScrollIndicator={false}
       >
         {/* Reflet doré d'ambiance en haut à droite */}
-        {tone === "dark" && (
-          <LinearGradient
-            colors={[`${t.ambient}0.16)`, `${t.ambient}0)`]}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 0.3, y: 0.6 }}
-            style={styles.ambient}
-            pointerEvents="none"
-          />
-        )}
 
-        {tone === "light" ? (
+
           <Animated.View
             entering={FadeIn.duration(500)}
             style={[styles.hero, { paddingTop: insets.top + 8 }]}
@@ -768,9 +727,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                   onPress={toggleTone}
                   style={styles.heroBtn}
                   scaleTo={0.9}
-                  accessibilityLabel="Mode sombre"
+                  accessibilityLabel={tone === "light" ? "Mode sombre" : "Mode clair"}
                 >
-                  <Ionicons name="moon-outline" size={20} color="#FFF8F3" />
+                  <Ionicons name={tone === "light" ? "moon-outline" : "sunny-outline"} size={20} color="#FFF8F3" />
                 </Press>
                 <Press
                   onPress={() =>
@@ -815,251 +774,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
               </View>
             </View>
           </Animated.View>
-        ) : (
-          <>
-            {/* Barre du haut */}
-            <Animated.View
-              entering={FadeIn.duration(500)}
-              style={styles.topBar}
-            >
-              <View style={{ gap: 10 }}>
-                <Logo size={40} />
-                <SpaceSwitcher />
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 8,
-                  alignSelf: "flex-start",
-                }}
-              >
-                <Press
-                  onPress={toggleTone}
-                  style={styles.iconBtn}
-                  scaleTo={0.9}
-                  accessibilityLabel={"Mode clair"}
-                >
-                  <Ionicons name="sunny-outline" size={22} color={t.ink} />
-                </Press>
-                <Press
-                  onPress={() =>
-                    router.push(me ? "/notifications" : "/auth/signup")
-                  }
-                  style={styles.iconBtn}
-                  scaleTo={0.9}
-                >
-                  <Ionicons
-                    name="notifications-outline"
-                    size={23}
-                    color={t.ink}
-                  />
-                  {unread && <View style={styles.bellDot} />}
-                </Press>
-                <Press
-                  onPress={() => searchRef.current?.focus()}
-                  style={[styles.iconBtn, styles.iconBtnRing]}
-                  scaleTo={0.9}
-                >
-                  <Ionicons name="search-outline" size={21} color={t.ink} />
-                </Press>
-              </View>
-            </Animated.View>
 
-            {/* Salutation */}
-            <Animated.View
-              entering={FadeInDown.delay(80).duration(320)}
-              style={styles.greet}
-            >
-              <Press
-                onPress={() =>
-                  router.navigate(me ? "/(tabs)/profile" : "/auth/signup")
-                }
-                scaleTo={0.92}
-              >
-                <GoldRing size={60}>
-                  {me ? (
-                    <View
-                      style={{
-                        flex: 1,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: t.card,
-                      }}
-                    >
-                      <Text style={[styles.offerLogoText, { fontSize: 18 }]}>
-                        {initials(nameOf(me))}
-                      </Text>
-                      <Image
-                        source={avatarOf(me)}
-                        style={StyleSheet.absoluteFill}
-                        contentFit="cover"
-                      />
-                    </View>
-                  ) : (
-                    <View
-                      style={{
-                        flex: 1,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Ionicons name="person" size={28} color={t.primary} />
-                    </View>
-                  )}
-                </GoldRing>
-              </Press>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.hello} numberOfLines={1}>
-                  Bonjour {firstName} 👋
-                </Text>
-                <Text style={styles.sub} numberOfLines={2}>
-                  {!me
-                    ? "Découvre des créateurs incroyables. Crée ton compte pour collaborer."
-                    : brandSpace
-                      ? "Trouve les créateurs idéaux pour ta marque."
-                      : "Découvre les offres des marques et collabore avec elles."}
-                </Text>
-              </View>
-            </Animated.View>
-
-            {/* Recherche */}
-            <Animated.View
-              entering={FadeInDown.delay(140).duration(320)}
-              style={styles.searchRow}
-            >
-              <View style={styles.search}>
-                <GlossFill />
-                <Ionicons name="search-outline" size={20} color={t.inkSoft} />
-                <TextInput
-                  ref={searchRef}
-                  value={q}
-                  onChangeText={setQ}
-                  placeholder="Rechercher un créateur, une marque…"
-                  placeholderTextColor={t.muted}
-                  style={styles.input}
-                />
-              </View>
-              <Press
-                onPress={() => setShowFilters((v) => !v)}
-                style={[
-                  styles.filterBtn,
-                  (showFilters || activeFilters > 0) && [
-                    styles.filterOn,
-                    goldGlow,
-                  ],
-                ]}
-                scaleTo={0.9}
-              >
-                {showFilters || activeFilters > 0 ? (
-                  <GoldFill style={{ borderRadius: 26 }} />
-                ) : (
-                  <GlossFill style={{ borderRadius: 26 }} />
-                )}
-                <Ionicons
-                  name="options-outline"
-                  size={22}
-                  color={showFilters || activeFilters > 0 ? t.onPrimary : t.ink}
-                />
-              </Press>
-            </Animated.View>
-
-            {showFilters && (
-              <Animated.View
-                entering={FadeIn.duration(200)}
-                style={{ gap: 10, marginTop: 14 }}
-              >
-                <Text style={styles.filterLabel}>Pays</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.pillRow}
-                >
-                  {["all", ...countries].map((c) => (
-                    <GoldPill
-                      key={c}
-                      label={
-                        c === "all" ? "Tous les pays" : `${flagOf(c)} ${c}`
-                      }
-                      on={country === c}
-                      onPress={() => setCountry(c)}
-                    />
-                  ))}
-                </ScrollView>
-                <Text style={styles.filterLabel}>Plateforme</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.pillRow}
-                >
-                  <GoldPill
-                    label="Toutes"
-                    on={platform === "all"}
-                    onPress={() => setPlatform("all")}
-                  />
-                  {ALL_PLATFORMS.map((p) => (
-                    <GoldPill
-                      key={p}
-                      label={PLATFORM[p].label}
-                      icon={PLATFORM[p].icon}
-                      on={platform === p}
-                      onPress={() => setPlatform(p)}
-                    />
-                  ))}
-                </ScrollView>
-              </Animated.View>
-            )}
-
-            {/* Catégories */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingHorizontal: 16,
-                gap: 12,
-                paddingTop: 18,
-                paddingBottom: 4,
-              }}
-            >
-              {CATS.map((c, i) => {
-                const on = c.key === cat;
-                return (
-                  <Animated.View
-                    key={c.key}
-                    entering={FadeInDown.delay(180 + i * 40).duration(320)}
-                  >
-                    <Press
-                      onPress={() => setCat(c.key)}
-                      style={{ alignItems: "center", gap: 7 }}
-                      scaleTo={0.9}
-                    >
-                      <View style={[styles.catBox, on ? goldGlow : null]}>
-                        {on ? (
-                          <GoldFill style={{ borderRadius: 18 }} />
-                        ) : (
-                          <GlossFill style={{ borderRadius: 18 }} />
-                        )}
-                        <MaterialCommunityIcons
-                          name={c.icon}
-                          size={26}
-                          color={on ? t.onPrimary : t.ink}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          styles.catLabel,
-                          on && { color: t.ink, fontWeight: "700" },
-                        ]}
-                      >
-                        {c.label}
-                      </Text>
-                    </Press>
-                  </Animated.View>
-                );
-              })}
-            </ScrollView>
-          </>
-        )}
 
         {brandSpace ? (
           <>
@@ -1077,7 +792,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   snapToInterval={
-                    (tone === "light" ? FEAT_W_LIGHT : FEAT_W) + FEAT_GAP
+                    FEAT_W_LIGHT + FEAT_GAP
                   }
                   decelerationRate="fast"
                   contentContainerStyle={{
@@ -1088,7 +803,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                     setPage(
                       Math.round(
                         e.nativeEvent.contentOffset.x /
-                          ((tone === "light" ? FEAT_W_LIGHT : FEAT_W) +
+                          (FEAT_W_LIGHT +
                             FEAT_GAP),
                       ),
                     )
@@ -1130,7 +845,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   snapToInterval={
-                    (tone === "light" ? FEAT_W_LIGHT : FEAT_W) + FEAT_GAP
+                    FEAT_W_LIGHT + FEAT_GAP
                   }
                   decelerationRate="fast"
                   contentContainerStyle={{
@@ -1141,7 +856,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
                     setPage(
                       Math.round(
                         e.nativeEvent.contentOffset.x /
-                          ((tone === "light" ? FEAT_W_LIGHT : FEAT_W) +
+                          (FEAT_W_LIGHT +
                             FEAT_GAP),
                       ),
                     )
@@ -1530,7 +1245,7 @@ const makeStyles = (t: Pal, light = false) =>
     newFollowers: { color: t.inkSoft, fontSize: 12 },
   });
 const STYLES = {
-  dark: makeStyles(PAL.dark),
+  dark: makeStyles(PAL.dark, true),
   light: makeStyles(PAL.light, true),
 };
 

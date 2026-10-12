@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAppearance } from "../../src/appearance";
+import { useTone } from "../../src/appearance";
 import { ROSE } from "../../src/lux";
 import { colors, shadow } from "../../src/theme";
 import { Press, tap } from "../../src/ui";
@@ -60,7 +60,7 @@ function TabItem({ focused, name, onPress, light }: { focused: boolean; name: st
 function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   dbg("4. barre d'onglets : rendu");
   const insets = useSafeAreaInsets();
-  const light = useAppearance((s) => s.home) === "light" && state.index === 0;
+  const light = useTone() === "light";
   const go = (i: number) => {
     const route = state.routes[i];
     tap();

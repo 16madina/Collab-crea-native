@@ -179,7 +179,7 @@ export default function WalletScreen() {
   return (
     <Screen title="Mon portefeuille" subtitle="Gains et retraits">
       <Animated.View entering={FadeInDown.duration(320)} style={[styles.balance, shadow.soft]}>
-        <LinearGradient colors={["#1E1E1E", "#121212"]} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={[colors.surfaceHi, colors.surface]} style={StyleSheet.absoluteFill} />
         <View style={styles.glow} />
         <Text style={{ color: "rgba(255,255,255,0.7)", fontWeight: "600" }}>Solde disponible</Text>
         <Text style={{ color: "#fff", fontSize: 32, fontWeight: "800", letterSpacing: -1 }}>{fcfa(wallet.balance)}</Text>

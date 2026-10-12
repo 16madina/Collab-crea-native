@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderWidth: 1.2,
     borderColor: goldBorderStrong,
-    backgroundColor: "#0B0B0B",
+    backgroundColor: colors.bg,
     shadowColor: "#D9AC65",
     shadowOpacity: 0.35,
     shadowRadius: 30,

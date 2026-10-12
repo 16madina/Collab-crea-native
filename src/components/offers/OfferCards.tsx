@@ -137,8 +137,8 @@ export function OfferRow({ o, brand, apps, badge }: { o: Offer; brand?: Profile;
 }
 
 const styles = StyleSheet.create({
-  ad: { borderRadius: 20, overflow: "hidden", borderWidth: StyleSheet.hairlineWidth * 2, borderColor: "rgba(217,172,101,0.55)", backgroundColor: "#171717" },
-  adFallback: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "flex-start", paddingTop: "28%", backgroundColor: "#171717" },
+  ad: { borderRadius: 20, overflow: "hidden", borderWidth: StyleSheet.hairlineWidth * 2, borderColor: "rgba(217,172,101,0.55)", backgroundColor: colors.surface },
+  adFallback: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "flex-start", paddingTop: "28%", backgroundColor: colors.surface },
   adLogo: { position: "absolute", top: 12, left: 12, width: 54, height: 54, borderRadius: 27, overflow: "hidden", backgroundColor: "#050505", borderWidth: 1, borderColor: "rgba(217,172,101,0.6)", alignItems: "center", justifyContent: "center" },
   adLogoText: { fontFamily: fonts.serif, color: "#D9AC65", fontSize: 16 },
   adBadge: { position: "absolute", top: 14, right: 12, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: "rgba(248,246,242,0.18)" },
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   adCoin: { width: 16, height: 16, borderRadius: 8, backgroundColor: "#D9AC65", textAlign: "center", lineHeight: 16, overflow: "hidden" },
   adBudget: { color: "#D9AC65", fontSize: 13, fontWeight: "800", flexShrink: 1 },
   adApps: { color: colors.inkSoft, fontSize: 11 },
-  row: { height: 150, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: "rgba(217,172,101,0.5)", backgroundColor: "#171717" },
+  row: { height: 150, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: "rgba(217,172,101,0.5)", backgroundColor: colors.surface },
   rowImg: { position: "absolute", top: 0, bottom: 0, right: 0, width: "68%" },
   rowLeft: { position: "absolute", left: 12, top: 12, bottom: 12, width: "57%", justifyContent: "space-between" },
   rowLogo: { width: 42, height: 42, borderRadius: 21, overflow: "hidden", backgroundColor: "#050505", borderWidth: 1, borderColor: "rgba(217,172,101,0.6)", alignItems: "center", justifyContent: "center" },
