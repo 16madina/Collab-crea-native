@@ -16,10 +16,18 @@ const START_URL =
 export const useTone = (): Tone => getTone();
 export const ToneContext = createContext<Tone>("dark");
 
-/** Lit le ton mémorisé sur l'appareil. */
+const HOME_KEY = "cc-go-home";
+/** Au démarrage : faut-il aller directement à l'accueil (changement de mode, session active) ? */
+export const bootFlags = { goHome: false };
+
+/** Lit le ton mémorisé sur l'appareil (et l'indicateur « retour à l'accueil »). */
 export async function loadTone(): Promise<Tone> {
   try {
-    const v = await AsyncStorage.getItem(TONE_KEY);
+    const [v, home] = await Promise.all([AsyncStorage.getItem(TONE_KEY), AsyncStorage.getItem(HOME_KEY)]);
+    if (home) {
+      bootFlags.goHome = true;
+      void AsyncStorage.removeItem(HOME_KEY);
+    }
     return v === "light" ? "light" : "dark";
   } catch {
     return "dark";
@@ -29,7 +37,10 @@ export async function loadTone(): Promise<Tone> {
 /** Mémorise le ton puis recharge l'app pour que tous les écrans l'appliquent. */
 export async function setToneAndReload(t: Tone) {
   try {
-    await AsyncStorage.setItem(TONE_KEY, t);
+    await AsyncStorage.multiSet([
+      [TONE_KEY, t],
+      [HOME_KEY, "1"],
+    ]);
   } catch {
     /* stockage indisponible (aperçu) */
   }

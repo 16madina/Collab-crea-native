@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, router } from "expo-router";
 import { useRef, useState } from "react";
+import { bootFlags } from "../src/appearance";
 import {
   Dimensions,
   FlatList,
@@ -172,7 +173,8 @@ export default function Onboarding() {
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<Role>("creator");
   const list = useRef<FlatList>(null);
-  const initial = useRef<"user" | "guest" | null>(userId ? "user" : guest ? "guest" : null);
+  const initial = useRef<"user" | "guest" | null>(userId ? "user" : guest || bootFlags.goHome ? "guest" : null);
+  bootFlags.goHome = false;
 
   // Redirection seulement à l'ouverture de l'app (session déjà active) : ensuite, ce sont les
   // boutons qui naviguent. Deux navigations simultanées font planter iOS.
