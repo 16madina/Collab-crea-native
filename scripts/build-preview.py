@@ -39,6 +39,7 @@ html.framed #root{position:absolute;top:50px;left:0;right:0;bottom:18px;height:a
 html.framed .fx{display:flex}
 .island{position:fixed;top:11px;left:50%;transform:translateX(-50%);width:118px;height:34px;border-radius:20px;background:#000;z-index:100000;pointer-events:none}
 .status{position:fixed;top:0;left:0;right:0;height:50px;z-index:99999;justify-content:space-between;align-items:center;padding:0 28px 0 36px;color:#F8F6F2;font:600 15px -apple-system,system-ui,sans-serif;pointer-events:none;background:#0B0B0B}
+.demo{position:fixed;left:50%;transform:translateX(-50%);bottom:94px;z-index:100001;pointer-events:none;background:rgba(166,95,70,.92);color:#FFF8F3;font:700 10px -apple-system,system-ui,sans-serif;letter-spacing:.6px;padding:5px 10px;border-radius:999px;white-space:nowrap}
 .homebar{position:fixed;bottom:6px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#F8F6F2;z-index:100000;pointer-events:none;opacity:.85}
 """
 HEAD = """window.__CC_PREVIEW__=true;window.__CC_START__=location.href;try{history.replaceState(null,"","/")}catch(e){}
@@ -57,6 +58,7 @@ html = (
     "<style>" + CSS + "</style><script>" + HEAD + "</script></head><body>"
     '<div class="fx status"><span>9:41</span><span>●●●● ▮</span></div><div class="fx island"></div>'
     '<div id="root"></div><div class="fx homebar"></div>'
+    '<div class="demo">APERÇU DÉMO · DONNÉES FICTIVES · VRAIS COMPTES DANS L\'APP</div>'
     "<script>" + js + "</script></body></html>"
 )
 open(out, "w").write(html)
