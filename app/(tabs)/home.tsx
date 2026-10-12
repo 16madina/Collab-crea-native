@@ -14,6 +14,7 @@ import { initials, shortName, totalFollowers } from "../../src/components/home/C
 import { Empty } from "../../src/kit";
 import { GlossFill, GoldButton, GoldFill, GoldPill, GoldRing, GoldText, goldBorder, goldBorderStrong, goldGlow, luxShadow } from "../../src/lux";
 import { budgetLabel, useDB, useMe } from "../../src/store";
+import { mixRealDemo } from "../../src/mix";
 import { timeLeft } from "../../src/kit";
 import { colors, fonts, radius } from "../../src/theme";
 import type { Offer, Profile, SocialPlatform } from "../../src/types";
@@ -241,9 +242,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
   }, [offers, applications, cat]);
   const recommended = useMemo(() => {
     const myCat = me?.sector ?? me?.category;
-    return [...filtered].sort((a, b) => Number(b.category === myCat) - Number(a.category === myCat) || Number(!!b.identity_verified) - Number(!!a.identity_verified) || totalFollowers(b) - totalFollowers(a)).slice(0, 6);
+    return mixRealDemo([...filtered].sort((a, b) => Number(b.category === myCat) - Number(a.category === myCat) || Number(!!b.identity_verified) - Number(!!a.identity_verified) || totalFollowers(b) - totalFollowers(a))).slice(0, 6);
   }, [filtered, me]);
-  const popular = useMemo(() => [...filtered].sort((a, b) => totalFollowers(b) - totalFollowers(a)), [filtered]);
+  const popular = useMemo(() => mixRealDemo([...filtered].sort((a, b) => totalFollowers(b) - totalFollowers(a))), [filtered]);
   const activeFilters = (country !== "all" ? 1 : 0) + (platform !== "all" ? 1 : 0);
   const isBrand = me?.role === "brand";
   const firstName = !me ? "Invité" : isBrand ? nameOf(me) : me.full_name.split(" ")[0];

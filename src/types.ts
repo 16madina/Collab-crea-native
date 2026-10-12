@@ -10,6 +10,7 @@ export type Profile = {
   user_id: string;
   role: Role;
   full_name: string;
+  is_demo?: boolean; // profil de démonstration (seed)
   avatar_url: string | number; // URL ou image embarquée (require)
   banner_url?: string | number;
   logo_url?: string;

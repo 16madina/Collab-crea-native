@@ -57,6 +57,7 @@ export const map = {
         user_id: r.user_id as string,
         role,
         full_name: (r.full_name as string) ?? "",
+        is_demo: !!r.is_demo,
         avatar_url: img((r.avatar_url as string) ?? ""),
         banner_url: r.banner_url ? img(r.banner_url as string) : undefined,
         logo_url: opt(r.logo_url as string),
