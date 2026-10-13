@@ -20,6 +20,10 @@ export const ASSETS: Record<string, number> = {
   "brand/cover": require("../assets/brand/cover.jpg"),
   "brand/hero": require("../assets/brand/hero.jpg"),
   "brand/c1": require("../assets/brand/c1.jpg"),
+  "offers/o1": require("../assets/offers/o1.jpg"),
+  "offers/o2": require("../assets/offers/o2.jpg"),
+  "offers/o3": require("../assets/offers/o3.jpg"),
+  "offers/o4": require("../assets/offers/o4.jpg"),
   "brand/c2": require("../assets/brand/c2.jpg"),
   "brand/c3": require("../assets/brand/c3.jpg"),
 };
