@@ -6,6 +6,7 @@ explique simplement, fais les choses toi-même, et pousse sur GitHub après chaq
 
 ## Le produit
 Collab Créa met en relation **créateurs de contenu** et **marques** (Afrique francophone + diaspora).
+Version store : 2.0.0 (Android versionCode > 6 ; identifiant com.collabcrea.app identique à l'app publiée).
 Une marque publie une offre → les créateurs postulent → collaboration → paiement en séquestre →
 livraison du contenu (aperçu filigrané avant paiement) → validation → le créateur est payé.
 Un même compte peut avoir les deux espaces (créateur et marque) ; l'admin passe par le bouclier dans le profil.
