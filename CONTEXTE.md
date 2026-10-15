@@ -52,9 +52,17 @@ npx expo lint        # lint
 - Migration de l'ancienne base : 64 utilisateurs + profils, offres, collaborations, messages, etc.
   (les mots de passe ne sont pas copiés : les utilisateurs passent par « Mot de passe oublié » ou Google/Apple).
 - Notifications push (code prêt), vérification réseaux sociaux par IA (clé à ajouter).
+- Photos/vidéos publiques copiées de l'ancien stockage Lovable vers Supabase (89 fichiers : avatars, bannières,
+  logos, images d'offres, portfolio, 4 vidéos de collaboration rangées en `storage://{créateur}/{collab}/…`).
 
 ## Reste à faire (par priorité)
-1. **Copier les photos/vidéos** de l'ancien stockage Lovable vers Supabase (les URL pointent encore vers l'ancien projet).
+1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
+   - 20 fichiers privés (9 pièces d'identité, 8 selfies, 3 preuves de retrait) : illisibles sans la clé
+     secrète de l'ancien projet (détenue par Lovable).
+   - 1 vidéo de collaboration de 67 Mo (collab `d9f8c049…`) : dépasse la limite de 50 Mo par fichier de Supabase.
+   - 2 fichiers du portfolio (créateur `cfc65298…`) déjà supprimés de l'ancien stockage : liens cassés, à retirer.
+   - Ménage dans le tableau de bord Supabase : supprimer la fonction `migrate-media-tmp` (désactivée) et les
+     4 anciennes copies `collaboration-content/{collab}/…` (doublons à la racine du bucket).
 2. **Paiements réels** (FedaPay / Mobile Money ou Stripe) — aujourd'hui le séquestre est simulé.
 3. **Notifications push** : `eas init`, `eas credentials` (clé APNs + Firebase), clé service dans le vault Supabase.
 4. **Build installable** (EAS → TestFlight / APK), puis publication App Store / Google Play.
