@@ -54,6 +54,15 @@ npx expo lint        # lint
 - Notifications push (code prêt), vérification réseaux sociaux par IA (clé à ajouter).
 - Photos/vidéos publiques copiées de l'ancien stockage Lovable vers Supabase (89 fichiers : avatars, bannières,
   logos, images d'offres, portfolio, 4 vidéos de collaboration rangées en `storage://{créateur}/{collab}/…`).
+- Paiement réel Mobile Money via **FedaPay** (compte live) : fonctions `fedapay-collab-payment` (crée la
+  transaction : page de paiement pour Wave, demande directe sur le téléphone pour MTN/Moov),
+  `fedapay-collab-verify` (l'app vérifie pendant l'attente) et `fedapay-webhook` (webhook FedaPay #9252 vers
+  ce projet), code commun dans `supabase/functions/_shared/fedapay.ts`. Le séquestre n'est validé que par
+  `confirm_collab_payment` (réservée au serveur, contrôle du montant) ; `pay_collaboration` (paiement simulé)
+  n'est plus appelable depuis l'app. Secrets Supabase : `FEDAPAY_SECRET_KEY`, `FEDAPAY_WEBHOOK_SECRET`.
+  Déploiement : `supabase functions deploy <nom> --project-ref qsbkwdtchhzclpxjrhnt --use-api --no-verify-jwt`.
+  Opérateurs proposés (`MOBILE_MONEY` dans `src/components/collab/PaymentSheet.tsx`) : Côte d'Ivoire Wave + MTN,
+  Bénin MTN + Moov, Togo Moov. Dans l'aperçu web (mode demo), le paiement reste simulé.
 
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
@@ -61,9 +70,15 @@ npx expo lint        # lint
      secrète de l'ancien projet (détenue par Lovable).
    - 1 vidéo de collaboration de 67 Mo (collab `d9f8c049…`) : dépasse la limite de 50 Mo par fichier de Supabase.
    - 2 fichiers du portfolio (créateur `cfc65298…`) déjà supprimés de l'ancien stockage : liens cassés, à retirer.
-   - Ménage dans le tableau de bord Supabase : supprimer la fonction `migrate-media-tmp` (désactivée) et les
-     4 anciennes copies `collaboration-content/{collab}/…` (doublons à la racine du bucket).
-2. **Paiements réels** (FedaPay / Mobile Money ou Stripe) — aujourd'hui le séquestre est simulé.
+   - Ménage dans le tableau de bord Supabase : supprimer les 4 anciennes copies
+     `collaboration-content/{collab}/…` (doublons à la racine du bucket).
+2. **Paiements — suite** :
+   - Faire un vrai paiement test (Wave Côte d'Ivoire) depuis l'iPhone et vérifier le passage en séquestre.
+   - **Orange Money** n'est pas activé sur le compte FedaPay (ni Wave Sénégal) : demander l'activation à FedaPay,
+     puis ajouter « Orange » dans `MOBILE_MONEY` (le serveur connaît déjà les modes orange_money_ci/sn/bf).
+   - Carte bancaire : pas encore branchée en réel (l'app affiche « bientôt »).
+   - Retraits des créateurs (payout FedaPay) : encore manuels côté admin.
+   - L'ancien webhook FedaPay (vers l'ancien projet Lovable) est encore actif : le supprimer après la bascule.
 3. **Notifications push** : `eas init`, `eas credentials` (clé APNs + Firebase), clé service dans le vault Supabase.
 4. **Build installable** (EAS → TestFlight / APK), puis publication App Store / Google Play.
 5. Migration finale des nouveaux inscrits de l'ancienne app + email « définir mon mot de passe ».
