@@ -73,7 +73,9 @@ npx expo lint        # lint
    - Ménage dans le tableau de bord Supabase : supprimer les 4 anciennes copies
      `collaboration-content/{collab}/…` (doublons à la racine du bucket).
 2. **Paiements — suite** :
-   - Faire un vrai paiement test (Wave Côte d'Ivoire) depuis l'iPhone et vérifier le passage en séquestre.
+   - Testé le 15/10 jusqu'à la page Wave (transaction FedaPay 113708028 créée, vérification OK, rien payé).
+     Reste : un vrai paiement confirmé dans Wave depuis l'iPhone, puis vérifier le passage en séquestre et
+     la réception du webhook (FedaPay > Webhooks > #9252 > Logs).
    - **Orange Money** n'est pas activé sur le compte FedaPay (ni Wave Sénégal) : demander l'activation à FedaPay,
      puis ajouter « Orange » dans `MOBILE_MONEY` (le serveur connaît déjà les modes orange_money_ci/sn/bf).
    - Carte bancaire : pas encore branchée en réel (l'app affiche « bientôt »).
