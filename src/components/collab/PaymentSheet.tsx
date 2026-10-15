@@ -1,8 +1,13 @@
-// Paiement en séquestre (simulé) : Mobile Money via FeexPay ou carte bancaire (+5 % de frais).
+// Paiement en séquestre : Mobile Money via FedaPay (réel sur téléphone, simulé dans l'aperçu web « demo »).
+// La carte bancaire n'est pas encore branchée en réel.
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import * as WebBrowser from "expo-web-browser";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { checkFedaPayment, startFedaPayment } from "../../backend/fedapay";
+import { refresh } from "../../backend/sync";
+import { isLive } from "../../backend/upload";
 import { Chips, Field, Label, Row, Segmented, toast } from "../../kit";
 import { computeCommission, fcfa, useDB } from "../../store";
 import { colors, radius, type } from "../../theme";
@@ -10,15 +15,18 @@ import { Button } from "../../ui";
 import { InfoBox } from "./common";
 import { Sheet } from "./Sheet";
 
-export const FEEXPAY: { code: string; name: string; flag: string; prefix: string; ops: string[] }[] = [
-  { code: "BJ", name: "Bénin", flag: "🇧🇯", prefix: "+229", ops: ["MTN", "Moov", "Celtiis"] },
-  { code: "BF", name: "Burkina Faso", flag: "🇧🇫", prefix: "+226", ops: ["Moov", "Orange"] },
-  { code: "CG", name: "Congo-Brazzaville", flag: "🇨🇬", prefix: "+242", ops: ["MTN"] },
-  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", prefix: "+225", ops: ["Wave", "MTN", "Moov", "Orange"] },
-  { code: "SN", name: "Sénégal", flag: "🇸🇳", prefix: "+221", ops: ["Wave", "Orange", "Free"] },
-  { code: "TG", name: "Togo", flag: "🇹🇬", prefix: "+228", ops: ["Togocom", "Moov"] },
+// Pays et opérateurs activés sur le compte FedaPay. Orange Money : à ajouter ici
+// (« Orange ») dès que FedaPay l'aura activé sur le compte.
+export const MOBILE_MONEY: { code: string; name: string; flag: string; prefix: string; digits: number; ops: string[] }[] = [
+  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", prefix: "+225", digits: 10, ops: ["Wave", "MTN"] },
+  { code: "BJ", name: "Bénin", flag: "🇧🇯", prefix: "+229", digits: 10, ops: ["MTN", "Moov"] },
+  { code: "TG", name: "Togo", flag: "🇹🇬", prefix: "+228", digits: 8, ops: ["Moov"] },
 ];
 const RATES = { EUR: 655.957, USD: 600 } as const;
+const POLL_MS = 4000;
+const POLL_MAX = 75; // ≈ 5 minutes
+
+type Pending = { transactionId: string; paymentUrl: string | null; pushSent: boolean };
 
 export function PaymentSheet({ visible, onClose, collabId, title }: { visible: boolean; onClose: () => void; collabId: string; title?: string }) {
   const collab = useDB((s) => s.collaborations.find((c) => c.id === collabId));
@@ -29,23 +37,74 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
   const [phone, setPhone] = useState("");
   const [currency, setCurrency] = useState<"EUR" | "USD">("EUR");
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<Pending | null>(null);
+  const tries = useRef(0);
+
+  // Attente de la confirmation : on interroge le serveur (qui relit la transaction chez FedaPay).
+  useEffect(() => {
+    if (!pending || !visible) return;
+    tries.current = 0;
+    const timer = setInterval(async () => {
+      tries.current += 1;
+      try {
+        const r = await checkFedaPayment(pending.transactionId, collabId);
+        if (r.paid) {
+          clearInterval(timer);
+          void WebBrowser.dismissBrowser().catch(() => {});
+          setPending(null);
+          void refresh(useDB as never);
+          toast("Paiement reçu — montant sécurisé en séquestre 🔒");
+          onClose();
+          return;
+        }
+        if (["declined", "canceled", "expired"].includes(r.status)) {
+          clearInterval(timer);
+          setPending(null);
+          toast(r.status === "expired" ? "Le paiement a expiré, réessaie" : "Paiement refusé ou annulé", "error");
+        }
+      } catch {
+        // erreur réseau passagère : on réessaie au tour suivant
+      }
+      if (tries.current >= POLL_MAX) clearInterval(timer);
+    }, POLL_MS);
+    return () => clearInterval(timer);
+  }, [pending, visible, collabId, onClose]);
 
   if (!collab) return null;
   const c = computeCommission(collab.agreed_amount);
-  const cc = FEEXPAY.find((x) => x.code === country)!;
+  const cc = MOBILE_MONEY.find((x) => x.code === country)!;
   const total = method === "card" ? c.brand_total_card : c.brand_total;
 
-  const submit = () => {
+  const openPage = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => toast("Impossible d'ouvrir la page de paiement", "error"));
+
+  const submit = async () => {
     if (method === "mobile_money" && phone.replace(/\D/g, "").length < 8) return toast("Numéro Mobile Money invalide", "error");
+    if (!isLive()) {
+      // Aperçu web (données fictives) : paiement simulé.
+      setBusy(true);
+      setTimeout(() => {
+        const r = pay(collab.id, method);
+        setBusy(false);
+        if (!r.ok) return toast(r.error, "error");
+        toast("Paiement effectué — montant sécurisé en séquestre 🔒");
+        onClose();
+      }, 1200);
+      return;
+    }
+    if (method === "card") return toast("Le paiement par carte arrive bientôt : utilise Mobile Money", "info");
     setBusy(true);
-    setTimeout(() => {
-      const r = pay(collab.id, method);
+    try {
+      const r = await startFedaPayment({ collaborationId: collab.id, provider: op.toLowerCase(), phone, country });
+      setPending(r);
+      if (r.paymentUrl) void openPage(r.paymentUrl);
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
       setBusy(false);
-      if (!r.ok) return toast(r.error, "error");
-      toast("Paiement effectué — montant sécurisé en séquestre 🔒");
-      onClose();
-    }, 1200);
+    }
   };
+
+  const waiting = !!pending;
 
   return (
     <Sheet
@@ -54,72 +113,95 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
       title={title ?? "Paiement sécurisé"}
       subtitle="Le montant est conservé en séquestre jusqu'à validation"
       footer={
-        <Button
-          label={busy ? "Paiement en cours…" : `Payer ${method === "card" ? `${(total / RATES[currency]).toFixed(2)} ${currency === "EUR" ? "€" : "$"}` : fcfa(total)}`}
-          icon={busy ? null : "lock-closed"}
-          onPress={busy ? undefined : submit}
-          style={busy ? { opacity: 0.7 } : undefined}
-        />
+        waiting ? (
+          <View style={{ gap: 8 }}>
+            {pending.paymentUrl ? <Button label="Rouvrir la page de paiement" icon="open-outline" onPress={() => void openPage(pending.paymentUrl!)} /> : null}
+            <Button label="Changer de numéro ou d'opérateur" variant="outline" onPress={() => setPending(null)} />
+          </View>
+        ) : (
+          <Button
+            label={busy ? "Paiement en cours…" : `Payer ${method === "card" ? `${(total / RATES[currency]).toFixed(2)} ${currency === "EUR" ? "€" : "$"}` : fcfa(total)}`}
+            icon={busy ? null : "lock-closed"}
+            onPress={busy ? undefined : () => void submit()}
+            style={busy ? { opacity: 0.7 } : undefined}
+          />
+        )
       }
     >
-      <Segmented
-        value={method}
-        onChange={setMethod}
-        options={[
-          { value: "mobile_money", label: "📱 Mobile Money" },
-          { value: "card", label: "💳 Carte bancaire" },
-        ]}
-      />
-      {method === "mobile_money" ? (
-        <Animated.View key="mm" entering={FadeIn} style={{ gap: 12 }}>
-          <Label>Pays</Label>
-          <Chips
-            options={FEEXPAY.map((x) => ({ value: x.code, label: `${x.flag} ${x.name}` }))}
-            value={country}
-            onChange={(v: string) => {
-              setCountry(v);
-              setOp(FEEXPAY.find((x) => x.code === v)!.ops[0]);
-            }}
-          />
-          <Label>Opérateur</Label>
-          <Chips options={cc.ops} value={op} onChange={setOp} />
-          <Field label={`Numéro ${op} (${cc.prefix})`} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="07 00 00 00 00" />
-          <InfoBox icon="phone-portrait-outline">Vous recevrez une demande de confirmation sur votre téléphone.</InfoBox>
+      {waiting ? (
+        <Animated.View entering={FadeIn} style={{ gap: 14, alignItems: "center", paddingVertical: 10 }}>
+          <ActivityIndicator color={colors.primary} size="large" />
+          <Text style={[type.body, { textAlign: "center" }]}>
+            {pending.pushSent
+              ? `Une demande de paiement de ${fcfa(total)} a été envoyée au ${cc.prefix} ${phone}. Confirme-la sur ton téléphone (code secret ${op}).`
+              : `Termine le paiement de ${fcfa(total)} sur la page ${op === "Wave" ? "Wave" : "FedaPay"} qui vient de s'ouvrir, puis reviens ici.`}
+          </Text>
+          <Text style={[type.tiny, { textAlign: "center" }]}>{"En attente de la confirmation de l'opérateur…"}</Text>
         </Animated.View>
       ) : (
-        <Animated.View key="card" entering={FadeIn} style={{ gap: 12 }}>
-          <Label>Devise de paiement</Label>
-          <Chips
+        <>
+          <Segmented
+            value={method}
+            onChange={setMethod}
             options={[
-              { value: "EUR", label: "€ Euro" },
-              { value: "USD", label: "$ Dollar US" },
+              { value: "mobile_money", label: "📱 Mobile Money" },
+              { value: "card", label: "💳 Carte bancaire" },
             ]}
-            value={currency}
-            onChange={setCurrency}
           />
-          <InfoBox icon="card-outline">{`Taux : 1 ${currency} = ${RATES[currency]} FCFA. Des frais bancaires de 5 % s'appliquent.`}</InfoBox>
-        </Animated.View>
-      )}
+          {method === "mobile_money" ? (
+            <Animated.View key="mm" entering={FadeIn} style={{ gap: 12 }}>
+              <Label>Pays</Label>
+              <Chips
+                options={MOBILE_MONEY.map((x) => ({ value: x.code, label: `${x.flag} ${x.name}` }))}
+                value={country}
+                onChange={(v: string) => {
+                  setCountry(v);
+                  setOp(MOBILE_MONEY.find((x) => x.code === v)!.ops[0]);
+                }}
+              />
+              <Label>Opérateur</Label>
+              <Chips options={cc.ops} value={op} onChange={setOp} />
+              <Field label={`Numéro ${op} (${cc.prefix}, ${cc.digits} chiffres)`} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder={cc.digits === 10 ? "07 00 00 00 00" : "90 00 00 00"} />
+              <InfoBox icon="phone-portrait-outline">
+                {op === "Wave" ? "La page de paiement Wave va s'ouvrir : valide le paiement dans ton application Wave." : "Vous recevrez une demande de confirmation sur votre téléphone."}
+              </InfoBox>
+            </Animated.View>
+          ) : (
+            <Animated.View key="card" entering={FadeIn} style={{ gap: 12 }}>
+              <Label>Devise de paiement</Label>
+              <Chips
+                options={[
+                  { value: "EUR", label: "€ Euro" },
+                  { value: "USD", label: "$ Dollar US" },
+                ]}
+                value={currency}
+                onChange={setCurrency}
+              />
+              <InfoBox icon="card-outline">{`Taux : 1 ${currency} = ${RATES[currency]} FCFA. Des frais bancaires de 5 % s'appliquent.`}</InfoBox>
+            </Animated.View>
+          )}
 
-      <View style={styles.recap}>
-        <Row label="Montant convenu" value={fcfa(c.agreed_amount)} />
-        <Row label="Frais de service (10 %)" value={fcfa(c.brandFee)} />
-        {method === "card" ? <Row label="Frais bancaires (5 %)" value={fcfa(c.brand_total_card - c.brand_total)} /> : null}
-        <View style={styles.sep} />
-        <Row label="Total à payer" value={fcfa(total)} bold />
-        {method === "card" ? <Row label={`Soit en ${currency}`} value={`${(total / RATES[currency]).toFixed(2)} ${currency === "EUR" ? "€" : "$"}`} /> : null}
-        <Text style={[type.tiny, { marginTop: 6 }]}>Le créateur recevra {fcfa(c.creator_amount)} après validation (commission 5 %).</Text>
-      </View>
-      {busy ? (
-        <View style={{ flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={type.small}>Connexion sécurisée…</Text>
-        </View>
-      ) : (
-        <View style={{ flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center" }}>
-          <Ionicons name="shield-checkmark" size={14} color={colors.success} />
-          <Text style={type.tiny}>Paiement chiffré et sécurisé</Text>
-        </View>
+          <View style={styles.recap}>
+            <Row label="Montant convenu" value={fcfa(c.agreed_amount)} />
+            <Row label="Frais de service (10 %)" value={fcfa(c.brandFee)} />
+            {method === "card" ? <Row label="Frais bancaires (5 %)" value={fcfa(c.brand_total_card - c.brand_total)} /> : null}
+            <View style={styles.sep} />
+            <Row label="Total à payer" value={fcfa(total)} bold />
+            {method === "card" ? <Row label={`Soit en ${currency}`} value={`${(total / RATES[currency]).toFixed(2)} ${currency === "EUR" ? "€" : "$"}`} /> : null}
+            <Text style={[type.tiny, { marginTop: 6 }]}>Le créateur recevra {fcfa(c.creator_amount)} après validation (commission 5 %).</Text>
+          </View>
+          {busy ? (
+            <View style={{ flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center" }}>
+              <ActivityIndicator color={colors.primary} />
+              <Text style={type.small}>Connexion sécurisée…</Text>
+            </View>
+          ) : (
+            <View style={{ flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="shield-checkmark" size={14} color={colors.success} />
+              <Text style={type.tiny}>Paiement chiffré et sécurisé par FedaPay</Text>
+            </View>
+          )}
+        </>
       )}
     </Sheet>
   );
