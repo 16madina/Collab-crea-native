@@ -23,6 +23,7 @@ import { PasswordField } from "../../src/components/account/PasswordField";
 import {
   Checkbox,
   CountrySelect,
+  CountrySheet,
   SelectField,
 } from "../../src/components/account/widgets";
 import { allCountries } from "../../src/countries";
@@ -80,6 +81,7 @@ export default function Signup() {
     phoneCode: string;
   }>();
   const [origin, setOrigin] = useState<string>();
+  const [prefixOpen, setPrefixOpen] = useState(false);
   const [phone, setPhone] = useState("");
   // étape 3
   const [role, setRole] = useState<Role | undefined>(
@@ -350,11 +352,16 @@ export default function Signup() {
             <View style={{ gap: 6 }}>
               <Label>Téléphone</Label>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                <View style={styles.prefix}>
-                  <Text style={{ fontWeight: "700", color: colors.ink }}>
-                    {residence?.phoneCode ?? "+…"}
+                {/* Indicatif : drapeau + code du pays de résidence ; touchable pour choisir le pays. */}
+                <Press onPress={() => setPrefixOpen(true)} scaleTo={0.96} style={[styles.prefix, styles.prefixRow]}>
+                  <Text style={{ fontSize: 18 }}>
+                    {allCountries.find((c) => c.name === residence?.name)?.flag ?? "🌍"}
                   </Text>
-                </View>
+                  <Text style={{ fontWeight: "700", color: residence ? colors.ink : colors.muted, fontSize: residence ? 14 : 12 }}>
+                    {residence?.phoneCode ?? "Indicatif"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={14} color={colors.muted} />
+                </Press>
                 <TextInput
                   value={phone}
                   onChangeText={(t) =>
@@ -374,9 +381,20 @@ export default function Signup() {
                 <Text style={styles.error}>{err.phone}</Text>
               ) : (
                 <Text style={type.tiny}>
-                  Le préfixe suit votre pays de résidence.
+                  {"L'indicatif suit votre pays de résidence."}
                 </Text>
               )}
+              <CountrySheet
+                visible={prefixOpen}
+                onClose={() => setPrefixOpen(false)}
+                title="Pays de résidence"
+                countries={allCountries}
+                value={residence?.name}
+                onPick={(c) => {
+                  setResidence(c);
+                  setErr((e) => ({ ...e, residence: undefined }));
+                }}
+              />
             </View>
           </>
         )}
@@ -696,6 +714,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#fff",
   },
+  prefixRow: { flexDirection: "row", gap: 6 },
   prefix: {
     height: 52,
     minWidth: 70,

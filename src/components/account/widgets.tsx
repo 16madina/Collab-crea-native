@@ -1,7 +1,7 @@
 // Petits composants partagés : sélecteur de pays, interrupteur, ligne de réglage, onglets, bannière de vérification.
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
 import { Country } from "../../countries";
@@ -10,6 +10,75 @@ import { colors, radius, shadow, type } from "../../theme";
 import { Profile } from "../../types";
 import { Press } from "../../ui";
 import { Sheet } from "./Sheet";
+
+/** Feuille de recherche de pays (drapeaux, indicatifs, titres de région). */
+export function CountrySheet({
+  visible,
+  onClose,
+  title,
+  countries,
+  value,
+  onPick,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  title: string;
+  countries: Country[];
+  value?: string; // nom du pays sélectionné
+  onPick: (c: Country) => void;
+}) {
+  const [q, setQ] = useState("");
+  // Sans recherche : titres de région (« Afrique », « Europe »…) quand la liste en fournit (allCountries).
+  const list = useMemo((): (Country | { header: string })[] => {
+    const n = q.trim().toLowerCase();
+    if (n) return countries.filter((c) => c.name.toLowerCase().includes(n) || c.code.toLowerCase() === n || c.phoneCode.includes(n));
+    const out: (Country | { header: string })[] = [];
+    let current: string | undefined;
+    for (const c of countries as (Country & { region?: string })[]) {
+      if (c.region && c.region !== current) out.push({ header: (current = c.region) });
+      out.push(c);
+    }
+    return out;
+  }, [q, countries]);
+  const close = () => {
+    setQ("");
+    onClose();
+  };
+  return (
+    <Sheet visible={visible} onClose={close} title={title} scroll={false}>
+      <View style={styles.search}>
+        <Ionicons name="search" size={18} color={colors.muted} />
+        <TextInput value={q} onChangeText={setQ} placeholder="Rechercher un pays…" placeholderTextColor={colors.muted} style={{ flex: 1, fontSize: 13, color: colors.ink }} autoCorrect={false} />
+      </View>
+      <FlatList
+        data={list}
+        keyExtractor={(c) => ("header" in c ? `h-${c.header}` : c.code)}
+        style={{ maxHeight: 440 }}
+        keyboardShouldPersistTaps="handled"
+        initialNumToRender={20}
+        renderItem={({ item }) => {
+          if ("header" in item) return <Text style={styles.regionHeader}>{item.header}</Text>;
+          const on = item.name === value;
+          return (
+            <Pressable
+              onPress={() => {
+                onPick(item);
+                close();
+              }}
+              style={({ pressed }) => [styles.countryRow, (pressed || on) && { backgroundColor: colors.primarySoft }]}
+            >
+              <Text style={{ fontSize: 19 }}>{item.flag}</Text>
+              <Text style={{ flex: 1, fontSize: 13, color: colors.ink, fontWeight: on ? "700" : "500" }}>{item.name}</Text>
+              <Text style={type.small}>{item.phoneCode}</Text>
+              {on ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
+            </Pressable>
+          );
+        }}
+        ListEmptyComponent={<Text style={[type.small, { textAlign: "center", padding: 20 }]}>Aucun pays trouvé</Text>}
+      />
+    </Sheet>
+  );
+}
 
 /** Champ qui ouvre une feuille de recherche de pays (drapeaux). */
 export function CountrySelect({
@@ -28,23 +97,7 @@ export function CountrySelect({
   placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
   const sel = countries.find((c) => c.name === value);
-  // Sans recherche : titres de région (« Afrique », « Europe »…) quand la liste en fournit (allCountries).
-  const list = useMemo((): (Country | { header: string })[] => {
-    const n = q.trim().toLowerCase();
-    if (n) return countries.filter((c) => c.name.toLowerCase().includes(n) || c.code.toLowerCase() === n);
-    const out: (Country | { header: string })[] = [];
-    let current: string | undefined;
-    for (const c of countries as (Country & { region?: string })[]) {
-      if (c.region && c.region !== current) out.push({ header: (current = c.region) });
-      out.push(c);
-    }
-    return out;
-  }, [q, countries]);
-  useEffect(() => {
-    if (!open) setQ("");
-  }, [open]);
   return (
     <View style={{ gap: 6 }}>
       <Label>{label}</Label>
@@ -54,38 +107,7 @@ export function CountrySelect({
         <Ionicons name="chevron-down" size={18} color={colors.muted} />
       </Press>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Sheet visible={open} onClose={() => setOpen(false)} title={label} scroll={false}>
-        <View style={styles.search}>
-          <Ionicons name="search" size={18} color={colors.muted} />
-          <TextInput value={q} onChangeText={setQ} placeholder="Rechercher un pays…" placeholderTextColor={colors.muted} style={{ flex: 1, fontSize: 13, color: colors.ink }} autoCorrect={false} />
-        </View>
-        <FlatList
-          data={list}
-          keyExtractor={(c) => ("header" in c ? `h-${c.header}` : c.code)}
-          style={{ maxHeight: 440 }}
-          keyboardShouldPersistTaps="handled"
-          initialNumToRender={20}
-          renderItem={({ item }) => {
-            if ("header" in item) return <Text style={styles.regionHeader}>{item.header}</Text>;
-            const on = item.name === value;
-            return (
-              <Pressable
-                onPress={() => {
-                  onChange(item);
-                  setOpen(false);
-                }}
-                style={({ pressed }) => [styles.countryRow, (pressed || on) && { backgroundColor: colors.primarySoft }]}
-              >
-                <Text style={{ fontSize: 19 }}>{item.flag}</Text>
-                <Text style={{ flex: 1, fontSize: 13, color: colors.ink, fontWeight: on ? "700" : "500" }}>{item.name}</Text>
-                <Text style={type.small}>{item.phoneCode}</Text>
-                {on ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
-              </Pressable>
-            );
-          }}
-          ListEmptyComponent={<Text style={[type.small, { textAlign: "center", padding: 20 }]}>Aucun pays trouvé</Text>}
-        />
-      </Sheet>
+      <CountrySheet visible={open} onClose={() => setOpen(false)} title={label} countries={countries} value={value} onPick={onChange} />
     </View>
   );
 }
