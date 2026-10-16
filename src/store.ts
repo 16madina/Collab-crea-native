@@ -214,7 +214,7 @@ type Actions = {
   claimInvite: (code: string) => AsyncResult;
   // profil
   updateProfile: (patch: Partial<Profile>) => void;
-  submitIdentity: (method: "document" | "selfie", files?: { document_url?: string; selfie_url?: string }) => void;
+  submitIdentity: (method: "document" | "selfie" | "face_scan", files?: { document_url?: string; selfie_url?: string }) => void;
   submitSocialVerification: (
     v: Pick<SocialVerification, "platform" | "page_name" | "claimed_followers" | "screenshot_url">,
   ) => SocialVerification;
@@ -970,12 +970,9 @@ export const useDB = create<DB & Actions>()((set, get) => {
     proposeOffer: (offerId, creatorId, message) => {
       const s = get();
       const me = s.profiles.find((p) => p.user_id === s.userId)!;
-      if (!me.email_verified)
-        return {
-          ok: false,
-          error:
-            "Vous devez vérifier votre email avant de contacter un créateur",
-        };
+      // Une marque doit avoir vérifié son identité (scan du visage + pièce) pour engager un créateur.
+      if (!me.identity_verified)
+        return { ok: false, error: "Vérifiez votre identité pour engager un créateur" };
       const offer = s.offers.find((o) => o.id === offerId)!;
       const dup = s.collaborations.find(
         (c) =>
@@ -1010,6 +1007,9 @@ export const useDB = create<DB & Actions>()((set, get) => {
 
     acceptProposal: (conversationId, agreed) => {
       const s = get();
+      const me = s.profiles.find((p) => p.user_id === s.userId);
+      if (me?.role === "brand" && !me.identity_verified)
+        return { ok: false, error: "Vérifiez votre identité pour engager un créateur" };
       const conv = s.conversations.find((c) => c.id === conversationId)!;
       const offer = s.offers.find((o) => o.id === conv.offer_id);
       if (!offer) return { ok: false, error: "Offre introuvable" };

@@ -39,8 +39,25 @@ export function Identities() {
               <Text style={st.name}>{displayName(p)}</Text>
               <Text style={type.small}>Soumis le {fmtDate(p.identity_submitted_at, true)}</Text>
             </View>
-            <Badge label={p.identity_method === "selfie" ? "Selfie" : "Document"} tone="dark" />
+            <Badge label={p.identity_method === "face_scan" ? "Scan + pièce" : p.identity_method === "selfie" ? "Selfie" : "Document"} tone="dark" />
           </View>
+          {p.identity_method === "face_scan" ? (
+            <View style={{ gap: 6 }}>
+              {/* Scan du visage (face, gauche, droite) puis pièce d'identité (recto, verso) : à comparer avec la photo de la pièce. */}
+              <Text style={type.small}>Visage (scan)</Text>
+              <View style={{ flexDirection: "row", gap: 6 }}>
+                {p.selfie_url ? <PrivateFolder bucket="selfies" folder={p.selfie_url.split("/").slice(0, -1).join("/")} style={{ flex: 1, height: 110, borderRadius: radius.md }} /> : <Placeholder label="Selfie" icon="camera-outline" h={110} />}
+              </View>
+              <Text style={type.small}>Pièce d'identité</Text>
+              <View style={{ flexDirection: "row", gap: 6 }}>
+                {p.identity_document_url ? (
+                  <PrivateFolder bucket="identity-documents" folder={p.identity_document_url.split("/").slice(0, -1).join("/")} style={{ flex: 1, height: 110, borderRadius: radius.md }} />
+                ) : (
+                  <Placeholder label="Pièce d'identité" icon="card-outline" h={110} />
+                )}
+              </View>
+            </View>
+          ) : (
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Image source={p.avatar_url} style={{ flex: 1, height: 120, borderRadius: radius.md }} contentFit="cover" />
             {p.identity_document_url ? (
@@ -54,6 +71,7 @@ export function Identities() {
               </>
             )}
           </View>
+          )}
           <View style={st.wrap}>
             <Act label="Approuver" icon="checkmark" tone="success" onPress={() => { setCur({ p, approve: true }); setChoice(APPROVE_TPL[0]); }} />
             <Act label="Refuser" icon="close" tone="danger" onPress={() => { setCur({ p, approve: false }); setChoice(""); }} />

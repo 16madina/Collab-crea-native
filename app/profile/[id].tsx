@@ -153,7 +153,14 @@ function ProposeSheet({ visible, onClose, creator, brand }: { visible: boolean; 
   const send = () => {
     if (!sel) return toast("Choisissez une offre", "error");
     const r = proposeOffer(sel, creator.user_id, msg);
-    if (!r.ok) return toast(r.error, "error");
+    if (!r.ok) {
+      toast(r.error, "error");
+      if (r.error.includes("identité")) {
+        onClose();
+        router.push("/verification/identity");
+      }
+      return;
+    }
     toast("Proposition envoyée !");
     onClose();
     setSel(undefined);

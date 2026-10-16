@@ -366,8 +366,10 @@ function CreatorProfile({ me, unread, onLogout }: { me: Profile; unread: boolean
                 {me.identity_verified
                   ? "Votre identité est vérifiée. Vous pouvez postuler et échanger librement."
                   : me.identity_submitted_at
-                    ? `Demande envoyée le ${fmtDate(me.identity_submitted_at, true)}. Examen sous 24–48 h.`
-                    : "Requis pour postuler aux offres et envoyer des messages."}
+                    ? `Demande envoyée le ${fmtDate(me.identity_submitted_at, true)}. Examen sous 24 h.`
+                    : me.role === "brand"
+                      ? "Requis pour engager des créateurs."
+                      : "Requis pour postuler aux offres et envoyer des messages."}
               </Text>
               <VerifBadge p={me} />
               <Button label={me.identity_verified ? "Voir le statut" : me.identity_submitted_at ? "Suivre ma demande" : "Vérifier mon identité"} small icon="shield-checkmark-outline" onPress={() => router.push("/verification/identity")} />

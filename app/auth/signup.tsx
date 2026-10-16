@@ -246,7 +246,8 @@ export default function Signup() {
           .then((url) => updateProfile(role === "brand" ? { avatar_url: url, logo_url: url } : { avatar_url: url }))
           .catch(() => {});
       toast("Compte créé avec succès !");
-      router.replace("/(tabs)/home");
+      // Direction son profil : c'est là qu'il vérifie son compte (email, identité) avant de postuler ou d'engager.
+      router.replace("/(tabs)/profile");
     });
   };
 

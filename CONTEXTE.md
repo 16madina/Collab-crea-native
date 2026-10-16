@@ -94,6 +94,16 @@ npx expo lint        # lint
   par la personne et les admins, jamais dans le profil public). Rempli par `handle_new_user` depuis les
   métadonnées `phone` (migration `20261016040000_profile_phone.sql`).
 
+- **Vérification d'identité « pro »** (`app/verification/identity.tsx`, `src/components/verification/`) :
+  présentation → scan du visage en direct (caméra avant, react-native-vision-camera 5 + détection de visage
+  ML Kit `react-native-vision-camera-face-detector` : devant, gauche, droite, haut, bas, mouvements réellement
+  mesurés, 3 photos prises toutes seules) → « Vérification du visage… » → choix de la pièce (CNI, passeport,
+  permis, carte de séjour) → photo recto/verso dans un cadre carte (caméra arrière) → envoi chiffré
+  (buckets privés `selfies` et `identity-documents`, dossier `{uid}/identity/{horodatage}/`) →
+  `identity_method = 'face_scan'`, validation par un admin (Admin › Identités montre visage + pièce).
+  Sur le web (aperçu), le scan avance tout seul et rien n'est envoyé. Une **marque** doit maintenant avoir
+  son identité vérifiée pour engager un créateur (`proposeOffer`, `acceptProposal`). Après l'inscription,
+  on arrive sur son **profil**. Smile ID (comparaison automatique visage / pièce) : envisagé pour plus tard.
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
    - 20 fichiers privés (9 pièces d'identité, 8 selfies, 3 preuves de retrait) : illisibles sans la clé

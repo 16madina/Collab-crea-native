@@ -223,10 +223,9 @@ export function Checkbox({ value, onChange, children }: { value: boolean; onChan
 }
 
 export type VerifState = "verified" | "email" | "pending" | "identity";
+// L'identité passe d'abord (requise pour postuler ou engager), l'email ensuite ; marques comme créateurs.
 export function verifState(p: Profile): VerifState {
-  if (!p.email_verified) return "email";
-  if (p.role === "brand") return "verified";
-  if (p.identity_verified) return "verified";
+  if (p.identity_verified) return p.email_verified ? "verified" : "email";
   if (p.identity_submitted_at) return "pending";
   return "identity";
 }
@@ -247,14 +246,14 @@ export function VerifBadge({ p }: { p: Profile }) {
   );
 }
 
-/** Bannière d'incitation à la vérification (email puis identité pour les créateurs). */
+/** Bannière d'incitation à la vérification (identité, puis email). */
 export function VerificationBanner({ p }: { p: Profile }) {
   const s = verifState(p);
   if (s === "verified") return null;
   const cfg = {
     email: { icon: "mail-outline", title: "Vérifiez votre email", text: p.role === "brand" ? "Requis pour contacter les créateurs." : "Confirmez votre adresse pour sécuriser votre compte.", cta: "Vérifier" },
-    identity: { icon: "shield-checkmark-outline", title: "Vérifiez votre identité", text: "Requis pour postuler aux offres et envoyer des messages.", cta: "Commencer" },
-    pending: { icon: "hourglass-outline", title: "Vérification en cours", text: "Notre équipe examine votre demande sous 24–48 h.", cta: "Voir" },
+    identity: { icon: "scan-outline", title: "Vérifiez votre identité", text: p.role === "brand" ? "Requis pour engager des créateurs. Environ 2 minutes." : "Requis pour postuler aux offres. Environ 2 minutes.", cta: "Commencer" },
+    pending: { icon: "hourglass-outline", title: "Vérification en cours", text: "Notre équipe examine votre demande sous 24 h.", cta: "Voir" },
   }[s] as { icon: keyof typeof Ionicons.glyphMap; title: string; text: string; cta: string };
   return (
     <Animated.View entering={FadeIn} layout={LinearTransition.duration(320)}>

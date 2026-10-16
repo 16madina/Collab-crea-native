@@ -84,7 +84,11 @@ export default function Chat() {
     const v = value ?? amt;
     if (v < lo || v > hi) return toast(`Le montant doit être entre ${fcfa(lo)} et ${hi === Infinity ? "∞" : fcfa(hi)}`, "error");
     const r = acceptProposal(conv.id, v);
-    if (!r.ok) return toast(r.error, "error");
+    if (!r.ok) {
+      toast(r.error, "error");
+      if (r.error.includes("identité")) router.push("/verification/identity");
+      return;
+    }
     setAcceptOpen(false);
     toast("Proposition acceptée ✅");
     if (isBrand && r.id) setTimeout(() => setPayOpen(true), 350);

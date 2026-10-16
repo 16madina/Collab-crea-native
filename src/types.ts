@@ -34,7 +34,7 @@ export type Profile = {
   email_verified: boolean;
   identity_verified: boolean;
   identity_submitted_at?: string;
-  identity_method?: "document" | "selfie";
+  identity_method?: "document" | "selfie" | "face_scan";
   identity_document_url?: string; // chemin privé (bucket identity-documents)
   selfie_url?: string; // chemin privé (bucket selfies)
   // modération
