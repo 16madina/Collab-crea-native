@@ -112,7 +112,8 @@ npx expo lint        # lint
    - Collaboration test `f4ec451b` : payée (440 FCFA réels) mais aucun contenu enregistré dans la nouvelle app ;
      le créateur doit livrer dans l'app avant que la marque puisse valider (crédit prévu : 360 FCFA, ancien barème 10 %).
    - L'ancien webhook FedaPay (vers l'ancien projet Lovable) est encore actif : le supprimer après la bascule.
-3. **Notifications push** — configurées le 16/10, reste à tester sur un vrai build :
+3. **Notifications push** — configurées et **testées le 16/10** (build Release installé depuis Xcode sur l'iPhone, jeton
+   enregistré, notification reçue « sent: 1 »). Reste : tester sur Android (build EAS preview) et en TestFlight :
    - Projet EAS `@missdee/collab-crea` (ID `5e5d3776-4c90-49bf-a1ab-af8a26e42ee5`, dans `app.json`).
    - Android : `google-services.json` (Firebase `collabcrea-a772a`) hors de GitHub, fourni aux builds par la variable
      EAS fichier `GOOGLE_SERVICES_JSON` (`app.config.js`) ; clé FCM V1 et keystore d'upload (alias `collabcrea`,
@@ -121,6 +122,8 @@ npx expo lint        # lint
    - iOS : clé push APNs `6FD9WSWG5G` (équipe Apple `6XW2XM3NDF`) enregistrée via `eas credentials`.
    - Serveur : les déclencheurs SQL appellent `send-push-notification` avec le secret `push_trigger_secret` généré
      dans le vault (migration `20261016030000_push_trigger_secret.sql`) ; testé (réponse « No tokens found »).
+   - Build iPhone local : `npx expo prebuild -p ios` puis Xcode (équipe Dee Digital, signature automatique) ou
+     `npx expo run:ios --device "iPhone deena" --configuration Release` ; dossier `ios/` généré, hors GitHub.
    - Compte Apple : au build iPhone, saisir l'Apple ID et le mot de passe actuels (un ancien mot de passe enregistré
      dans le trousseau du Mac a provoqué un blocage temporaire le 16/10, résolu). Les notifications push ne marchent
      pas dans Expo Go : il faut un build EAS.
