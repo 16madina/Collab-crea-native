@@ -266,7 +266,7 @@ export function VerificationBanner({ p }: { p: Profile }) {
           <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, marginTop: 2 }}>{cfg.text}</Text>
         </View>
         <View style={styles.vbCta}>
-          <Text style={{ color: colors.ink, fontWeight: "800", fontSize: 11 }}>{cfg.cta}</Text>
+          <Text style={{ color: colors.onPrimary, fontWeight: "800", fontSize: 12 }}>{cfg.cta}</Text>
         </View>
       </Press>
     </Animated.View>
@@ -298,5 +298,5 @@ const styles = StyleSheet.create({
   check: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, borderColor: colors.line, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center", marginTop: 1 },
   vb: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: colors.night },
   vbIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
-  vbCta: { backgroundColor: "#fff", paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.pill },
+  vbCta: { backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill },
 });
