@@ -81,6 +81,14 @@ npx expo lint        # lint
   claire de FeexPay, le retrait reste « en cours » (pas de recrédit, pour ne jamais payer deux fois) : bouton
   « Vérifier le virement FeexPay » + `feexpay-webhook` (reconnaît le virement par sa référence). Migration
   `20261016000000_feexpay_payouts.sql`. Le virement part du **solde FeexPay** : il doit être suffisant.
+- **Paiement par carte via Stripe Checkout** (compte Stripe « CollabCrea », live, solde en CAD) : fonctions
+  `stripe-collab-payment` (page de paiement Stripe en EUR ou USD : montant FCFA +10 % +5 % converti au taux fixe
+  655,957 / 600, identique à l'app), `stripe-collab-verify` et `stripe-webhook` (destination Stripe
+  « collabcrea-native », événements checkout.session.completed / async_payment_succeeded, signature vérifiée).
+  Code commun `supabase/functions/_shared/stripe.ts`. `confirm_collab_payment` accepte le total carte quand
+  `p_method = 'card'` (migration `20261016020000_card_payments.sql`). Secrets : `STRIPE_SECRET_KEY` (clé standard
+  « collabcrea-native » créée le 16/10), `STRIPE_WEBHOOK_SECRET`. La marque reçoit « ✅ Paiement confirmé »
+  à chaque paiement (migration `20261016010000_brand_payment_notification.sql`).
 
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
@@ -95,8 +103,9 @@ npx expo lint        # lint
    - Vérifier la réception du webhook FeexPay (Supabase > Edge Functions > feexpay-webhook > Logs).
    - Wave échoue chez FedaPay (« transaction échouée ») : support FedaPay contacté le 15/10 (chat + courriel à
      support@fedapay.com depuis dinastar@hotmail.com), avec demande d'activation d'Orange Money et Wave Sénégal.
-   - Carte bancaire : pas encore branchée en réel (l'app affiche « bientôt » ; FeexPay demande d'abord
-     l'« Activation cartes bancaires »).
+   - Carte bancaire (Stripe) : pas encore testée avec un vrai paiement (aucune collaboration à payer au 16/10).
+     Pour les très petits montants, Stripe impose 0,50 € minimum : le montant facturé peut dépasser l'affichage.
+   - Ancien webhook Stripe (vers l'ancien projet Lovable) encore actif : le supprimer après la bascule.
    - Retraits FeexPay : pas encore testés pour de vrai (portefeuille test à 360 FCFA < minimum de 1 000 FCFA, solde
      FeexPay trop faible). Vérifier que le « Payout API » est actif dans FeexPay. PayPal / virement bancaire restent
      manuels (« Finaliser manuellement », dont l'upload de preuve est encore factice).
