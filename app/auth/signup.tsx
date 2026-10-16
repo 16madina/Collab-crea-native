@@ -27,6 +27,7 @@ import {
   SelectField,
 } from "../../src/components/account/widgets";
 import { allCountries } from "../../src/countries";
+import { phoneError, phoneExample } from "../../src/phone";
 import { Chips, Field, Label, toast } from "../../src/kit";
 import { useDB } from "../../src/store";
 import { colors, radius, shadow, type } from "../../src/theme";
@@ -77,6 +78,7 @@ export default function Signup() {
   const [last, setLast] = useState("");
   // étape 2
   const [residence, setResidence] = useState<{
+    code: string;
     name: string;
     phoneCode: string;
   }>();
@@ -135,8 +137,9 @@ export default function Signup() {
     } else if (step === 2) {
       if (!residence) e.residence = "Sélectionnez votre pays de résidence";
       if (!origin) e.origin = "Sélectionnez votre pays d'origine";
-      if (!/^\d{6,15}$/.test(phone))
-        e.phone = "Numéro invalide (6 à 15 chiffres)";
+      // Le numéro doit correspondre au pays de résidence (nombre de chiffres, préfixes valides).
+      const pe = phoneError(phone, residence?.code, residence?.name);
+      if (pe) e.phone = pe;
     } else if (step === 3) {
       if (!role) e.role = "Choisissez votre profil";
       if (role === "creator" && networks.length === 0)
@@ -364,11 +367,12 @@ export default function Signup() {
                 </Press>
                 <TextInput
                   value={phone}
-                  onChangeText={(t) =>
-                    setPhone(t.replace(/\D/g, "").slice(0, 15))
-                  }
+                  onChangeText={(t) => {
+                    setPhone(t.replace(/\D/g, "").slice(0, 15));
+                    if (err.phone) setErr((e) => ({ ...e, phone: undefined }));
+                  }}
                   keyboardType="phone-pad"
-                  placeholder="0707070707"
+                  placeholder={phoneExample(residence?.code) ?? "0707070707"}
                   placeholderTextColor={colors.muted}
                   style={[
                     styles.input,
