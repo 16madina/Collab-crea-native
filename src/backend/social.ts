@@ -11,7 +11,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export type SocialResult = { ok: true; userId: string; isNew: boolean; name?: string } | { ok: false; error: string; cancelled?: boolean };
 
-const newUser = (createdAt?: string) => !!createdAt && Date.now() - new Date(createdAt).getTime() < 60_000;
+const newUser = (createdAt?: string) => !!createdAt && Date.now() - new Date(createdAt).getTime() < 10 * 60_000;
 
 export const appleAvailable = () => (Platform.OS === "ios" ? AppleAuthentication.isAvailableAsync() : Promise.resolve(false));
 

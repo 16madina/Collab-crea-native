@@ -36,8 +36,15 @@ export default function AuthCallback() {
       if (!userId) return router.replace("/auth/login");
       await connect(userId);
       if (params.type === "recovery") return router.replace("/auth/reset");
-      toast(params.type === "email_change" ? "Nouvel email confirmé ✅" : "Email confirmé, bienvenue ! ✅");
-      router.replace("/(tabs)/home");
+      if (params.type === "email_change") {
+        toast("Nouvel email confirmé ✅");
+        return router.replace("/(tabs)/home");
+      }
+      // Compte tout juste créé (email ou Google) : direction le profil, pour le compléter et vérifier son identité.
+      const { data } = await supabase.auth.getUser();
+      const created = data.user?.created_at ? Date.now() - new Date(data.user.created_at).getTime() : Infinity;
+      toast(created < 10 * 60_000 ? "Bienvenue sur Collab Créa ! Complète ton profil." : "Bon retour parmi nous !");
+      router.replace(created < 10 * 60_000 ? "/(tabs)/profile" : "/(tabs)/home");
     })();
   }, [url]);
 

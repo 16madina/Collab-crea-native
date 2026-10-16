@@ -55,6 +55,7 @@ import {
 import type { Offer, Profile, SocialPlatform } from "../../src/types";
 import { Logo, Press } from "../../src/ui";
 import { SpaceSwitcher } from "../../src/components/SpaceSwitcher";
+import { VerificationBanner, verifState } from "../../src/components/account/widgets";
 import { AD_W, AdCard } from "../../src/components/offers/OfferCards";
 
 const W = Dimensions.get("window").width;
@@ -770,6 +771,13 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
               </View>
             </View>
           </Animated.View>
+
+        {/* Compte pas encore vérifié : invitation bien visible dès l'accueil (scan du visage + pièce). */}
+        {me && verifState(me) !== "verified" ? (
+          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+            <VerificationBanner p={me} />
+          </View>
+        ) : null}
 
 
         {brandSpace ? (
