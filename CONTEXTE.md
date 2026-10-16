@@ -112,7 +112,17 @@ npx expo lint        # lint
    - Collaboration test `f4ec451b` : payée (440 FCFA réels) mais aucun contenu enregistré dans la nouvelle app ;
      le créateur doit livrer dans l'app avant que la marque puisse valider (crédit prévu : 360 FCFA, ancien barème 10 %).
    - L'ancien webhook FedaPay (vers l'ancien projet Lovable) est encore actif : le supprimer après la bascule.
-3. **Notifications push** : `eas init`, `eas credentials` (clé APNs + Firebase), clé service dans le vault Supabase.
+3. **Notifications push** — configurées le 16/10, reste à tester sur un vrai build :
+   - Projet EAS `@missdee/collab-crea` (ID `5e5d3776-4c90-49bf-a1ab-af8a26e42ee5`, dans `app.json`).
+   - Android : `google-services.json` (Firebase `collabcrea-a772a`) hors de GitHub, fourni aux builds par la variable
+     EAS fichier `GOOGLE_SERVICES_JSON` (`app.config.js`) ; clé FCM V1 et keystore d'upload (alias `collabcrea`,
+     PKCS12) enregistrés sur expo.dev > Credentials. Vérifier que l'empreinte SHA-1 du keystore (72:F8…23:6D)
+     correspond à la « clé d'importation » dans la Play Console.
+   - iOS : clé push APNs `6FD9WSWG5G` (équipe Apple `6XW2XM3NDF`) enregistrée via `eas credentials`.
+   - Serveur : les déclencheurs SQL appellent `send-push-notification` avec le secret `push_trigger_secret` généré
+     dans le vault (migration `20261016030000_push_trigger_secret.sql`) ; testé (réponse « No tokens found »).
+   - Le compte Apple dinastar@gmail.com est **bloqué** (erreur -20209) : le débloquer sur iforgot.apple.com avant
+     le build iPhone. Les notifications push ne marchent pas dans Expo Go : il faut un build EAS.
 4. **Build installable** (EAS → TestFlight / APK), puis publication App Store / Google Play.
 5. Migration finale des nouveaux inscrits de l'ancienne app + email « définir mon mot de passe ».
 6. Site collabcrea.com (CGU, confidentialité, page sécurité des enfants, liens de téléchargement), puis bascule du domaine.
