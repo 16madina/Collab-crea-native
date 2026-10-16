@@ -3,9 +3,9 @@ import { supabase } from "./supabase";
 
 export type Gateway = "fedapay" | "feexpay";
 
-// Prestataire utilisé pour chaque opérateur. Wave passera sur FeexPay dès que la « clé agrégée Wave »
-// sera activée (FeexPay > Configuration) ; Orange n'existe que chez FeexPay sur ce compte.
-export const GATEWAY: Record<string, Gateway> = { Orange: "feexpay", Wave: "fedapay", MTN: "fedapay", Moov: "fedapay" };
+// Prestataire utilisé pour chaque opérateur. Wave passe par FeexPay (clé agrégée Wave active depuis le
+// 16/10/2026 ; Wave échoue chez FedaPay) ; Orange n'existe que chez FeexPay sur ce compte.
+export const GATEWAY: Record<string, Gateway> = { Orange: "feexpay", Wave: "feexpay", MTN: "fedapay", Moov: "fedapay" };
 
 export type PayStart = { transactionId: string; paymentUrl: string | null; pushSent: boolean; total: number; gateway: Gateway };
 export type PayCheck = { paid: boolean; status: string };
