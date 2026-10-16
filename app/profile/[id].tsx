@@ -17,6 +17,7 @@ import { budgetLabel, displayName, useDB } from "../../src/store";
 import { colors, radius, shadow, type } from "../../src/theme";
 import { Profile, SocialPlatform } from "../../src/types";
 import { Avatar, Button, Glass, IconButton, Press } from "../../src/ui";
+import { firstName } from "../../src/components/home/CreatorTile";
 
 const W = Dimensions.get("window").width;
 const TILE = (W - 40 - 16) / 3;
@@ -222,7 +223,7 @@ function ProposeSheet({ visible, onClose, creator, brand }: { visible: boolean; 
               </Animated.View>
             );
           })}
-          <Field label="Message (optionnel)" value={msg} onChangeText={setMsg} multiline maxLength={1000} placeholder={`Bonjour ${creator.full_name.split(" ")[0]}, …`} />
+          <Field label="Message (optionnel)" value={msg} onChangeText={setMsg} multiline maxLength={1000} placeholder={`Bonjour ${firstName(creator.full_name)}, …`} />
         </>
       )}
     </Sheet>

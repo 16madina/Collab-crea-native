@@ -28,11 +28,7 @@ import {
   PLATFORM,
 } from "../../src/components/account/constants";
 import { avatarOf, flagOf, nameOf } from "../../src/components/collab/common";
-import {
-  initials,
-  shortName,
-  totalFollowers,
-} from "../../src/components/home/CreatorTile";
+import { firstName as prenom, initials, shortName, totalFollowers } from "../../src/components/home/CreatorTile";
 import { Empty } from "../../src/kit";
 import {
   GlossFill,
@@ -636,7 +632,7 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
     ? "Invité"
     : isBrand
       ? nameOf(me)
-      : me.full_name.split(" ")[0];
+      : prenom(me.full_name);
   const seeAll = () => router.push("/marketplace");
 
   const premiumAds = (

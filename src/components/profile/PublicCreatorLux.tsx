@@ -15,6 +15,7 @@ import type { Profile, SocialPlatform } from "../../types";
 import { Press } from "../../ui";
 import { DEFAULT_RATES, formatFollowers, money, parseFollowers, PLATFORM, platformOfType } from "../account/constants";
 import { avatarOf, flagOf, nameOf } from "../collab/common";
+import { firstName, shortName } from "../home/CreatorTile";
 
 const W = Dimensions.get("window").width;
 const TILE = Math.floor((W - 16 - 12) / 3);
@@ -62,7 +63,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
   };
   const follow = () => {
     if (!viewer) return router.push("/auth/signup");
-    toast(toggleFollow(p.user_id) ? `Tu suis ${p.full_name.split(" ")[0]}` : "Abonnement retiré", "info");
+    toast(toggleFollow(p.user_id) ? `Tu suis ${firstName(p.full_name)}` : "Abonnement retiré", "info");
   };
 
   return (
@@ -79,7 +80,7 @@ export function PublicCreatorLux({ p, viewer, onPropose }: { p: Profile; viewer?
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Text style={styles.name} numberOfLines={1}>
-                  {p.full_name.split(" ")[0]} {p.full_name.split(" ").slice(-1)[0]?.[0]}.
+                  {shortName(p.full_name)}
                 </Text>
                 {p.identity_verified && <Ionicons name="checkmark-circle" size={22} color={colors.primary} />}
               </View>

@@ -17,6 +17,7 @@ import { Press } from "../../ui";
 import { formatFollowers, money, parseFollowers, PLATFORM, platformOfType, SAMPLE_AVATARS, SAMPLE_BANNERS } from "../account/constants";
 import { Sheet } from "../account/Sheet";
 import { avatarOf, nameOf } from "../collab/common";
+import { shortName } from "../home/CreatorTile";
 
 const W = Dimensions.get("window").width;
 const TILE = Math.floor((W - 32 - 16) / 3);
@@ -446,7 +447,7 @@ export function CreatorProfileLux({ me, onLogout }: { me: Profile; onLogout: () 
           <View style={{ flex: 1, paddingTop: 6 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Text style={styles.name} numberOfLines={1}>
-                {me.full_name.split(" ")[0]} {me.full_name.split(" ").slice(-1)[0]?.[0]}.
+                {shortName(me.full_name)}
               </Text>
               {me.identity_verified && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
             </View>

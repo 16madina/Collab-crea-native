@@ -12,9 +12,14 @@ import { GlossFill, GoldFill, goldBorder, luxShadow } from "../../lux";
 import { formatFollowers, parseFollowers, PLATFORM } from "../account/constants";
 
 export const totalFollowers = (p: Profile) => Object.values(p.followers).reduce((a, f) => a + parseFollowers(f), 0);
-export const initials = (n: string) => n.split(" ").map((x) => x[0]).slice(0, 2).join("").toUpperCase();
+// Les noms enregistrés contiennent parfois des espaces en trop (« Irene  », « Kofi  Mensah ») : on les ignore.
+const nameParts = (n: string) => (n ?? "").trim().split(/\s+/).filter(Boolean);
+export const initials = (n: string) => nameParts(n).map((x) => x[0]).slice(0, 2).join("").toUpperCase();
+/** Prénom (premier mot du nom). */
+export const firstName = (full: string) => nameParts(full)[0] ?? "";
+/** « Kofi Mensah » → « Kofi M. » ; un seul mot → ce mot tel quel. */
 export const shortName = (full: string) => {
-  const [first, ...rest] = full.split(" ");
+  const [first = "", ...rest] = nameParts(full);
   return rest.length ? `${first} ${rest[rest.length - 1][0]}.` : first;
 };
 const platformsOf = (p: Profile) =>
