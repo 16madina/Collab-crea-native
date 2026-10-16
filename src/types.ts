@@ -37,6 +37,7 @@ export type Profile = {
   identity_method?: "document" | "selfie" | "face_scan";
   identity_document_url?: string; // chemin privé (bucket identity-documents)
   selfie_url?: string; // chemin privé (bucket selfies)
+  identity_checks?: IdentityChecks; // contrôles automatiques de la pièce (faits sur le téléphone)
   // modération
   is_banned?: boolean;
   ban_reason?: string;
@@ -265,3 +266,21 @@ export type InviteCode = { code: string; is_active: boolean; note?: string; used
 export type LegalPage = { slug: string; title: string; content: string };
 
 export type NotificationTemplate = { id: string; name: string; title: string; message: string; type: NotificationType };
+
+/** Contrôles automatiques de la pièce d'identité (lecture du texte, bande MRZ, expiration, nom, visage). */
+export type IdentityChecks = {
+  doc_type: string;
+  available: boolean; // false sur le web : contrôles impossibles
+  checked_at: string;
+  text_found?: boolean;
+  mrz_found?: boolean;
+  mrz_valid?: boolean;
+  mrz_checks?: string; // ex. « 4/4 »
+  doc_number?: string;
+  country?: string;
+  doc_name?: string;
+  expiry?: string; // AAAA-MM-JJ
+  expired?: boolean;
+  name_match?: boolean;
+  face_on_doc?: boolean;
+};

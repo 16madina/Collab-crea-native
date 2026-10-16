@@ -26,6 +26,7 @@
     "expo-router": "~57.0.28",
     "expo-screen-capture": "~57.0.4",
     "expo-status-bar": "~57.0.1",
+    "expo-text-extractor": "^2.0.0",
     "expo-video": "~57.0.5",
     "expo-web-browser": "~57.0.3",
     "libphonenumber-js": "^1.13.15",

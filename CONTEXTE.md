@@ -104,6 +104,12 @@ npx expo lint        # lint
   Sur le web (aperçu), le scan avance tout seul et rien n'est envoyé. Une **marque** doit maintenant avoir
   son identité vérifiée pour engager un créateur (`proposeOffer`, `acceptProposal`). Après l'inscription,
   on arrive sur son **profil**. Smile ID (comparaison automatique visage / pièce) : envisagé pour plus tard.
+  **Contrôles automatiques de la pièce** (niveau 1, gratuits, sur le téléphone) : lecture du texte
+  (`expo-text-extractor` : Apple Vision / ML Kit), bande MRZ et ses chiffres de contrôle (`src/mrz.ts`,
+  norme OACI TD1/TD2/TD3), date d'expiration (pièce expirée = refusée), nom comparé au profil, visage
+  présent sur la pièce (`docChecks.native.ts`). Résultat montré à la personne avant l'envoi et à l'admin,
+  stocké dans `profiles.identity_checks` (migration `20261016050000_identity_checks.sql`). Indicatif : ne
+  détecte pas une contrefaçon soignée (niveau 2 possible : puce NFC du passeport ou Smile ID).
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
    - 20 fichiers privés (9 pièces d'identité, 8 selfies, 3 preuves de retrait) : illisibles sans la clé

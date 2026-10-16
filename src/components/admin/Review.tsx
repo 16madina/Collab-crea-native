@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
@@ -8,6 +9,7 @@ import { colors, radius, type } from "../../theme";
 import { Avatar, Button } from "../../ui";
 import { Act, Item, Placeholder, st } from "./common";
 import { Sheet } from "./Sheet";
+import { checkRows } from "../verification/checkRows";
 import { PrivateFolder, PrivateImage } from "../PrivateImage";
 
 const APPROVE_TPL = ["Approbation standard", "Bienvenue créateur", "Court & efficace", "Avec rappel sécurité"];
@@ -56,6 +58,28 @@ export function Identities() {
                   <Placeholder label="Pièce d'identité" icon="card-outline" h={110} />
                 )}
               </View>
+              {p.identity_checks?.available ? (
+                <View style={{ gap: 6, marginTop: 4 }}>
+                  {/* Contrôles faits sur le téléphone de la personne : indicatifs, à confirmer en regardant les photos. */}
+                  <Text style={type.small}>
+                    Contrôles automatiques{p.identity_checks.doc_number ? ` · n° ${p.identity_checks.doc_number}` : ""}
+                    {p.identity_checks.country ? ` · ${p.identity_checks.country}` : ""}
+                  </Text>
+                  {checkRows(p.identity_checks).map((r) => (
+                    <View key={r.label} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <Ionicons
+                        name={r.ok === true ? "checkmark-circle" : r.ok === false ? "close-circle" : "remove-circle-outline"}
+                        size={16}
+                        color={r.ok === true ? colors.success : r.ok === false ? colors.danger : colors.muted}
+                      />
+                      <Text style={[type.small, { color: colors.ink, flex: 1 }]}>
+                        {r.label}
+                        {r.detail ? <Text style={type.small}>{` — ${r.detail}`}</Text> : null}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
           ) : (
           <View style={{ flexDirection: "row", gap: 8 }}>

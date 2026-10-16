@@ -6,12 +6,14 @@ import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { Banner, Card, fmtDate, Screen, toast } from "../../src/kit";
 import { useDB } from "../../src/store";
 import { colors, radius, shadow, type } from "../../src/theme";
-import { Profile } from "../../src/types";
+import { IdentityChecks, Profile } from "../../src/types";
 import { Button, Press } from "../../src/ui";
 import { isLive, uploadFile, type Picked } from "../../src/backend/upload";
 import { Analysis } from "../../src/components/verification/Analysis";
 import { DocCapture } from "../../src/components/verification/DocCapture";
 import { FaceScan } from "../../src/components/verification/FaceScan";
+import { checkRows, checkVerdict } from "../../src/components/verification/checkRows";
+import { checkDocument } from "../../src/components/verification/docChecks";
 
 // Pièces acceptées ; le passeport n'a qu'une face à photographier (la page avec la photo).
 const DOC_TYPES = [
@@ -55,11 +57,12 @@ function EmailCard({ me }: { me: Profile }) {
 
 function Identity({ me }: { me: Profile }) {
   const submitIdentity = useDB((s) => s.submitIdentity);
-  const [phase, setPhase] = useState<"intro" | "face" | "faceCheck" | "docType" | "docFront" | "docBack" | "sending">("intro");
+  const [phase, setPhase] = useState<"intro" | "face" | "faceCheck" | "docType" | "docFront" | "docBack" | "checking" | "checkResult" | "sending">("intro");
   const [selfies, setSelfies] = useState<Picked[]>([]);
   const [doc, setDoc] = useState<DocType>(DOC_TYPES[0]);
   const [front, setFront] = useState<Picked | null>(null);
   const [back, setBack] = useState<Picked | null>(null);
+  const [checks, setChecks] = useState<IdentityChecks | null>(null);
   const uploaded = useRef<{ document_url?: string; selfie_url?: string }>({});
   // Aperçu web (pas de caméra) : le parcours se visite, mais rien n'est envoyé en ligne.
   const preview = Platform.OS === "web";
@@ -153,14 +156,97 @@ function Identity({ me }: { me: Profile }) {
           onDone={(p) => {
             if (isFront) {
               setFront(p);
-              setPhase(doc.back ? "docBack" : "sending");
+              setPhase(doc.back ? "docBack" : "checking");
             } else {
               setBack(p);
-              setPhase("sending");
+              setPhase("checking");
             }
           }}
         />
       </View>
+    );
+  }
+
+  if (phase === "checking")
+    return (
+      <View style={styles.full}>
+        <Analysis
+          title="Analyse de la pièce…"
+          doneTitle="Analyse terminée"
+          steps={["Lecture du texte de la pièce", "Lecture de la bande de sécurité (MRZ)", "Contrôle des chiffres de sécurité", "Recherche du visage sur la pièce"]}
+          task={async () => {
+            setChecks(await checkDocument([front, back].filter((x): x is Picked => !!x), me.full_name ?? "", doc.key));
+          }}
+          onError={() => setPhase("sending")}
+          onDone={() => setPhase("checkResult")}
+        />
+      </View>
+    );
+
+  if (phase === "checkResult") {
+    // Aperçu web : pas de contrôles possibles, on passe directement à l'envoi.
+    if (!checks?.available) {
+      setTimeout(() => setPhase("sending"), 0);
+      return <View style={styles.full} />;
+    }
+    const verdict = checkVerdict(checks);
+    const retake = () => {
+      setFront(null);
+      setBack(null);
+      setPhase("docFront");
+    };
+    return (
+      <Screen
+        title="Contrôle de votre pièce"
+        subtitle={doc.label}
+        footer={
+          verdict === "fail" ? (
+            <Button label="Choisir une autre pièce" icon="card-outline" style={{ flex: 1 }} onPress={() => setPhase("docType")} />
+          ) : verdict === "ok" ? (
+            <Button label="Envoyer ma demande" icon="send-outline" style={{ flex: 1 }} onPress={() => setPhase("sending")} />
+          ) : (
+            <View style={{ flex: 1, gap: 8 }}>
+              <Button label="Reprendre les photos" icon="camera-outline" onPress={retake} />
+              <Button label="Envoyer quand même" variant="outline" icon={null} onPress={() => setPhase("sending")} />
+            </View>
+          )
+        }
+      >
+        <Animated.View entering={ZoomIn.duration(320)} style={{ alignItems: "center", gap: 10, marginTop: 4 }}>
+          <View style={[styles.bigIcon, { backgroundColor: verdict === "ok" ? colors.successSoft : verdict === "fail" ? colors.dangerSoft : colors.warningSoft }]}>
+            <Ionicons
+              name={verdict === "ok" ? "shield-checkmark" : verdict === "fail" ? "close-circle" : "alert-circle"}
+              size={50}
+              color={verdict === "ok" ? colors.success : verdict === "fail" ? colors.danger : colors.warning}
+            />
+          </View>
+          <Text style={[type.h1, { textAlign: "center" }]}>
+            {verdict === "ok" ? "Pièce reconnue" : verdict === "fail" ? "Pièce expirée" : "Contrôle incomplet"}
+          </Text>
+          <Text style={[type.body, { textAlign: "center" }]}>
+            {verdict === "ok"
+              ? "Votre pièce a passé les contrôles automatiques. Notre équipe confirmera sous 24 h."
+              : verdict === "fail"
+                ? "Cette pièce n'est plus valide. Utilisez une pièce d'identité en cours de validité."
+                : "Certains contrôles n'ont pas abouti (photo floue, reflet, document coupé…). Reprenez les photos, ou envoyez quand même : notre équipe vérifiera."}
+          </Text>
+        </Animated.View>
+        <Card style={{ gap: 14 }}>
+          {checkRows(checks).map((r, i) => (
+            <Animated.View key={r.label} entering={FadeInDown.delay(i * 70).duration(280)} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+              <Ionicons
+                name={r.ok === true ? "checkmark-circle" : r.ok === false ? "close-circle" : "remove-circle-outline"}
+                size={22}
+                color={r.ok === true ? colors.success : r.ok === false ? colors.danger : colors.muted}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={type.h3}>{r.label}</Text>
+                {r.detail ? <Text style={type.small}>{r.detail}</Text> : null}
+              </View>
+            </Animated.View>
+          ))}
+        </Card>
+      </Screen>
     );
   }
 
@@ -192,7 +278,7 @@ function Identity({ me }: { me: Profile }) {
               toast("Aperçu terminé : la vraie vérification se fait depuis l'app sur téléphone.");
               return restart();
             }
-            submitIdentity("face_scan", uploaded.current);
+            submitIdentity("face_scan", uploaded.current, checks ?? undefined);
             toast("Demande envoyée ! Réponse sous 24 h.");
           }}
         />

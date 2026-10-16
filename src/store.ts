@@ -21,6 +21,7 @@ import {
   Role,
   Slot,
   SocialVerification,
+  IdentityChecks,
   Transaction,
   Wallet,
   Withdrawal,
@@ -214,7 +215,7 @@ type Actions = {
   claimInvite: (code: string) => AsyncResult;
   // profil
   updateProfile: (patch: Partial<Profile>) => void;
-  submitIdentity: (method: "document" | "selfie" | "face_scan", files?: { document_url?: string; selfie_url?: string }) => void;
+  submitIdentity: (method: "document" | "selfie" | "face_scan", files?: { document_url?: string; selfie_url?: string }, checks?: IdentityChecks) => void;
   submitSocialVerification: (
     v: Pick<SocialVerification, "platform" | "page_name" | "claimed_followers" | "screenshot_url">,
   ) => SocialVerification;
@@ -775,8 +776,8 @@ export const useDB = create<DB & Actions>()((set, get) => {
           p.user_id === s.userId ? { ...p, ...patch } : p,
         ),
       })),
-    submitIdentity: (method, files = {}) => {
-      get().updateProfile({ identity_method: method, identity_submitted_at: now() });
+    submitIdentity: (method, files = {}, checks) => {
+      get().updateProfile({ identity_method: method, identity_submitted_at: now(), identity_checks: checks });
       if (live() && get().userId)
         void supabase
           .from("profiles")
@@ -1471,6 +1472,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
                   ...p,
                   identity_submitted_at: undefined,
                   identity_method: undefined,
+                  identity_checks: undefined,
                 }
             : p,
         ),
