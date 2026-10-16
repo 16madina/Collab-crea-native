@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { isLive, pickMedia, uploadFile, type Picked } from "../../src/backend/upload";
+import { pickMedia, uploadFile, type Picked } from "../../src/backend/upload";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -17,11 +17,9 @@ import {
   CREATOR_CATEGORIES,
   isEmail,
   PLATFORM,
-  SAMPLE_AVATARS,
   SECTORS,
 } from "../../src/components/account/constants";
 import { PasswordField } from "../../src/components/account/PasswordField";
-import { Sheet } from "../../src/components/account/Sheet";
 import {
   Checkbox,
   CountrySelect,
@@ -62,7 +60,18 @@ export default function Signup() {
   // étape 1
   const [avatar, setAvatar] = useState<string>();
   const [avatarFile, setAvatarFile] = useState<Picked | null>(null);
-  const [picker, setPicker] = useState(false);
+  // Photo de profil : ouvre directement la galerie du téléphone (pas de photos proposées).
+  const pickAvatar = async () => {
+    try {
+      const p = await pickMedia("image", { square: true });
+      if (!p) return;
+      setAvatarFile(p);
+      setAvatar(p.uri);
+      setErr((e) => ({ ...e, avatar: undefined }));
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
   // étape 2
@@ -271,7 +280,7 @@ export default function Signup() {
           <>
             <View style={{ alignItems: "center", gap: 8 }}>
               <Press
-                onPress={() => setPicker(true)}
+                onPress={() => void pickAvatar()}
                 style={[
                   styles.avatarPick,
                   !!err.avatar && { borderColor: "#E5484D" },
@@ -296,13 +305,6 @@ export default function Signup() {
                     color={colors.primary}
                   />
                 )}
-                <View style={styles.avatarPlus}>
-                  <Ionicons
-                    name={avatar ? "pencil" : "add"}
-                    size={16}
-                    color="#fff"
-                  />
-                </View>
               </Press>
               <Text style={[type.small, err.avatar && { color: "#E5484D" }]}>
                 {err.avatar ?? "Photo de profil (obligatoire)"}
@@ -678,60 +680,6 @@ export default function Signup() {
         </Text>
       </Text>
 
-      <Sheet
-        visible={picker}
-        onClose={() => setPicker(false)}
-        title="Choisir une photo"
-        subtitle="Aperçu démo — la galerie sera branchée en phase native."
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: "center",
-          }}
-        >
-          {isLive() && (
-            <Press
-              onPress={async () => {
-                try {
-                  const p = await pickMedia("image", { square: true });
-                  if (!p) return;
-                  setAvatarFile(p);
-                  setAvatar(p.uri);
-                  setErr((e) => ({ ...e, avatar: undefined }));
-                  setPicker(false);
-                } catch (e) {
-                  toast((e as Error).message, "error");
-                }
-              }}
-              scaleTo={0.9}
-              style={[styles.sample, { alignItems: "center", justifyContent: "center", borderColor: colors.primary, borderStyle: "dashed" }]}
-            >
-              <Ionicons name="images-outline" size={26} color={colors.primary} />
-            </Press>
-          )}
-          {SAMPLE_AVATARS.map((a, i) => (
-            <Animated.View key={a} entering={ZoomIn.delay(i * 40).duration(320)}>
-              <Press
-                onPress={() => {
-                  setAvatar(a);
-                  setErr((e) => ({ ...e, avatar: undefined }));
-                  setPicker(false);
-                }}
-                scaleTo={0.9}
-                style={[
-                  styles.sample,
-                  avatar === a && { borderColor: colors.primary },
-                ]}
-              >
-                <Image source={a} style={{ flex: 1 }} contentFit="cover" />
-              </Press>
-            </Animated.View>
-          ))}
-        </View>
-      </Sheet>
     </AuthShell>
   );
 }
@@ -746,19 +694,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
     borderWidth: 3,
-    borderColor: "#fff",
-  },
-  avatarPlus: {
-    position: "absolute",
-    bottom: 6,
-    right: 6,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
     borderColor: "#fff",
   },
   prefix: {
