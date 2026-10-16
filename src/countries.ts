@@ -203,6 +203,29 @@ export const worldCountries: Country[] = [
   { code: "YE", name: "Yémen", flag: "🇾🇪", phoneCode: "+967" },
   { code: "ZM", name: "Zambie", flag: "🇿🇲", phoneCode: "+260" },
   { code: "ZW", name: "Zimbabwe", flag: "🇿🇼", phoneCode: "+263" },
+  // Territoires et régions (diaspora, outre-mer)
+  { code: "RE", name: "La Réunion", flag: "🇷🇪", phoneCode: "+262" },
+  { code: "YT", name: "Mayotte", flag: "🇾🇹", phoneCode: "+262" },
+  { code: "SH", name: "Sainte-Hélène", flag: "🇸🇭", phoneCode: "+290" },
+  { code: "EH", name: "Sahara occidental", flag: "🇪🇭", phoneCode: "+212" },
+  { code: "MQ", name: "Martinique", flag: "🇲🇶", phoneCode: "+596" },
+  { code: "GP", name: "Guadeloupe", flag: "🇬🇵", phoneCode: "+590" },
+  { code: "GF", name: "Guyane française", flag: "🇬🇫", phoneCode: "+594" },
+  { code: "PM", name: "Saint-Pierre-et-Miquelon", flag: "🇵🇲", phoneCode: "+508" },
+  { code: "PR", name: "Porto Rico", flag: "🇵🇷", phoneCode: "+1787" },
+  { code: "CW", name: "Curaçao", flag: "🇨🇼", phoneCode: "+599" },
+  { code: "AW", name: "Aruba", flag: "🇦🇼", phoneCode: "+297" },
+  { code: "BM", name: "Bermudes", flag: "🇧🇲", phoneCode: "+1441" },
+  { code: "KY", name: "Îles Caïmans", flag: "🇰🇾", phoneCode: "+1345" },
+  { code: "VG", name: "Îles Vierges britanniques", flag: "🇻🇬", phoneCode: "+1284" },
+  { code: "GL", name: "Groenland", flag: "🇬🇱", phoneCode: "+299" },
+  { code: "NC", name: "Nouvelle-Calédonie", flag: "🇳🇨", phoneCode: "+687" },
+  { code: "PF", name: "Polynésie française", flag: "🇵🇫", phoneCode: "+689" },
+  { code: "HK", name: "Hong Kong", flag: "🇭🇰", phoneCode: "+852" },
+  { code: "MO", name: "Macao", flag: "🇲🇴", phoneCode: "+853" },
+  { code: "XK", name: "Kosovo", flag: "🇽🇰", phoneCode: "+383" },
+  { code: "GI", name: "Gibraltar", flag: "🇬🇮", phoneCode: "+350" },
+  { code: "FO", name: "Îles Féroé", flag: "🇫🇴", phoneCode: "+298" },
 ];
 
 // African countries only (for country of origin)
@@ -268,3 +291,21 @@ export const getPhoneCodeByCountry = (countryCode: string): string => {
   const country = worldCountries.find(c => c.code === countryCode);
   return country?.phoneCode || "";
 };
+
+// ─────────────── Liste ordonnée par région (inscription, profil) ───────────────
+// Ordre voulu : Afrique, puis Europe, Amériques, Asie et Moyen-Orient, Océanie ; alphabétique dans chaque région.
+export const REGIONS = ["Afrique", "Europe", "Amériques", "Asie et Moyen-Orient", "Océanie"] as const;
+export type Region = (typeof REGIONS)[number];
+
+const EUROPE = new Set("AL AD AT BY BE BA BG HR CY CZ DK EE FI FR DE GR HU IS IE IT LV LI LT LU MT MD MC ME NL MK NO PL PT RO RU SM RS SK SI ES SE CH UA GB VA XK GI FO".split(" "));
+const AMERIQUES = new Set("AG AR BS BB BZ BO BR CA CL CO CR CU DM DO EC SV GD GT GY HT HN JM MX NI PA PY PE KN LC VC SR TT US UY VE PR MQ GP GF PM CW AW BM KY VG GL".split(" "));
+const OCEANIE = new Set("AU FJ KI MH FM NR NZ PW PG WS SB TO TV VU NC PF".split(" "));
+const AFRIQUE = new Set([...africanCountries.map((c) => c.code), "RE", "YT", "SH", "EH"]);
+
+export const regionOf = (code: string): Region =>
+  AFRIQUE.has(code) ? "Afrique" : EUROPE.has(code) ? "Europe" : AMERIQUES.has(code) ? "Amériques" : OCEANIE.has(code) ? "Océanie" : "Asie et Moyen-Orient";
+
+/** Tous les pays et territoires, groupés par région dans l'ordre de REGIONS. */
+export const allCountries: (Country & { region: Region })[] = worldCountries
+  .map((c) => ({ ...c, region: regionOf(c.code) }))
+  .sort((a, b) => REGIONS.indexOf(a.region) - REGIONS.indexOf(b.region) || a.name.localeCompare(b.name, "fr"));

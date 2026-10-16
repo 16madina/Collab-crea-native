@@ -4,7 +4,7 @@ import { Text } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { COLLAB_TYPES, CREATOR_CATEGORIES, SECTORS } from "../../src/components/account/constants";
 import { CountrySelect, SelectField } from "../../src/components/account/widgets";
-import { africanCountries, worldCountries } from "../../src/countries";
+import { allCountries } from "../../src/countries";
 import { Card, Chips, Field, Label, Screen, toast } from "../../src/kit";
 import { useDB } from "../../src/store";
 import { type } from "../../src/theme";
@@ -76,8 +76,8 @@ function Form({ me }: { me: Profile }) {
           <Field label="Bio" value={bio} onChangeText={setBio} multiline maxLength={500} placeholder="Parlez de vous, de votre univers…" error={err.bio} />
           <Text style={[type.tiny, { alignSelf: "flex-end" }]}>{bio.length}/500</Text>
           {!brand && <SelectField label="Catégorie" value={category} options={CREATOR_CATEGORIES} onChange={setCategory} />}
-          <CountrySelect label="Pays de résidence" countries={worldCountries} value={residence} onChange={(c) => setResidence(c.name)} />
-          <CountrySelect label="Pays d'origine" countries={africanCountries} value={country} onChange={(c) => setCountry(c.name)} />
+          <CountrySelect label="Pays de résidence" countries={allCountries} value={residence} onChange={(c) => setResidence(c.name)} />
+          <CountrySelect label="Pays d'origine" countries={allCountries} value={country} onChange={(c) => setCountry(c.name)} />
         </Card>
       </Animated.View>
       {brand && (

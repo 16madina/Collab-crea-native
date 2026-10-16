@@ -30,9 +30,17 @@ export function CountrySelect({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const sel = countries.find((c) => c.name === value);
-  const list = useMemo(() => {
+  // Sans recherche : titres de région (« Afrique », « Europe »…) quand la liste en fournit (allCountries).
+  const list = useMemo((): (Country | { header: string })[] => {
     const n = q.trim().toLowerCase();
-    return n ? countries.filter((c) => c.name.toLowerCase().includes(n) || c.code.toLowerCase() === n) : countries;
+    if (n) return countries.filter((c) => c.name.toLowerCase().includes(n) || c.code.toLowerCase() === n);
+    const out: (Country | { header: string })[] = [];
+    let current: string | undefined;
+    for (const c of countries as (Country & { region?: string })[]) {
+      if (c.region && c.region !== current) out.push({ header: (current = c.region) });
+      out.push(c);
+    }
+    return out;
   }, [q, countries]);
   useEffect(() => {
     if (!open) setQ("");
@@ -53,11 +61,12 @@ export function CountrySelect({
         </View>
         <FlatList
           data={list}
-          keyExtractor={(c) => c.code}
+          keyExtractor={(c) => ("header" in c ? `h-${c.header}` : c.code)}
           style={{ maxHeight: 440 }}
           keyboardShouldPersistTaps="handled"
           initialNumToRender={20}
           renderItem={({ item }) => {
+            if ("header" in item) return <Text style={styles.regionHeader}>{item.header}</Text>;
             const on = item.name === value;
             return (
               <Pressable
@@ -254,6 +263,7 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
 }
 
 const styles = StyleSheet.create({
+  regionHeader: { fontSize: 12, fontWeight: "800", color: colors.primary, textTransform: "uppercase", letterSpacing: 0.8, paddingTop: 14, paddingBottom: 6, paddingHorizontal: 12 },
   select: { height: 52, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
   error: { color: "#E5484D", fontSize: 11, fontWeight: "600" },
   search: { flexDirection: "row", alignItems: "center", gap: 10, height: 48, borderRadius: radius.pill, backgroundColor: colors.surface, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.line },

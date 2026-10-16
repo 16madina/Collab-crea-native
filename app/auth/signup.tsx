@@ -25,7 +25,7 @@ import {
   CountrySelect,
   SelectField,
 } from "../../src/components/account/widgets";
-import { africanCountries, worldCountries } from "../../src/countries";
+import { allCountries } from "../../src/countries";
 import { Chips, Field, Label, toast } from "../../src/kit";
 import { useDB } from "../../src/store";
 import { colors, radius, shadow, type } from "../../src/theme";
@@ -335,14 +335,14 @@ export default function Signup() {
           <>
             <CountrySelect
               label="Pays de résidence"
-              countries={worldCountries}
+              countries={allCountries}
               value={residence?.name}
               onChange={(c) => setResidence(c)}
               error={err.residence}
             />
             <CountrySelect
               label="Pays d'origine"
-              countries={africanCountries}
+              countries={allCountries}
               value={origin}
               onChange={(c) => setOrigin(c.name)}
               error={err.origin}
