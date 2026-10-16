@@ -1,11 +1,12 @@
-// Paiement en séquestre : Mobile Money via FedaPay (réel sur téléphone, simulé dans l'aperçu web « demo »).
+// Paiement en séquestre : Mobile Money via FedaPay ou FeexPay selon l'opérateur (réel sur téléphone,
+// simulé dans l'aperçu web « demo »).
 // La carte bancaire n'est pas encore branchée en réel.
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
-import { checkFedaPayment, startFedaPayment } from "../../backend/fedapay";
+import { checkPayment, type PayStart, startPayment } from "../../backend/payments";
 import { refresh } from "../../backend/sync";
 import { isLive } from "../../backend/upload";
 import { Chips, Field, Label, Row, Segmented, toast } from "../../kit";
@@ -15,18 +16,23 @@ import { Button } from "../../ui";
 import { InfoBox } from "./common";
 import { Sheet } from "./Sheet";
 
-// Pays et opérateurs activés sur le compte FedaPay. Orange Money : à ajouter ici
-// (« Orange ») dès que FedaPay l'aura activé sur le compte.
+// Pays et opérateurs proposés (le prestataire de chaque opérateur est choisi dans backend/payments.ts).
 export const MOBILE_MONEY: { code: string; name: string; flag: string; prefix: string; digits: number; ops: string[] }[] = [
-  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", prefix: "+225", digits: 10, ops: ["Wave", "MTN"] },
+  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", prefix: "+225", digits: 10, ops: ["Wave", "Orange", "MTN"] },
   { code: "BJ", name: "Bénin", flag: "🇧🇯", prefix: "+229", digits: 10, ops: ["MTN", "Moov"] },
   { code: "TG", name: "Togo", flag: "🇹🇬", prefix: "+228", digits: 8, ops: ["Moov"] },
 ];
+// Opérateurs qui passent par une page de paiement (les autres envoient une demande sur le téléphone).
+const PAGE: Record<string, string> = { Wave: "Wave", Orange: "Orange Money" };
+const HINT: Record<string, string> = {
+  Wave: "La page de paiement Wave va s'ouvrir : valide le paiement dans ton application Wave.",
+  Orange: "La page de paiement Orange Money va s'ouvrir : suis les instructions pour valider le paiement.",
+};
 const RATES = { EUR: 655.957, USD: 600 } as const;
 const POLL_MS = 4000;
 const POLL_MAX = 75; // ≈ 5 minutes
 
-type Pending = { transactionId: string; paymentUrl: string | null; pushSent: boolean };
+type Pending = Pick<PayStart, "transactionId" | "paymentUrl" | "pushSent" | "gateway">;
 
 export function PaymentSheet({ visible, onClose, collabId, title }: { visible: boolean; onClose: () => void; collabId: string; title?: string }) {
   const collab = useDB((s) => s.collaborations.find((c) => c.id === collabId));
@@ -40,14 +46,14 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
   const [pending, setPending] = useState<Pending | null>(null);
   const tries = useRef(0);
 
-  // Attente de la confirmation : on interroge le serveur (qui relit la transaction chez FedaPay).
+  // Attente de la confirmation : on interroge le serveur (qui relit la transaction chez le prestataire).
   useEffect(() => {
     if (!pending || !visible) return;
     tries.current = 0;
     const timer = setInterval(async () => {
       tries.current += 1;
       try {
-        const r = await checkFedaPayment(pending.transactionId, collabId);
+        const r = await checkPayment(pending.gateway, pending.transactionId, collabId);
         if (r.paid) {
           clearInterval(timer);
           void WebBrowser.dismissBrowser().catch(() => {});
@@ -94,7 +100,7 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
     if (method === "card") return toast("Le paiement par carte arrive bientôt : utilise Mobile Money", "info");
     setBusy(true);
     try {
-      const r = await startFedaPayment({ collaborationId: collab.id, provider: op.toLowerCase(), phone, country });
+      const r = await startPayment({ collaborationId: collab.id, operator: op, phone, country });
       setPending(r);
       if (r.paymentUrl) void openPage(r.paymentUrl);
     } catch (e) {
@@ -134,7 +140,7 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
           <Text style={[type.body, { textAlign: "center" }]}>
             {pending.pushSent
               ? `Une demande de paiement de ${fcfa(total)} a été envoyée au ${cc.prefix} ${phone}. Confirme-la sur ton téléphone (code secret ${op}).`
-              : `Termine le paiement de ${fcfa(total)} sur la page ${op === "Wave" ? "Wave" : "FedaPay"} qui vient de s'ouvrir, puis reviens ici.`}
+              : `Termine le paiement de ${fcfa(total)} sur la page ${PAGE[op] ?? "de paiement"} qui vient de s'ouvrir, puis reviens ici.`}
           </Text>
           <Text style={[type.tiny, { textAlign: "center" }]}>{"En attente de la confirmation de l'opérateur…"}</Text>
         </Animated.View>
@@ -163,7 +169,7 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
               <Chips options={cc.ops} value={op} onChange={setOp} />
               <Field label={`Numéro ${op} (${cc.prefix}, ${cc.digits} chiffres)`} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder={cc.digits === 10 ? "07 00 00 00 00" : "90 00 00 00"} />
               <InfoBox icon="phone-portrait-outline">
-                {op === "Wave" ? "La page de paiement Wave va s'ouvrir : valide le paiement dans ton application Wave." : "Vous recevrez une demande de confirmation sur votre téléphone."}
+                {HINT[op] ?? "Vous recevrez une demande de confirmation sur votre téléphone."}
               </InfoBox>
             </Animated.View>
           ) : (
@@ -198,7 +204,7 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
           ) : (
             <View style={{ flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="shield-checkmark" size={14} color={colors.success} />
-              <Text style={type.tiny}>Paiement chiffré et sécurisé par FedaPay</Text>
+              <Text style={type.tiny}>Paiement chiffré et sécurisé</Text>
             </View>
           )}
         </>
