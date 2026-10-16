@@ -52,6 +52,8 @@ const SLIDES: {
   features?: Feature[];
   cta: string;
 }[] = [
+  // Première page : logo et choix créateur / marque ; les 3 présentations suivent (lien « Découvrir »).
+  { key: "welcome", body: "", cta: "" },
   {
     key: "profile",
     body: "Présente ton univers, tes réseaux et tes statistiques en quelques étapes seulement.",
@@ -82,9 +84,7 @@ const SLIDES: {
       { icon: "trending-up", label: "Une vraie\ncroissance" },
     ],
     cta: "Commencer maintenant",
-  },  // Dernière page : choix créateur / marque.
-  { key: "welcome", body: "", cta: "" },
-];
+  },];
 
 function GoldCta({
   label,
@@ -339,6 +339,10 @@ export default function Onboarding() {
                       color={colors.inkSoft}
                     />
                   </Press>
+                  <Press onPress={() => go(1)} style={styles.discoverBtn} scaleTo={0.97}>
+                    <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
+                    <Text style={styles.discoverText}>Découvrir Collab Créa</Text>
+                  </Press>
                 </Animated.View>
                 <View style={styles.smallRow}>
                   <Text
@@ -393,7 +397,7 @@ export default function Onboarding() {
                     Continuer comme invité
                   </Text>
                 </Press>
-                <Press onPress={() => go(SLIDES.length - 1)} style={styles.skip}>
+                <Press onPress={() => go(0)} style={styles.skip}>
                   <Text style={styles.skipText}>Passer</Text>
                 </Press>
               </View>
@@ -438,9 +442,7 @@ export default function Onboarding() {
               <View style={styles.bottom}>
                 <GoldCta
                   label={item.cta}
-                  onPress={() =>
-                    go(i + 1)
-                  }
+                  onPress={() => go(i === SLIDES.length - 1 ? 0 : i + 1)}
                 />
                 <Dots i={i} />
               </View>
@@ -511,6 +513,14 @@ const styles = StyleSheet.create({
     textDecorationColor: "rgba(216,173,106,0.5)",
   },
   skipText: { color: colors.ink, fontSize: 14, fontWeight: "500" },
+  discoverBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    height: 32,
+  },
+  discoverText: { color: colors.primary, fontSize: 14, fontWeight: "700" },
   title: {
     fontFamily: fonts.serif,
     color: colors.ink,
