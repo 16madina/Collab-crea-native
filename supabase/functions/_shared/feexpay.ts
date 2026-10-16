@@ -17,8 +17,6 @@ export const feexpayConfig = () => {
 
 /** Lien entre une transaction FeexPay et une collaboration (renvoyé tel quel par FeexPay). */
 export const callbackInfo = (collabId: string) => `collab:${collabId}`;
-/** Lien entre un virement (payout) FeexPay et une demande de retrait. */
-export const payoutCallbackInfo = (withdrawalId: string) => `withdrawal:${withdrawalId}`;
 
 export type FeexStatus = { reference?: string; amount?: number | string; status?: string; callback_info?: string | null; reason?: string };
 
@@ -65,8 +63,8 @@ export async function finalizeFeexPayment(admin: SupabaseClient, tx: FeexStatus,
 
 // ─────────────── Virements (payout) vers le Mobile Money des créateurs ───────────────
 
-/** Réseaux FeexPay pour les virements, par opérateur choisi dans l'app (Côte d'Ivoire). */
-export const PAYOUT_NETWORKS: Record<string, string> = { wave: "WAVE CI", orange: "ORANGE CI", mtn: "MTN CI", moov: "MOOV CI" };
+/** Point d'envoi FeexPay des virements Côte d'Ivoire, par opérateur choisi dans l'app (doc FeexPay « Payout »). */
+export const PAYOUT_NETWORKS: Record<string, string> = { wave: "wave_ci", orange: "orange_ci", mtn: "mtn_ci", moov: "moov_ci" };
 /** Frais de retrait affichés au créateur dans l'app (« ~2 % ») : on vire le montant net. */
 export const payoutNet = (amount: number) => amount - Math.round(amount * 0.02);
 
@@ -85,19 +83,12 @@ const readJson = async (res: Response): Promise<Record<string, unknown>> => {
 };
 
 /** Envoie un virement FeexPay. Renvoie la réponse brute (reference, status…) ou lève une erreur lisible. */
-export async function sendPayout(p: { phoneNumber: string; amount: number; network: string; withdrawalId: string }) {
+export async function sendPayout(p: { phoneNumber: string; amount: number; network: string }) {
   const { shop, headers } = feexpayConfig();
-  const res = await fetch(`${FEEXPAY_API}/payouts/public/transfer/global`, {
+  const res = await fetch(`${FEEXPAY_API}/payouts/public/${p.network}`, {
     method: "POST",
     headers,
-    body: JSON.stringify({
-      phoneNumber: p.phoneNumber,
-      amount: p.amount,
-      shop,
-      network: p.network,
-      motif: "Collab Crea retrait",
-      callback_info: payoutCallbackInfo(p.withdrawalId),
-    }),
+    body: JSON.stringify({ phoneNumber: Number(p.phoneNumber), amount: p.amount, shop, motif: "Collab Crea retrait" }),
   });
   const body = await readJson(res);
   if (!res.ok) {

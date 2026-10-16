@@ -2,7 +2,7 @@
 //   action "send"  : verrouille la demande, envoie le virement FeexPay, puis la marque effectuée / échouée
 //                    (ou « en cours » si FeexPay n'a pas encore confirmé)
 //   action "check" : relit chez FeexPay le statut d'un virement « en cours »
-// La fin d'un virement « en cours » arrive aussi par feexpay-webhook (callback_info = withdrawal:<id>).
+// La fin d'un virement « en cours » arrive aussi par feexpay-webhook (reconnu par sa référence FeexPay).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { cors, json } from "../_shared/fedapay.ts";
 import { fetchPayoutStatus, PAYOUT_NETWORKS, PayoutRefused, payoutNet, sendPayout, settlePayout } from "../_shared/feexpay.ts";
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
 
     let sent;
     try {
-      sent = await sendPayout({ phoneNumber: `${DIAL}${digits}`, amount: payoutNet(Number(w.amount)), network, withdrawalId: id });
+      sent = await sendPayout({ phoneNumber: `${DIAL}${digits}`, amount: payoutNet(Number(w.amount)), network });
     } catch (e) {
       if (!(e instanceof PayoutRefused)) {
         // Pas de réponse claire de FeexPay : l'argent est peut-être parti. On laisse « en cours » sans recréditer.
