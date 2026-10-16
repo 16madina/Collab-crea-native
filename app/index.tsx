@@ -83,7 +83,7 @@ const SLIDES: {
       { icon: "star", label: "Des collaborations\nde qualité" },
       { icon: "trending-up", label: "Une vraie\ncroissance" },
     ],
-    cta: "Commencer maintenant",
+    cta: "", // dernière page : boutons créateur / marque
   },];
 
 function GoldCta({
@@ -282,68 +282,6 @@ export default function Onboarding() {
                   La plateforme qui connecte les créateurs de contenu africains
                   avec des marques ambitieuses.
                 </Animated.Text>
-                <Animated.View
-                  entering={FadeInDown.delay(540).duration(320)}
-                  style={{ gap: 12, marginTop: 22 }}
-                >
-                  <Press
-                    onPress={() => pick("creator")}
-                    style={[styles.roleBtn, goldGlow]}
-                    scaleTo={0.97}
-                  >
-                    <GoldFill style={{ borderRadius: radius.pill }} />
-                    <Ionicons
-                      name="person-outline"
-                      size={22}
-                      color={colors.onPrimary}
-                    />
-                    <Text style={[styles.ctaText, { flex: 1 }]}>
-                      Je suis créateur
-                    </Text>
-                    <Ionicons
-                      name="arrow-forward"
-                      size={20}
-                      color={colors.onPrimary}
-                    />
-                  </Press>
-                  <Press
-                    onPress={() => pick("brand")}
-                    style={[styles.roleBtn, styles.roleOutline]}
-                    scaleTo={0.97}
-                  >
-                    <Ionicons
-                      name="business-outline"
-                      size={22}
-                      color={colors.primary}
-                    />
-                    <Text
-                      style={[styles.ctaText, { flex: 1, color: colors.ink }]}
-                    >
-                      Je suis une marque
-                    </Text>
-                    <Ionicons
-                      name="arrow-forward"
-                      size={20}
-                      color={colors.primary}
-                    />
-                  </Press>
-                  <Press
-                    onPress={asGuest}
-                    style={styles.guestBtn}
-                    scaleTo={0.97}
-                  >
-                    <Text style={styles.guestText}>Continuer comme invité</Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color={colors.inkSoft}
-                    />
-                  </Press>
-                  <Press onPress={() => go(1)} style={styles.discoverBtn} scaleTo={0.97}>
-                    <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
-                    <Text style={styles.discoverText}>Découvrir Collab Créa</Text>
-                  </Press>
-                </Animated.View>
                 <View style={styles.smallRow}>
                   <Text
                     style={type.tiny}
@@ -371,7 +309,10 @@ export default function Onboarding() {
                       </Text>
                     ))}
                 </View>
-                <Dots i={i} />
+                <View style={[styles.bottom, { marginTop: 22 }]}>
+                  <GoldCta label="Découvrir Collab Créa" onPress={() => go(1)} />
+                  <Dots i={i} />
+                </View>
               </View>
             </View>
           ) : (
@@ -397,9 +338,11 @@ export default function Onboarding() {
                     Continuer comme invité
                   </Text>
                 </Press>
-                <Press onPress={() => go(0)} style={styles.skip}>
-                  <Text style={styles.skipText}>Passer</Text>
-                </Press>
+                {i < SLIDES.length - 1 ? (
+                  <Press onPress={() => go(SLIDES.length - 1)} style={styles.skip}>
+                    <Text style={styles.skipText}>Passer</Text>
+                  </Press>
+                ) : null}
               </View>
               <View style={styles.header}>
                 <Title k={item.key} />
@@ -420,32 +363,47 @@ export default function Onboarding() {
                   style={StyleSheet.absoluteFill}
                 />
               </View>
-              {item.features ? (
-                <View style={styles.features}>
-                  {item.features.map((f: Feature) => (
-                    <View key={f.label} style={styles.feature}>
-                      <View style={styles.featureIcon}>
-                        <Ionicons
-                          name={f.icon}
-                          size={24}
-                          color={colors.primary}
-                        />
+              {i < SLIDES.length - 1 ? (
+                <>
+                  <View style={styles.features}>
+                    {item.features?.map((f: Feature) => (
+                      <View key={f.label} style={styles.feature}>
+                        <View style={styles.featureIcon}>
+                          <Ionicons name={f.icon} size={24} color={colors.primary} />
+                        </View>
+                        <Text style={styles.featureText}>{f.label}</Text>
                       </View>
-                      <Text style={styles.featureText}>{f.label}</Text>
-                    </View>
-                  ))}
-                </View>
+                    ))}
+                  </View>
+                  <View style={{ flex: 1 }} />
+                  <View style={styles.bottom}>
+                    <GoldCta label={item.cta} onPress={() => go(i + 1)} />
+                    <Dots i={i} />
+                  </View>
+                </>
               ) : (
-                <View style={styles.features} />
+                <>
+                  <View style={{ flex: 1 }} />
+                  {/* Dernière page : choix créateur / marque (à la place des atouts et du bouton). */}
+                  <View style={styles.choice}>
+                    <Press onPress={() => pick("creator")} style={[styles.roleBtn, goldGlow]} scaleTo={0.97}>
+                      <GoldFill style={{ borderRadius: radius.pill }} />
+                      <Ionicons name="person-outline" size={22} color={colors.onPrimary} />
+                      <Text style={[styles.ctaText, { flex: 1 }]}>Je suis créateur</Text>
+                      <Ionicons name="arrow-forward" size={20} color={colors.onPrimary} />
+                    </Press>
+                    <Press onPress={() => pick("brand")} style={[styles.roleBtn, styles.roleOutline]} scaleTo={0.97}>
+                      <Ionicons name="business-outline" size={22} color={colors.primary} />
+                      <Text style={[styles.ctaText, { flex: 1, color: colors.ink }]}>Je suis une marque</Text>
+                      <Ionicons name="arrow-forward" size={20} color={colors.primary} />
+                    </Press>
+                    <Text style={[type.tiny, { textAlign: "center", marginTop: 4 }]} onPress={() => router.push("/auth/login")}>
+                      Déjà membre ? <Text style={{ color: colors.primary }}>Se connecter</Text>
+                    </Text>
+                    <Dots i={i} />
+                  </View>
+                </>
               )}
-              <View style={{ flex: 1 }} />
-              <View style={styles.bottom}>
-                <GoldCta
-                  label={item.cta}
-                  onPress={() => go(i === SLIDES.length - 1 ? 0 : i + 1)}
-                />
-                <Dots i={i} />
-              </View>
             </View>
           )
         }
@@ -474,11 +432,12 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   welcomeBody: { color: colors.inkSoft, fontSize: 15, lineHeight: 22 },
+  choice: { gap: 12, paddingHorizontal: 22 },
   roleBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    height: 60,
+    height: 56,
     borderRadius: radius.pill,
     paddingHorizontal: 24,
   },
