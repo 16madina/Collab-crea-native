@@ -30,10 +30,10 @@ const { width: W, height: H } = Dimensions.get("window");
 // Gabarit commun des pages 1 à 3 : chaque zone a la même hauteur sur toutes les pages, pour que titre,
 // image, atouts, bouton et points tombent exactement au même endroit d'une page à l'autre.
 const TOP_BAR_H = 44; // « Continuer comme invité » / « Passer »
-const HEADER_H = 145; // titre (2 lignes) + texte (3 lignes max)
-const FEATURES_H = 100; // rangée de 3 atouts
-const BOTTOM_H = 104; // bouton + points
-const GAPS_H = 52; // espaces entre les zones (marges + respiration avant le bouton)
+const HEADER_H = 128; // titre (2 lignes) + texte (3 lignes max)
+const FEATURES_H = 80; // rangée de 3 atouts
+const BOTTOM_H = 94; // bouton + points
+const GAPS_H = 46; // espaces entre les zones (marges + respiration avant le bouton)
 const imageHeight = (top: number, bottom: number) =>
   Math.round(Math.max(150, Math.min(460, H - top - bottom - TOP_BAR_H - HEADER_H - FEATURES_H - BOTTOM_H - GAPS_H)));
 const IMG = {
@@ -369,7 +369,7 @@ export default function Onboarding() {
                     {item.features?.map((f: Feature) => (
                       <View key={f.label} style={styles.feature}>
                         <View style={styles.featureIcon}>
-                          <Ionicons name={f.icon} size={24} color={colors.primary} />
+                          <Ionicons name={f.icon} size={20} color={colors.primary} />
                         </View>
                         <Text style={styles.featureText}>{f.label}</Text>
                       </View>
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    height: 56,
+    height: 52,
     borderRadius: radius.pill,
     paddingHorizontal: 24,
   },
@@ -454,8 +454,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 8,
   },
-  header: { height: HEADER_H, paddingHorizontal: 26, gap: 14 },
-  bottom: { height: BOTTOM_H, alignItems: "center", justifyContent: "flex-end", gap: 18 },
+  header: { height: HEADER_H, paddingHorizontal: 26, gap: 10 },
+  bottom: { height: BOTTOM_H, alignItems: "center", justifyContent: "flex-end", gap: 14 },
   skip: { paddingHorizontal: 16, paddingVertical: 10 },
   guestBtn: {
     flexDirection: "row",
@@ -483,24 +483,24 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.serif,
     color: colors.ink,
-    fontSize: 28,
-    lineHeight: 33,
+    fontSize: 26,
+    lineHeight: 31,
   },
-  body: { color: colors.inkSoft, fontSize: 14, lineHeight: 21 },
-  imageWrap: { marginTop: 16, marginHorizontal: 6 },
+  body: { color: colors.inkSoft, fontSize: 14, lineHeight: 20 },
+  imageWrap: { marginTop: 12, marginHorizontal: 6 },
   image: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   features: {
     height: FEATURES_H,
     flexDirection: "row",
     justifyContent: "space-around",
     paddingHorizontal: 12,
-    marginTop: 16,
+    marginTop: 12,
   },
-  feature: { alignItems: "center", gap: 10, flex: 1 },
+  feature: { alignItems: "center", gap: 7, flex: 1 },
   featureIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     borderWidth: 1,
     borderColor: goldBorder,
     backgroundColor: "rgba(216,173,106,0.06)",
@@ -511,14 +511,14 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontSize: 11,
     textAlign: "center",
-    lineHeight: 16,
+    lineHeight: 14,
   },
   cta: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    height: 58,
+    height: 54,
     minWidth: 250,
     paddingHorizontal: 34,
     borderRadius: radius.pill,
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     justifyContent: "center",
-    marginTop: 20,
+    marginTop: 16,
   },
   dot: { height: 8, borderRadius: 4, backgroundColor: colors.inkSoft },
   smallRow: {
