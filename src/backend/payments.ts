@@ -1,7 +1,7 @@
-// Paiement réel Mobile Money (fonctions serveur supabase/functions/fedapay-* et feexpay-*).
+// Paiement réel : Mobile Money (fonctions serveur fedapay-* et feexpay-*) et carte bancaire (stripe-*).
 import { supabase } from "./supabase";
 
-export type Gateway = "fedapay" | "feexpay";
+export type Gateway = "fedapay" | "feexpay" | "stripe";
 
 // Prestataire utilisé pour chaque opérateur. Wave passe par FeexPay (clé agrégée Wave active depuis le
 // 16/10/2026 ; Wave échoue chez FedaPay) ; Orange n'existe que chez FeexPay sur ce compte.
@@ -27,6 +27,15 @@ export async function startPayment(p: { collaborationId: string; operator: strin
   });
   if (error) throw new Error(await fnError(error));
   return { ...(data as Omit<PayStart, "gateway">), gateway };
+}
+
+/** Paiement par carte : page de paiement Stripe, facturée en euros ou en dollars. */
+export async function startCardPayment(p: { collaborationId: string; currency: "EUR" | "USD" }): Promise<PayStart> {
+  const { data, error } = await supabase.functions.invoke("stripe-collab-payment", {
+    body: { collaborationId: p.collaborationId, currency: p.currency.toLowerCase() },
+  });
+  if (error) throw new Error(await fnError(error));
+  return { ...(data as Omit<PayStart, "gateway">), gateway: "stripe" };
 }
 
 export async function checkPayment(gateway: Gateway, transactionId: string, collaborationId: string): Promise<PayCheck> {

@@ -1,12 +1,11 @@
-// Paiement en séquestre : Mobile Money via FedaPay ou FeexPay selon l'opérateur (réel sur téléphone,
-// simulé dans l'aperçu web « demo »).
-// La carte bancaire n'est pas encore branchée en réel.
+// Paiement en séquestre : Mobile Money via FedaPay ou FeexPay selon l'opérateur, carte bancaire via Stripe
+// (réel sur téléphone, simulé dans l'aperçu web « demo »).
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
-import { checkPayment, type PayStart, startPayment } from "../../backend/payments";
+import { checkPayment, type PayStart, startCardPayment, startPayment } from "../../backend/payments";
 import { refresh } from "../../backend/sync";
 import { isLive } from "../../backend/upload";
 import { Chips, Field, Label, Row, Segmented, toast } from "../../kit";
@@ -126,10 +125,11 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
       }, 1200);
       return;
     }
-    if (method === "card") return toast("Le paiement par carte arrive bientôt : utilise Mobile Money", "info");
     setBusy(true);
     try {
-      const r = await startPayment({ collaborationId: collab.id, operator: op, phone, country });
+      const r = method === "card"
+        ? await startCardPayment({ collaborationId: collab.id, currency })
+        : await startPayment({ collaborationId: collab.id, operator: op, phone, country });
       setPending(r);
       if (r.paymentUrl) void openPage(r.paymentUrl);
     } catch (e) {
@@ -169,7 +169,9 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
           <Text style={[type.body, { textAlign: "center" }]}>
             {pending.pushSent
               ? `Une demande de paiement de ${fcfa(total)} a été envoyée au ${cc.prefix} ${phone}. Confirme-la sur ton téléphone (code secret ${op}).`
-              : `Termine le paiement de ${fcfa(total)} sur la page ${PAGE[op] ?? "de paiement"} qui vient de s'ouvrir, puis reviens ici.`}
+              : pending.gateway === "stripe"
+                ? `Termine le paiement de ${(total / RATES[currency]).toFixed(2)} ${currency === "EUR" ? "€" : "$"} sur la page de paiement sécurisée Stripe qui vient de s'ouvrir, puis reviens ici.`
+                : `Termine le paiement de ${fcfa(total)} sur la page ${PAGE[op] ?? "de paiement"} qui vient de s'ouvrir, puis reviens ici.`}
           </Text>
           <Text style={[type.tiny, { textAlign: "center" }]}>{"En attente de la confirmation de l'opérateur…"}</Text>
         </Animated.View>
