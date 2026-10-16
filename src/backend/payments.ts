@@ -34,3 +34,21 @@ export async function checkPayment(gateway: Gateway, transactionId: string, coll
   if (error) throw new Error(await fnError(error));
   return data as PayCheck;
 }
+
+// ─────────────── Retraits des créateurs (admin) : virement FeexPay ───────────────
+
+export type PayoutResult = { state: "completed" | "processing" | "failed" | string; reference?: string | null; reason?: string; amount?: number };
+
+/** Envoie le virement FeexPay d'une demande de retrait (admin). */
+export async function sendWithdrawalPayout(withdrawalId: string): Promise<PayoutResult> {
+  const { data, error } = await supabase.functions.invoke("feexpay-payout", { body: { withdrawalId, action: "send" } });
+  if (error) throw new Error(await fnError(error));
+  return data as PayoutResult;
+}
+
+/** Relit chez FeexPay le statut d'un virement « en cours » (admin). */
+export async function checkWithdrawalPayout(withdrawalId: string): Promise<PayoutResult> {
+  const { data, error } = await supabase.functions.invoke("feexpay-payout", { body: { withdrawalId, action: "check" } });
+  if (error) throw new Error(await fnError(error));
+  return data as PayoutResult;
+}

@@ -215,6 +215,7 @@ export type Withdrawal = {
   status: WithdrawalStatus;
   rejection_reason?: string;
   proof_url?: string;
+  transaction_id?: string; // référence du virement FeexPay
   created_at: string;
 };
 

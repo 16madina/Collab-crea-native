@@ -1,6 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
+import { checkWithdrawalPayout, type PayoutResult, sendWithdrawalPayout } from "../../backend/payments";
+import { refresh } from "../../backend/sync";
+import { isLive } from "../../backend/upload";
 import { Badge, Banner, Card, Empty, fmtDate, Field, Label, Row, toast } from "../../kit";
 import { displayName, fcfa, useDB } from "../../store";
 import { COLLAB_LABEL, Withdrawal, WithdrawalStatus } from "../../types";
@@ -84,13 +87,14 @@ export function Withdrawals() {
   const [proof, setProof] = useState(false);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState(false);
   const w = ws.find((x) => x.id === sel);
   const k = useMemo(() => {
     const open = ws.filter((x) => ["pending", "approved", "processing"].includes(x.status));
     return { pending: open.length, done: ws.filter((x) => x.status === "completed").length, due: open.reduce((t, x) => t + x.amount, 0) };
   }, [ws]);
   const isOpen = (x?: Withdrawal) => !!x && ["pending", "approved", "processing"].includes(x.status);
-  const close = () => { setSel(null); setProof(false); setReason(""); };
+  const close = () => { setSel(null); setProof(false); setReason(""); setConfirm(false); };
   const finalize = () => {
     if (!w) return;
     if (!proof) return toast("Veuillez uploader la preuve du virement", "error");
@@ -98,13 +102,45 @@ export function Withdrawals() {
     toast("Retrait finalisé");
     close();
   };
-  const auto = () => {
+  // Virement réel via FeexPay (Mobile Money) ; simulé dans l'aperçu web « demo ».
+  const showPayout = (r: PayoutResult) => {
+    if (r.state === "completed") toast("Virement envoyé via FeexPay ✅");
+    else if (r.state === "failed") toast(`Virement refusé : ${r.reason ?? "erreur"} — solde recrédité`, "error");
+    else toast("Virement en cours chez FeexPay : vérifie dans quelques minutes", "info");
+  };
+  const auto = async () => {
     if (!w) return;
-    toast(w.method === "paypal" ? "PayPal payout envoyé !" : "Virement Mobile Money envoyé !");
+    if (!confirm) return setConfirm(true);
     setBusy(true);
     const id = w.id;
-    setTimeout(() => { useDB.getState().adminFinalizeWithdrawal(id); setBusy(false); toast("Retrait effectué"); close(); }, 1200);
+    if (!isLive()) {
+      setTimeout(() => { useDB.getState().adminFinalizeWithdrawal(id); setBusy(false); toast("Retrait effectué"); close(); }, 1200);
+      return;
+    }
+    try {
+      showPayout(await sendWithdrawalPayout(id));
+      close();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setBusy(false);
+      setConfirm(false);
+      void refresh(useDB as never);
+    }
   };
+  const check = async () => {
+    if (!w) return;
+    setBusy(true);
+    try {
+      showPayout(await checkWithdrawalPayout(w.id));
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setBusy(false);
+      void refresh(useDB as never);
+    }
+  };
+  const net = w ? w.amount - Math.round(w.amount * 0.02) : 0;
   const reject = () => {
     if (!w) return;
     if (!reason.trim()) return toast("Motif du refus requis", "error");
@@ -130,9 +166,17 @@ export function Withdrawals() {
         </Item>
       ))}
       <Sheet visible={!!w} onClose={close} title={w ? `Retrait ${fcfa(w.amount)}` : ""}
-        footer={isOpen(w) ? (
+        footer={w?.status === "processing" && isLive() ? (
+          <Button label={busy ? "Vérification…" : "Vérifier le virement FeexPay"} icon="refresh" onPress={busy ? undefined : () => void check()} />
+        ) : isOpen(w) ? (
           <>
-            <Button label={busy ? "Envoi en cours…" : "Payout automatique"} icon="flash" onPress={busy ? undefined : auto} />
+            {w?.method === "mobile_money" ? (
+              <Button
+                label={busy ? "Envoi en cours…" : confirm ? `Confirmer l'envoi de ${fcfa(net)}` : "Envoyer via FeexPay"}
+                icon="flash"
+                onPress={busy ? undefined : () => void auto()}
+              />
+            ) : null}
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Button small label="Finaliser manuellement" icon={null} variant="dark" style={{ flex: 1 }} onPress={finalize} />
               <Button small label="Refuser" icon={null} variant="outline" style={{ flex: 1 }} onPress={reject} />
@@ -147,6 +191,9 @@ export function Withdrawals() {
             {w.method === "paypal" ? (<><Row label="Email PayPal" value={w.paypal_email ?? "—"} /><Row label="Devise" value={w.payout_currency ?? "EUR"} /></>) : null}
             {w.method === "bank" ? <Row label="Banque" value="Coordonnées bancaires (RIB) au dossier" /> : null}
             <Row label="Statut" value={W_STATUS[w.status][0]} bold />
+            {w.method === "mobile_money" && isOpen(w) ? <Row label="Montant viré (après frais ~2 %)" value={fcfa(net)} /> : null}
+            {confirm ? <Banner tone="warning">{`Appuie encore pour envoyer ${fcfa(net)} sur le ${w.mobile_provider ?? ""} ${w.mobile_number ?? ""}. Cet argent part de ton solde FeexPay.`}</Banner> : null}
+            {w.transaction_id ? <Row label="Référence FeexPay" value={w.transaction_id} /> : null}
             {w.rejection_reason ? <Banner tone="danger">{`Motif : ${w.rejection_reason}`}</Banner> : null}
             {isOpen(w) ? (
               <>

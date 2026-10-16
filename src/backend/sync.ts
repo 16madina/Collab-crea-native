@@ -387,6 +387,7 @@ export const map = {
       status: r.status as Withdrawal["status"],
       rejection_reason: opt(r.rejection_reason as string),
       proof_url: opt(r.proof_url as string),
+      transaction_id: opt(r.transaction_id as string),
       created_at: r.created_at as string,
     }),
   },
