@@ -63,6 +63,17 @@ npx expo lint        # lint
   Déploiement : `supabase functions deploy <nom> --project-ref qsbkwdtchhzclpxjrhnt --use-api --no-verify-jwt`.
   Opérateurs proposés (`MOBILE_MONEY` dans `src/components/collab/PaymentSheet.tsx`) : Côte d'Ivoire Wave + MTN,
   Bénin MTN + Moov, Togo Moov. Dans l'aperçu web (mode demo), le paiement reste simulé.
+- Paiement Mobile Money via **FeexPay** (boutique DeeDegital, identifiant `7CyXfoxfoauYi4X`) pour **Wave et Orange
+  Côte d'Ivoire** : fonctions `feexpay-collab-payment` (renvoie le lien de paiement Wave / Orange Money),
+  `feexpay-collab-verify` et `feexpay-webhook` (webhook FeexPay vers ce projet), code commun
+  `supabase/functions/_shared/feexpay.ts`. Les webhooks FeexPay ne sont pas signés : le serveur relit toujours le
+  statut chez FeexPay et contrôle le montant + la collaboration (`callback_info = collab:<id>`).
+  Secrets Supabase : `FEEXPAY_API_KEY` (clé privée `fp_…`), `FEEXPAY_SHOP_ID`. Clé agrégée Wave activée le 16/10/2026.
+  Liste d'IP autorisées FeexPay : l'ancienne IP Lovable (18.153.50.9) est **désactivée** — ne pas la réactiver ni
+  ajouter d'IP fixe, les fonctions Supabase sortent par des adresses qui changent.
+  Choix du prestataire par opérateur : `GATEWAY` dans `src/backend/payments.ts` (Wave + Orange → FeexPay,
+  MTN + Moov → FedaPay). **Premier vrai paiement réussi le 16/10/2026** : Wave, 440 FCFA, collaboration
+  `f4ec451b` (« pub the minceur »), passée en séquestre automatiquement.
 
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
@@ -73,13 +84,13 @@ npx expo lint        # lint
    - Ménage dans le tableau de bord Supabase : supprimer les 4 anciennes copies
      `collaboration-content/{collab}/…` (doublons à la racine du bucket).
 2. **Paiements — suite** :
-   - Testé le 15/10 jusqu'à la page Wave (transaction FedaPay 113708028 créée, vérification OK, rien payé).
-     Reste : un vrai paiement confirmé dans Wave depuis l'iPhone, puis vérifier le passage en séquestre et
-     la réception du webhook (FedaPay > Webhooks > #9252 > Logs).
-   - **Orange Money** n'est pas activé sur le compte FedaPay (ni Wave Sénégal) : demander l'activation à FedaPay,
-     puis ajouter « Orange » dans `MOBILE_MONEY` (le serveur connaît déjà les modes orange_money_ci/sn/bf).
-   - Carte bancaire : pas encore branchée en réel (l'app affiche « bientôt »).
-   - Retraits des créateurs (payout FedaPay) : encore manuels côté admin.
+   - Tester un vrai paiement **Orange Money** Côte d'Ivoire (via FeexPay) et un paiement MTN (via FedaPay).
+   - Vérifier la réception du webhook FeexPay (Supabase > Edge Functions > feexpay-webhook > Logs).
+   - Wave échoue chez FedaPay (« transaction échouée ») : support FedaPay contacté le 15/10 (chat + courriel à
+     support@fedapay.com depuis dinastar@hotmail.com), avec demande d'activation d'Orange Money et Wave Sénégal.
+   - Carte bancaire : pas encore branchée en réel (l'app affiche « bientôt » ; FeexPay demande d'abord
+     l'« Activation cartes bancaires »).
+   - Retraits des créateurs (payout FedaPay / FeexPay) : encore manuels côté admin.
    - L'ancien webhook FedaPay (vers l'ancien projet Lovable) est encore actif : le supprimer après la bascule.
 3. **Notifications push** : `eas init`, `eas credentials` (clé APNs + Firebase), clé service dans le vault Supabase.
 4. **Build installable** (EAS → TestFlight / APK), puis publication App Store / Google Play.
