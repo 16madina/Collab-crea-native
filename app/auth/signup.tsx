@@ -409,10 +409,10 @@ export default function Signup() {
             <View style={{ flexDirection: "row", gap: 12 }}>
               {(
                 [
-                  ["creator", "Créateur", "Influenceur, artiste", "sparkles"],
-                  ["brand", "Marque", "Entreprise, agence", "briefcase"],
+                  ["creator", "Créateur", "Influenceur, artiste", "sparkles", ROLE_BG.creator],
+                  ["brand", "Marque", "Entreprise, agence", "briefcase", ROLE_BG.brand],
                 ] as const
-              ).map(([r, l, d, ic]) => {
+              ).map(([r, l, d, ic, bg]) => {
                 const on = role === r;
                 return (
                   <Press
@@ -425,6 +425,12 @@ export default function Signup() {
                       on && shadow.glow,
                     ]}
                   >
+                    {/* Petite image de fond, discrète (plus visible quand la case est choisie). */}
+                    <Image
+                      source={bg}
+                      contentFit="cover"
+                      style={[StyleSheet.absoluteFill, { opacity: on ? 0.32 : 0.16 }]}
+                    />
                     <View
                       style={[
                         styles.roleIcon,
@@ -707,6 +713,12 @@ export default function Signup() {
   );
 }
 
+// Images de fond des cases « Créateur » et « Marque » (étape « Vous êtes… »).
+const ROLE_BG = {
+  creator: require("../../assets/creators/c2.jpg"),
+  brand: require("../../assets/brand/hero.jpg"),
+};
+
 const styles = StyleSheet.create({
   avatarPick: {
     width: 116,
@@ -749,6 +761,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.line,
     minHeight: 150,
+    overflow: "hidden",
   },
   roleOn: { backgroundColor: colors.night, borderColor: colors.night },
   roleIcon: {
