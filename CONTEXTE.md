@@ -121,8 +121,9 @@ npx expo lint        # lint
    - iOS : clé push APNs `6FD9WSWG5G` (équipe Apple `6XW2XM3NDF`) enregistrée via `eas credentials`.
    - Serveur : les déclencheurs SQL appellent `send-push-notification` avec le secret `push_trigger_secret` généré
      dans le vault (migration `20261016030000_push_trigger_secret.sql`) ; testé (réponse « No tokens found »).
-   - Le compte Apple dinastar@gmail.com est **bloqué** (erreur -20209) : le débloquer sur iforgot.apple.com avant
-     le build iPhone. Les notifications push ne marchent pas dans Expo Go : il faut un build EAS.
+   - Compte Apple : au build iPhone, saisir l'Apple ID et le mot de passe actuels (un ancien mot de passe enregistré
+     dans le trousseau du Mac a provoqué un blocage temporaire le 16/10, résolu). Les notifications push ne marchent
+     pas dans Expo Go : il faut un build EAS.
 4. **Build installable** (EAS → TestFlight / APK), puis publication App Store / Google Play.
 5. Migration finale des nouveaux inscrits de l'ancienne app + email « définir mon mot de passe ».
 6. Site collabcrea.com (CGU, confidentialité, page sécurité des enfants, liens de téléchargement), puis bascule du domaine.
