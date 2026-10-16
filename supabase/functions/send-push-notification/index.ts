@@ -1,10 +1,11 @@
 // Envoi des notifications push (appelé par les déclencheurs SQL via send_push_notification, ou par un admin).
+// Déclencheurs SQL : en-tête x-push-secret (secret généré dans le vault, vérifié par check_push_secret).
 // - Jetons Expo (« ExponentPushToken[...] », app native) → service push d'Expo (qui relaie vers APNs / FCM
 //   avec la clé APNs et le compte Firebase enregistrés dans EAS).
 // - Autres jetons (anciennes apps Capacitor) → FCM HTTP v1 avec FIREBASE_SERVICE_ACCOUNT (comme la version web).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-push-secret" };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 type Payload = { user_id?: string; user_ids?: string[]; title: string; body: string; data?: Record<string, unknown>; send_to_all?: boolean };
@@ -38,10 +39,12 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(url, serviceKey);
 
-    // Autorisé : clé service (déclencheurs SQL) ou administrateur connecté.
+    // Autorisé : secret des déclencheurs SQL, clé service, ou administrateur connecté.
+    const pushSecret = req.headers.get("x-push-secret") ?? "";
+    const { data: trusted } = pushSecret ? await sb.rpc("check_push_secret", { p_secret: pushSecret }) : { data: false };
     const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
-    if (!token) return json({ error: "Unauthorized" }, 401);
-    if (token !== serviceKey) {
+    if (!trusted && !token) return json({ error: "Unauthorized" }, 401);
+    if (!trusted && token !== serviceKey) {
       const { data: { user } } = await sb.auth.getUser(token);
       if (!user) return json({ error: "Unauthorized" }, 401);
       const { data: admin } = await sb.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
