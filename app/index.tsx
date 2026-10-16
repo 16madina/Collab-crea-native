@@ -27,6 +27,15 @@ import { Role } from "../src/types";
 import { Press } from "../src/ui";
 
 const { width: W, height: H } = Dimensions.get("window");
+// Gabarit commun des pages 1 à 3 : chaque zone a la même hauteur sur toutes les pages, pour que titre,
+// image, atouts, bouton et points tombent exactement au même endroit d'une page à l'autre.
+const TOP_BAR_H = 44; // « Continuer comme invité » / « Passer »
+const HEADER_H = 150; // titre (2 lignes) + texte (3 lignes max)
+const FEATURES_H = 100; // rangée de 3 atouts
+const BOTTOM_H = 104; // bouton + points
+const GAPS_H = 50; // espaces entre les zones
+const imageHeight = (top: number, bottom: number) =>
+  Math.round(Math.max(150, Math.min(340, H - top - bottom - TOP_BAR_H - HEADER_H - FEATURES_H - BOTTOM_H - GAPS_H)));
 const IMG = {
   hero: require("../assets/onboarding/hero.jpg"),
   logo: require("../assets/logo.png"),
@@ -47,6 +56,11 @@ const SLIDES: {
     key: "profile",
     body: "Présente ton univers, tes réseaux et tes statistiques en quelques étapes seulement.",
     image: IMG.profile,
+    features: [
+      { icon: "shield-checkmark-outline", label: "Un profil\nvérifié" },
+      { icon: "analytics-outline", label: "Des statistiques\nréelles" },
+      { icon: "sparkles-outline", label: "Plus de\nvisibilité" },
+    ],
     cta: "Suivant",
   },  {
     key: "collab",
@@ -171,6 +185,7 @@ export default function Onboarding() {
   const guest = useDB((s) => s.guest);
   const continueAsGuest = useDB((s) => s.continueAsGuest);
   const [index, setIndex] = useState(0);
+  const imgH = imageHeight(insets.top + 12, insets.bottom + 18);
   const [chosen, setChosen] = useState<Role>("creator");
   const list = useRef<FlatList>(null);
   const initial = useRef<"user" | "guest" | null>(userId ? "user" : guest || bootFlags.goHome ? "guest" : null);
@@ -325,7 +340,6 @@ export default function Onboarding() {
                     />
                   </Press>
                 </Animated.View>
-                <Dots i={i} />
                 <View style={styles.smallRow}>
                   <Text
                     style={type.tiny}
@@ -353,6 +367,7 @@ export default function Onboarding() {
                       </Text>
                     ))}
                 </View>
+                <Dots i={i} />
               </View>
             </View>
           ) : (
@@ -382,11 +397,13 @@ export default function Onboarding() {
                   <Text style={styles.skipText}>Passer</Text>
                 </Press>
               </View>
-              <View style={{ paddingHorizontal: 26, gap: 14 }}>
+              <View style={styles.header}>
                 <Title k={item.key} />
-                <Text style={styles.body}>{item.body}</Text>
+                <Text style={styles.body} numberOfLines={3}>
+                  {item.body}
+                </Text>
               </View>
-              <View style={styles.imageWrap}>
+              <View style={[styles.imageWrap, { height: imgH }]}>
                 <Image
                   source={item.image}
                   style={styles.image}
@@ -414,8 +431,11 @@ export default function Onboarding() {
                     </View>
                   ))}
                 </View>
-              ) : null}
-              <View style={{ alignItems: "center", gap: 18, marginTop: 18 }}>
+              ) : (
+                <View style={styles.features} />
+              )}
+              <View style={{ flex: 1 }} />
+              <View style={styles.bottom}>
                 <GoldCta
                   label={item.cta}
                   onPress={() =>
@@ -465,12 +485,16 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: "rgba(11,11,11,0.6)",
   },
-  page: { flex: 1, justifyContent: "space-between" },
+  page: { flex: 1 },
   topRow: {
+    height: TOP_BAR_H,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 8,
   },
+  header: { height: HEADER_H, paddingHorizontal: 26, gap: 14 },
+  bottom: { height: BOTTOM_H, alignItems: "center", justifyContent: "flex-end", gap: 18 },
   skip: { paddingHorizontal: 16, paddingVertical: 10 },
   guestBtn: {
     flexDirection: "row",
@@ -494,13 +518,14 @@ const styles = StyleSheet.create({
     lineHeight: 33,
   },
   body: { color: colors.inkSoft, fontSize: 14, lineHeight: 21 },
-  imageWrap: { flex: 1, minHeight: 220, marginTop: 16, marginHorizontal: 6 },
+  imageWrap: { marginTop: 16, marginHorizontal: 6 },
   image: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   features: {
+    height: FEATURES_H,
     flexDirection: "row",
     justifyContent: "space-around",
     paddingHorizontal: 12,
-    marginTop: 6,
+    marginTop: 16,
   },
   feature: { alignItems: "center", gap: 10, flex: 1 },
   featureIcon: {
