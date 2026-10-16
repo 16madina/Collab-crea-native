@@ -30,12 +30,12 @@ const { width: W, height: H } = Dimensions.get("window");
 // Gabarit commun des pages 1 à 3 : chaque zone a la même hauteur sur toutes les pages, pour que titre,
 // image, atouts, bouton et points tombent exactement au même endroit d'une page à l'autre.
 const TOP_BAR_H = 44; // « Continuer comme invité » / « Passer »
-const HEADER_H = 150; // titre (2 lignes) + texte (3 lignes max)
+const HEADER_H = 145; // titre (2 lignes) + texte (3 lignes max)
 const FEATURES_H = 100; // rangée de 3 atouts
 const BOTTOM_H = 104; // bouton + points
-const GAPS_H = 50; // espaces entre les zones
+const GAPS_H = 52; // espaces entre les zones (marges + respiration avant le bouton)
 const imageHeight = (top: number, bottom: number) =>
-  Math.round(Math.max(150, Math.min(340, H - top - bottom - TOP_BAR_H - HEADER_H - FEATURES_H - BOTTOM_H - GAPS_H)));
+  Math.round(Math.max(150, Math.min(460, H - top - bottom - TOP_BAR_H - HEADER_H - FEATURES_H - BOTTOM_H - GAPS_H)));
 const IMG = {
   hero: require("../assets/onboarding/hero.jpg"),
   logo: require("../assets/logo.png"),
