@@ -74,6 +74,13 @@ npx expo lint        # lint
   Choix du prestataire par opérateur : `GATEWAY` dans `src/backend/payments.ts` (Wave + Orange → FeexPay,
   MTN + Moov → FedaPay). **Premier vrai paiement réussi le 16/10/2026** : Wave, 440 FCFA, collaboration
   `f4ec451b` (« pub the minceur »), passée en séquestre automatiquement.
+- **Retraits des créateurs via FeexPay** : dans l'admin (Argent > Retraits), « Envoyer via FeexPay » (2 appuis pour
+  confirmer) appelle `feexpay-payout`, qui verrouille la demande (`withdrawal_payout_start`), vire le montant net
+  (−2 % de frais annoncés au créateur) sur `payouts/public/{wave_ci|orange_ci|mtn_ci|moov_ci}`, puis marque le
+  retrait effectué (`withdrawal_payout_done`) ou refusé + solde recrédité (`withdrawal_payout_failed`). Sans réponse
+  claire de FeexPay, le retrait reste « en cours » (pas de recrédit, pour ne jamais payer deux fois) : bouton
+  « Vérifier le virement FeexPay » + `feexpay-webhook` (reconnaît le virement par sa référence). Migration
+  `20261016000000_feexpay_payouts.sql`. Le virement part du **solde FeexPay** : il doit être suffisant.
 
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
@@ -90,7 +97,11 @@ npx expo lint        # lint
      support@fedapay.com depuis dinastar@hotmail.com), avec demande d'activation d'Orange Money et Wave Sénégal.
    - Carte bancaire : pas encore branchée en réel (l'app affiche « bientôt » ; FeexPay demande d'abord
      l'« Activation cartes bancaires »).
-   - Retraits des créateurs (payout FedaPay / FeexPay) : encore manuels côté admin.
+   - Retraits FeexPay : pas encore testés pour de vrai (portefeuille test à 360 FCFA < minimum de 1 000 FCFA, solde
+     FeexPay trop faible). Vérifier que le « Payout API » est actif dans FeexPay. PayPal / virement bancaire restent
+     manuels (« Finaliser manuellement », dont l'upload de preuve est encore factice).
+   - Collaboration test `f4ec451b` : payée (440 FCFA réels) mais aucun contenu enregistré dans la nouvelle app ;
+     le créateur doit livrer dans l'app avant que la marque puisse valider (crédit prévu : 360 FCFA, ancien barème 10 %).
    - L'ancien webhook FedaPay (vers l'ancien projet Lovable) est encore actif : le supprimer après la bascule.
 3. **Notifications push** : `eas init`, `eas credentials` (clé APNs + Firebase), clé service dans le vault Supabase.
 4. **Build installable** (EAS → TestFlight / APK), puis publication App Store / Google Play.
