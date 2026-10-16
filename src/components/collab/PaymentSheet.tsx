@@ -4,7 +4,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { checkPayment, type PayStart, startPayment } from "../../backend/payments";
 import { refresh } from "../../backend/sync";
@@ -34,6 +34,16 @@ const POLL_MAX = 75; // ≈ 5 minutes
 
 type Pending = Pick<PayStart, "transactionId" | "paymentUrl" | "pushSent" | "gateway">;
 
+/** Ferme la page de paiement ouverte dans l'app : seul iOS sait le faire (ailleurs, dismissBrowser n'existe pas). */
+function closePaymentPage() {
+  if (Platform.OS !== "ios") return;
+  try {
+    void WebBrowser.dismissBrowser().catch(() => {});
+  } catch {
+    // page déjà fermée
+  }
+}
+
 export function PaymentSheet({ visible, onClose, collabId, title }: { visible: boolean; onClose: () => void; collabId: string; title?: string }) {
   const collab = useDB((s) => s.collaborations.find((c) => c.id === collabId));
   const pay = useDB((s) => s.pay);
@@ -44,37 +54,56 @@ export function PaymentSheet({ visible, onClose, collabId, title }: { visible: b
   const [currency, setCurrency] = useState<"EUR" | "USD">("EUR");
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
-  const tries = useRef(0);
+  // onClose change à chaque rendu du parent : on le garde dans une ref pour ne pas relancer l'attente.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   // Attente de la confirmation : on interroge le serveur (qui relit la transaction chez le prestataire).
   useEffect(() => {
     if (!pending || !visible) return;
-    tries.current = 0;
+    let tries = 0;
+    let stopped = false;
+    const stop = () => {
+      stopped = true;
+      clearInterval(timer);
+    };
     const timer = setInterval(async () => {
-      tries.current += 1;
-      try {
-        const r = await checkPayment(pending.gateway, pending.transactionId, collabId);
-        if (r.paid) {
-          clearInterval(timer);
-          void WebBrowser.dismissBrowser().catch(() => {});
-          setPending(null);
-          void refresh(useDB as never);
-          toast("Paiement reçu — montant sécurisé en séquestre 🔒");
-          onClose();
-          return;
-        }
-        if (["declined", "canceled", "expired"].includes(r.status)) {
-          clearInterval(timer);
-          setPending(null);
-          toast(r.status === "expired" ? "Le paiement a expiré, réessaie" : "Paiement refusé ou annulé", "error");
-        }
-      } catch {
-        // erreur réseau passagère : on réessaie au tour suivant
+      if (stopped) return;
+      tries += 1;
+      if (tries > POLL_MAX) {
+        stop();
+        toast("Pas encore de confirmation : si tu as payé, la collaboration se mettra à jour toute seule", "info");
+        return;
       }
-      if (tries.current >= POLL_MAX) clearInterval(timer);
+      let r;
+      try {
+        r = await checkPayment(pending.gateway, pending.transactionId, collabId);
+      } catch {
+        return; // erreur réseau passagère : on réessaie au tour suivant
+      }
+      if (stopped) return;
+      if (r.paid) {
+        stop();
+        setPending(null);
+        toast("Paiement reçu — montant sécurisé en séquestre 🔒");
+        onCloseRef.current();
+        void refresh(useDB as never);
+        closePaymentPage();
+        return;
+      }
+      if (["declined", "canceled", "expired"].includes(r.status)) {
+        stop();
+        setPending(null);
+        toast(r.status === "expired" ? "Le paiement a expiré, réessaie" : "Paiement refusé ou annulé", "error");
+      }
     }, POLL_MS);
-    return () => clearInterval(timer);
-  }, [pending, visible, collabId, onClose]);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
+  }, [pending, visible, collabId]);
 
   if (!collab) return null;
   const c = computeCommission(collab.agreed_amount);
