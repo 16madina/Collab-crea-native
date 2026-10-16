@@ -89,6 +89,10 @@ npx expo lint        # lint
   `p_method = 'card'` (migration `20261016020000_card_payments.sql`). Secrets : `STRIPE_SECRET_KEY` (clé standard
   « collabcrea-native » créée le 16/10), `STRIPE_WEBHOOK_SECRET`. La marque reçoit « ✅ Paiement confirmé »
   à chaque paiement (migration `20261016010000_brand_payment_notification.sql`).
+- **Téléphone à l'inscription** : vérifié selon le pays de résidence (`src/phone.ts`, libphonenumber-js) puis
+  enregistré au format international (+2250701234567) dans la table privée `profile_private` (lisible seulement
+  par la personne et les admins, jamais dans le profil public). Rempli par `handle_new_user` depuis les
+  métadonnées `phone` (migration `20261016040000_profile_phone.sql`).
 
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :

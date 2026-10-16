@@ -27,7 +27,7 @@ import {
   SelectField,
 } from "../../src/components/account/widgets";
 import { allCountries } from "../../src/countries";
-import { phoneError, phoneExample } from "../../src/phone";
+import { phoneE164, phoneError, phoneExample } from "../../src/phone";
 import { Chips, Field, Label, toast } from "../../src/kit";
 import { useDB } from "../../src/store";
 import { colors, radius, shadow, type } from "../../src/theme";
@@ -210,6 +210,7 @@ export default function Signup() {
           ? Object.fromEntries(networks.map((n) => [n, ""]))
           : undefined,
       inviteCode: inviteRequired ? code.trim().toUpperCase() : undefined,
+      phone: phoneE164(phone, residence?.code),
       role: role!,
       full_name,
       avatar_url: avatarFile ? "" : avatar!,

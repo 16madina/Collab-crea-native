@@ -189,6 +189,7 @@ type Actions = {
       password: string;
       inviteCode?: string;
       followers?: Profile["followers"];
+      phone?: string; // format international (+225…), stocké dans la table privée profile_private
     },
   ) => AsyncResult;
   signOut: () => void;
@@ -477,7 +478,7 @@ export const useDB = create<DB & Actions>()((set, get) => {
               : seed.CREATOR_ID,
       });
     },
-    signUp: async ({ email, password, inviteCode, followers, ...p }) => {
+    signUp: async ({ email, password, inviteCode, followers, phone, ...p }) => {
       if (!live()) {
         // Aperçu démo (sans réseau) : compte créé en mémoire.
         const s = get();
@@ -494,11 +495,13 @@ export const useDB = create<DB & Actions>()((set, get) => {
           guest: false,
         }));
         void password;
+        void phone;
         return { ok: true, id: user_id };
       }
       const meta: Record<string, unknown> = {
         role: p.role === "brand" ? "brand" : "creator",
         invite_code: inviteCode ?? "",
+        phone: phone ?? null,
         full_name: p.full_name,
         avatar_url: typeof p.avatar_url === "string" ? p.avatar_url : null,
         country: p.country,
