@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import { Badge, Banner, Chips, Empty, fmtDate, Field, Label, Row, toast } from "../../kit";
 import { displayName, useDB } from "../../store";
-import { Profile, Report, SocialVerification } from "../../types";
+import { IdentityAI, Profile, Report, SocialVerification } from "../../types";
 import { colors, radius, type } from "../../theme";
 import { Avatar, Button } from "../../ui";
 import { Act, Item, Placeholder, st } from "./common";
@@ -21,6 +21,10 @@ export function Identities() {
     () => profiles.filter((p) => p.identity_submitted_at && !p.identity_verified).sort((a, b) => a.identity_submitted_at!.localeCompare(b.identity_submitted_at!)),
     [profiles],
   );
+  const autoApproved = useMemo(
+    () => profiles.filter((p) => p.identity_verified && p.identity_ai?.decision === "approved").sort((a, b) => b.identity_ai!.at.localeCompare(a.identity_ai!.at)).slice(0, 10),
+    [profiles],
+  );
   const [cur, setCur] = useState<{ p: Profile; approve: boolean } | null>(null);
   const [choice, setChoice] = useState("");
   const confirm = () => {
@@ -33,6 +37,20 @@ export function Identities() {
   return (
     <View style={{ gap: 12 }}>
       {queue.length === 0 ? <Empty icon="shield-checkmark-outline" title="File vide" text="Aucune identité en attente de vérification." /> : null}
+      {autoApproved.length ? (
+        <View style={{ gap: 8 }}>
+          <Text style={[type.h3, { marginTop: 4 }]}>Validées automatiquement ({autoApproved.length})</Text>
+          {autoApproved.map((p) => (
+            <View key={p.user_id} style={[st.row, { gap: 10 }]}>
+              <Avatar uri={p.avatar_url} size={36} />
+              <View style={{ flex: 1 }}>
+                <Text style={st.name}>{displayName(p)}</Text>
+                <Text style={type.small}>{p.identity_ai!.reason}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : null}
       {queue.map((p, i) => (
         <Item key={p.user_id} i={i}>
           <View style={st.row}>
@@ -50,7 +68,7 @@ export function Identities() {
               <View style={{ flexDirection: "row", gap: 6 }}>
                 {p.selfie_url ? <PrivateFolder bucket="selfies" folder={p.selfie_url.split("/").slice(0, -1).join("/")} style={{ flex: 1, height: 110, borderRadius: radius.md }} /> : <Placeholder label="Selfie" icon="camera-outline" h={110} />}
               </View>
-              <Text style={type.small}>Pièce d'identité</Text>
+              <Text style={type.small}>{"Pièce d'identité"}</Text>
               <View style={{ flexDirection: "row", gap: 6 }}>
                 {p.identity_document_url ? (
                   <PrivateFolder bucket="identity-documents" folder={p.identity_document_url.split("/").slice(0, -1).join("/")} style={{ flex: 1, height: 110, borderRadius: radius.md }} />
@@ -58,6 +76,7 @@ export function Identities() {
                   <Placeholder label="Pièce d'identité" icon="card-outline" h={110} />
                 )}
               </View>
+              {p.identity_ai ? <AiReport ai={p.identity_ai} /> : null}
               {p.identity_checks?.available ? (
                 <View style={{ gap: 6, marginTop: 4 }}>
                   {/* Contrôles faits sur le téléphone de la personne : indicatifs, à confirmer en regardant les photos. */}
@@ -217,6 +236,23 @@ export function Moderation() {
           </>
         ) : null}
       </Sheet>
+    </View>
+  );
+}
+
+/** Rapport de la vérification automatique (Amazon Rekognition + Textract), affiché à l'admin. */
+function AiReport({ ai }: { ai: IdentityAI }) {
+  const face = ai.face_similarity;
+  return (
+    <View style={{ gap: 4, marginTop: 4, padding: 10, borderRadius: radius.md, backgroundColor: colors.surfaceHi }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <Ionicons name="sparkles" size={14} color={colors.primary} />
+        <Text style={[type.h3, { flex: 1 }]}>Vérification automatique</Text>
+        <Text style={{ fontWeight: "800", color: face == null ? colors.muted : face >= 90 ? colors.success : face >= 70 ? colors.warning : colors.danger }}>
+          {face == null ? "visage ?" : `visage ${face} %`}
+        </Text>
+      </View>
+      <Text style={type.small}>{ai.reason}</Text>
     </View>
   );
 }

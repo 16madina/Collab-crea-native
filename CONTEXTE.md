@@ -110,6 +110,15 @@ npx expo lint        # lint
   présent sur la pièce (`docChecks.native.ts`). Résultat montré à la personne avant l'envoi et à l'admin,
   stocké dans `profiles.identity_checks` (migration `20261016050000_identity_checks.sql`). Indicatif : ne
   détecte pas une contrefaçon soignée (niveau 2 possible : puce NFC du passeport ou Smile ID).
+  **Validation automatique côté serveur** (fonction `verify-identity`) : Amazon Rekognition compare le visage
+  du scan à la photo de la pièce (% de ressemblance), Amazon Textract lit la pièce (MRZ, expiration, nom).
+  Visage ≥ 90 % + nom identique + pièce valide (+ MRZ valide si lue, obligatoire pour un passeport) →
+  `identity_verified = true` automatiquement + notification ; sinon la demande reste dans Admin › Identités
+  avec le rapport (`profiles.identity_ai`, écrit seulement par le serveur, protégé par `guard_profile`,
+  migration `20261016060000_identity_ai.sql`). Aucun refus automatique. AWS : utilisateur IAM
+  `collabcrea-verification` (règle `CollabCreaVerificationIdentite` : CompareFaces, DetectFaces,
+  DetectDocumentText), région eu-west-1 (Rekognition absent à Paris). Secrets Supabase : `AWS_ACCESS_KEY_ID`,
+  `AWS_SECRET_ACCESS_KEY` (espaces ignorés par le code). Coût ≈ 1 à 3 FCFA par vérification.
 ## Reste à faire (par priorité)
 1. **Fin de la copie des médias** — encore sur l'ancien stockage Lovable :
    - 20 fichiers privés (9 pièces d'identité, 8 selfies, 3 preuves de retrait) : illisibles sans la clé

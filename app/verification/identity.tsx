@@ -8,6 +8,7 @@ import { useDB } from "../../src/store";
 import { colors, radius, shadow, type } from "../../src/theme";
 import { IdentityChecks, Profile } from "../../src/types";
 import { Button, Press } from "../../src/ui";
+import { supabase } from "../../src/backend/supabase";
 import { isLive, uploadFile, type Picked } from "../../src/backend/upload";
 import { Analysis } from "../../src/components/verification/Analysis";
 import { DocCapture } from "../../src/components/verification/DocCapture";
@@ -63,6 +64,8 @@ function Identity({ me }: { me: Profile }) {
   const [front, setFront] = useState<Picked | null>(null);
   const [back, setBack] = useState<Picked | null>(null);
   const [checks, setChecks] = useState<IdentityChecks | null>(null);
+  const [aiApproved, setAiApproved] = useState(false);
+  const updateProfile = useDB((s) => s.updateProfile);
   const uploaded = useRef<{ document_url?: string; selfie_url?: string }>({});
   // Aperçu web (pas de caméra) : le parcours se visite, mais rien n'est envoyé en ligne.
   const preview = Platform.OS === "web";
@@ -255,8 +258,8 @@ function Identity({ me }: { me: Profile }) {
       <View style={styles.full}>
         <Analysis
           title="Vérification en cours…"
-          doneTitle="Demande envoyée"
-          steps={["Chiffrement des photos", "Envoi sécurisé des fichiers", "Contrôle de la qualité du document", "Transmission à l'équipe de vérification"]}
+          doneTitle={aiApproved ? "Identité vérifiée" : "Demande envoyée"}
+          steps={["Chiffrement des photos", "Envoi sécurisé des fichiers", "Comparaison du visage avec la pièce", "Vérification automatique de la pièce"]}
           task={async () => {
             if (preview || !isLive()) return;
             const sub = `identity/${Date.now()}`;
@@ -268,6 +271,12 @@ function Identity({ me }: { me: Profile }) {
             const document_url = front ? await uploadFile("identity-documents", { ...front, name: `recto-${doc.key}.jpg` }, sub) : undefined;
             if (back) await uploadFile("identity-documents", { ...back, name: `verso-${doc.key}.jpg` }, sub);
             uploaded.current = { document_url, selfie_url };
+            // Vérification automatique sur le serveur (Amazon Rekognition + Textract). Si elle n'est pas sûre
+            // ou échoue, la demande part simplement à l'admin.
+            const { data } = await supabase.functions
+              .invoke("verify-identity", { body: { selfie_url, document_url, doc_type: doc.key } })
+              .catch(() => ({ data: null }));
+            setAiApproved(data?.decision === "approved");
           }}
           onError={(m) => {
             toast(m, "error");
@@ -277,6 +286,11 @@ function Identity({ me }: { me: Profile }) {
             if (preview && isLive()) {
               toast("Aperçu terminé : la vraie vérification se fait depuis l'app sur téléphone.");
               return restart();
+            }
+            if (aiApproved) {
+              // Déjà validée par le serveur : on met juste l'app à jour (en une seule fois).
+              updateProfile({ identity_verified: true, identity_method: "face_scan", identity_submitted_at: new Date().toISOString(), identity_checks: checks ?? undefined });
+              return toast("Identité vérifiée ✅");
             }
             submitIdentity("face_scan", uploaded.current, checks ?? undefined);
             toast("Demande envoyée ! Réponse sous 24 h.");

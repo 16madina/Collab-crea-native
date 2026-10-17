@@ -84,6 +84,7 @@ export const map = {
         identity_document_url: opt(r.identity_document_url as string),
         selfie_url: opt(r.selfie_url as string),
         identity_checks: (r.identity_checks as Profile["identity_checks"]) ?? undefined,
+        identity_ai: (r.identity_ai as Profile["identity_ai"]) ?? undefined, // lecture seule (écrit par le serveur)
         is_banned: !!r.is_banned,
         ban_reason: opt(r.ban_reason as string),
         rating: r.rating == null ? undefined : Number(r.rating),

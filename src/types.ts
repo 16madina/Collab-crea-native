@@ -38,6 +38,7 @@ export type Profile = {
   identity_document_url?: string; // chemin privé (bucket identity-documents)
   selfie_url?: string; // chemin privé (bucket selfies)
   identity_checks?: IdentityChecks; // contrôles automatiques de la pièce (faits sur le téléphone)
+  identity_ai?: IdentityAI; // rapport de la vérification automatique (serveur, lecture seule)
   // modération
   is_banned?: boolean;
   ban_reason?: string;
@@ -283,4 +284,21 @@ export type IdentityChecks = {
   expired?: boolean;
   name_match?: boolean;
   face_on_doc?: boolean;
+};
+
+/** Rapport de la vérification automatique côté serveur (Amazon Rekognition + Textract). */
+export type IdentityAI = {
+  at: string;
+  decision: "approved" | "review";
+  reason: string;
+  face_similarity: number | null;
+  name_match: boolean | null;
+  doc_name?: string;
+  mrz_found: boolean;
+  mrz_valid: boolean | null;
+  mrz_checks?: string;
+  doc_number?: string;
+  country?: string;
+  expiry?: string;
+  expired: boolean | null;
 };
