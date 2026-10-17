@@ -79,7 +79,8 @@ const CATS: {
   { key: "Humour", label: "Humour", icon: "emoticon-happy-outline" },
 ];
 
-const HERO_IMG = require("../../assets/creators/c8.jpg");
+// Image de fond de l'accueil (générée avec Grok) : visage en haut à droite, partie gauche sombre pour le texte.
+const HERO_IMG = require("../../assets/home/hero-collab.jpg");
 
 const shadowOf = (t: Pal) => ({
   ...luxShadow,
@@ -694,8 +695,9 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
 
           <Animated.View
             entering={FadeIn.duration(500)}
-            style={[styles.hero, { paddingTop: insets.top + 8 }]}
+            style={[styles.hero, { paddingTop: insets.top + 8, height: Math.round(W * 1.05) + insets.top }]}
           >
+            {/* Image en plein fond, sur toute la largeur, qui se fond dans la page en bas (pas de cadre). */}
             <Image
               source={HERO_IMG}
               style={styles.heroImg}
@@ -703,18 +705,20 @@ function CreatorHome({ brandSpace = false }: { brandSpace?: boolean }) {
               contentPosition="top"
             />
             <LinearGradient
-              colors={[
-                "rgba(48,32,28,0.78)",
-                "rgba(48,32,28,0.45)",
-                "rgba(48,32,28,0)",
-              ]}
-              locations={[0, 0.45, 0.85]}
+              colors={["rgba(0,0,0,0.62)", "rgba(0,0,0,0.25)", "rgba(0,0,0,0)"]}
+              locations={[0, 0.45, 0.75]}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
               style={StyleSheet.absoluteFill}
             />
             <LinearGradient
-              colors={["rgba(255,228,205,0.18)", "rgba(166,95,70,0.12)"]}
+              colors={["rgba(0,0,0,0.45)", "rgba(0,0,0,0)"]}
+              locations={[0, 0.22]}
+              style={StyleSheet.absoluteFill}
+            />
+            <LinearGradient
+              colors={[`${t.bgGrad[0]}00`, t.bgGrad[0]]}
+              locations={[0.86, 1]}
               style={StyleSheet.absoluteFill}
             />
             <View style={styles.heroTop}>
@@ -1033,19 +1037,16 @@ const makeStyles = (t: Pal, light = false) =>
       justifyContent: "center",
     },
     hero: {
-      height: Math.round(W * 0.66) + 90,
-      borderBottomLeftRadius: 28,
-      borderBottomRightRadius: 28,
       overflow: "hidden",
       paddingHorizontal: 18,
-      backgroundColor: "#3A2620",
+      backgroundColor: "#000",
     },
     heroImg: {
       position: "absolute",
       top: 0,
       bottom: 0,
+      left: 0,
       right: 0,
-      width: "68%",
     },
     heroTop: {
       flexDirection: "row",
@@ -1065,8 +1066,8 @@ const makeStyles = (t: Pal, light = false) =>
     heroBody: {
       flex: 1,
       justifyContent: "flex-end",
-      paddingBottom: 22,
-      maxWidth: "70%",
+      paddingBottom: 44,
+      maxWidth: "68%",
     },
     heroHello: {
       fontFamily: fonts.serif,
