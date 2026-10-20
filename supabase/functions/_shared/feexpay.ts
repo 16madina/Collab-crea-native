@@ -2,6 +2,9 @@
 // Secrets à définir dans Supabase > Edge Functions > Secrets :
 //   FEEXPAY_API_KEY   clé privée (fp_…) — tableau de bord FeexPay > Développeurs
 //   FEEXPAY_SHOP_ID   identifiant de la boutique — tableau de bord FeexPay > Développeurs
+//   FEEXPAY_RELAY_URL / FEEXPAY_RELAY_SECRET  relais à IP fixe (3.98.166.221, partagé avec Kotiz) pour les
+//                     virements : FeexPay n'accepte les payouts que depuis une IP de sa « Liste des IP »,
+//                     et les fonctions Supabase n'ont pas d'IP fixe. Sans ces deux secrets : appel direct.
 // FeexPay ne signe pas ses webhooks : on relit donc toujours le statut chez FeexPay avant de valider.
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { brandTotal } from "./fedapay.ts";
@@ -68,6 +71,19 @@ export const PAYOUT_NETWORKS: Record<string, string> = { wave: "wave_ci", orange
 /** Frais de retrait affichés au créateur dans l'app (« ~2 % ») : on vire le montant net. */
 export const payoutNet = (amount: number) => amount - Math.round(amount * 0.02);
 
+/**
+ * Adresse et en-têtes pour les virements (payouts) : via le relais à IP fixe s'il est configuré
+ * (en-tête X-Kotiz-Relay exigé par le relais), sinon directement chez FeexPay.
+ * Les paiements entrants n'en ont pas besoin.
+ */
+const payoutApi = () => {
+  const { shop, headers } = feexpayConfig();
+  const relay = (Deno.env.get("FEEXPAY_RELAY_URL") ?? "").trim().replace(/\/+$/, "");
+  const secret = (Deno.env.get("FEEXPAY_RELAY_SECRET") ?? "").trim();
+  if (relay && secret) return { shop, base: `${relay}/api`, headers: { ...headers, "X-Kotiz-Relay": secret } };
+  return { shop, base: FEEXPAY_API, headers };
+};
+
 /** FeexPay a explicitement refusé le virement (aucun argent n'est parti). */
 export class PayoutRefused extends Error {}
 
@@ -84,8 +100,8 @@ const readJson = async (res: Response): Promise<Record<string, unknown>> => {
 
 /** Envoie un virement FeexPay. Renvoie la réponse brute (reference, status…) ou lève une erreur lisible. */
 export async function sendPayout(p: { phoneNumber: string; amount: number; network: string }) {
-  const { shop, headers } = feexpayConfig();
-  const res = await fetch(`${FEEXPAY_API}/payouts/public/${p.network}`, {
+  const { shop, base, headers } = payoutApi();
+  const res = await fetch(`${base}/payouts/public/${p.network}`, {
     method: "POST",
     headers,
     body: JSON.stringify({ phoneNumber: Number(p.phoneNumber), amount: p.amount, shop, motif: "Collab Crea retrait" }),
@@ -97,6 +113,8 @@ export async function sendPayout(p: { phoneNumber: string; amount: number; netwo
     if (res.status >= 500) throw new Error(`FeexPay indisponible (${res.status})`);
     const raw = JSON.stringify(body).toLowerCase();
     if (raw.includes("solde") || raw.includes("balance") || raw.includes("insufficient")) throw new PayoutRefused("Solde FeexPay insuffisant pour ce virement");
+    if (raw.includes("ip_not_allowed") || res.status === 403)
+      throw new PayoutRefused("FeexPay refuse l'adresse IP d'envoi : vérifier le relais et la « Liste des IP » FeexPay");
     throw new PayoutRefused(String(body.message || `FeexPay a refusé le virement (${res.status})`));
   }
   return body as PayoutStatus;
@@ -104,7 +122,8 @@ export async function sendPayout(p: { phoneNumber: string; amount: number; netwo
 
 /** Relit le statut d'un virement chez FeexPay. */
 export async function fetchPayoutStatus(reference: string): Promise<PayoutStatus> {
-  const res = await fetch(`${FEEXPAY_API}/payouts/status/public/${encodeURIComponent(reference)}`, { headers: feexpayConfig().headers });
+  const { base, headers } = payoutApi();
+  const res = await fetch(`${base}/payouts/status/public/${encodeURIComponent(reference)}`, { headers });
   const body = await readJson(res);
   if (!res.ok) throw new Error(`Virement FeexPay introuvable (${res.status})`);
   return body as PayoutStatus;

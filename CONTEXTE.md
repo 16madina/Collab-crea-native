@@ -81,6 +81,13 @@ npx expo lint        # lint
   claire de FeexPay, le retrait reste « en cours » (pas de recrédit, pour ne jamais payer deux fois) : bouton
   « Vérifier le virement FeexPay » + `feexpay-webhook` (reconnaît le virement par sa référence). Migration
   `20261016000000_feexpay_payouts.sql`. Le virement part du **solde FeexPay** : il doit être suffisant.
+  **Relais à IP fixe pour les virements** : FeexPay refuse les payouts en Production depuis une IP absente de
+  sa « Liste des IP » (IP_NOT_ALLOWED), et les fonctions Supabase n'ont pas d'IP fixe. Les appels
+  `/payouts/*` passent donc par le relais partagé avec Kotiz (AWS Lightsail « kotiz-relay », IP
+  3.98.166.221, `https://3-98-166-221.sslip.io`, en-tête `X-Kotiz-Relay`) dès que les secrets
+  `FEEXPAY_RELAY_URL` et `FEEXPAY_RELAY_SECRET` existent ; sinon appel direct. Paiements entrants : en direct.
+  L'IP 3.98.166.221 doit être dans la « Liste des IP » (Production) du compte FeexPay de Collab Créa.
+  Orange Money CI : pas de virements possibles chez FeexPay (paiements entrants OK).
 - **Paiement par carte via Stripe Checkout** (compte Stripe « CollabCrea », live, solde en CAD) : fonctions
   `stripe-collab-payment` (page de paiement Stripe en EUR ou USD : montant FCFA +10 % +5 % converti au taux fixe
   655,957 / 600, identique à l'app), `stripe-collab-verify` et `stripe-webhook` (destination Stripe
