@@ -59,3 +59,6 @@ verify_jwt = false
 
 [functions.feexpay-payout]
 verify_jwt = false
+
+[functions.feexpay-webhook]
+verify_jwt = false
