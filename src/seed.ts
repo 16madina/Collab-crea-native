@@ -10,27 +10,26 @@ export const ADMIN_ID = "u_admin";
 
 const TAGS: Record<string, string> = {"u_aicha": "Lifestyle", "u_moussa": "Gaming", "u_fatou": "Beauté", "u_kofi": "Lifestyle", "u_amina": "Lifestyle", "u_yao": "Lifestyle", "u_nadia": "Voyage", "u_ibrahim": "Lifestyle", "u_awa": "Mode", "u_chidi": "Business", "u_esther": "Lifestyle"};
 
-// Portraits issus des maquettes (embarqués, visibles même hors ligne).
-const FACE = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) =>
-  [
-    require("../assets/creators/c0.jpg"),
-    require("../assets/creators/c1.jpg"),
-    require("../assets/creators/c2.jpg"),
-    require("../assets/creators/c3.jpg"),
-    require("../assets/creators/c4.jpg"),
-    require("../assets/creators/c5.jpg"),
-    require("../assets/creators/c6.jpg"),
-    require("../assets/creators/c7.jpg"),
-    require("../assets/creators/c8.jpg"),
-  ][i],
-);
-const FACE_OF: Record<string, number> = { u_aicha: 8, u_moussa: 4, u_fatou: 1, u_kofi: 0, u_amina: 3, u_yao: 6, u_nadia: 5, u_ibrahim: 4, u_awa: 2, u_chidi: 6, u_esther: 7 };
+// Portrait réaliste propre à chaque profil fictif (généré avec Grok, assets/creators/<prénom>.jpg).
+const FACE_OF: Record<string, number> = {
+  u_aicha: require("../assets/creators/aicha.jpg"),
+  u_kofi: require("../assets/creators/kofi.jpg"),
+  u_awa: require("../assets/creators/awa.jpg"),
+  u_chidi: require("../assets/creators/chidi.jpg"),
+  u_fatou: require("../assets/creators/fatou.jpg"),
+  u_moussa: require("../assets/creators/moussa.jpg"),
+  u_nadia: require("../assets/creators/nadia.jpg"),
+  u_amina: require("../assets/creators/amina.jpg"),
+  u_yao: require("../assets/creators/yao.jpg"),
+  u_ibrahim: require("../assets/creators/ibrahim.jpg"),
+  u_esther: require("../assets/creators/esther.jpg"),
+};
 
 const creator = (user_id: string, full_name: string, avatar: string, category: string, country: string, followers: Profile["followers"], extra: Partial<Profile> = {}): Profile => ({
   user_id,
   role: "creator",
   full_name,
-  avatar_url: FACE_OF[user_id] !== undefined ? FACE[FACE_OF[user_id]] : u(avatar, 400),
+  avatar_url: FACE_OF[user_id] ?? u(avatar, 400),
   category,
   country,
   residence_country: country,
